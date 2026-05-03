@@ -1,6 +1,11 @@
+import { RefObject } from "react";
 
+interface StatsSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
 
-export default function StatsSection({ inViewRef, isVisible }) {
+export default function StatsSection({ inViewRef, isVisible }: StatsSectionProps) {
   return (
     <section
       ref={inViewRef}

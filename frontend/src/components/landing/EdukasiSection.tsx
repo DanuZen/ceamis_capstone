@@ -1,4 +1,5 @@
 import { Eye, PiggyBank, ShieldAlert, GraduationCap } from "lucide-react";
+import { RefObject } from "react";
 
 const EDUKASI_POINTS = [
   {
@@ -35,7 +36,12 @@ const EDUKASI_POINTS = [
   },
 ];
 
-export default function EdukasiSection({ inViewRef, isVisible }) {
+interface EdukasiSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
+
+export default function EdukasiSection({ inViewRef, isVisible }: EdukasiSectionProps) {
   return (
     <section
       ref={inViewRef}

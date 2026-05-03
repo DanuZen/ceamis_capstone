@@ -1,4 +1,5 @@
 import { Wallet, Sparkles, Trophy, Flame, Bot, BookOpen } from "lucide-react";
+import { RefObject } from "react";
 
 const FEATURES = [
   {
@@ -39,7 +40,12 @@ const FEATURES = [
   },
 ];
 
-export default function FeaturesSection({ inViewRef, isVisible }) {
+interface FeaturesSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
+
+export default function FeaturesSection({ inViewRef, isVisible }: FeaturesSectionProps) {
   return (
     <section
       id="fitur"

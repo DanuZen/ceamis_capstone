@@ -1,6 +1,11 @@
+import { RefObject } from "react";
 
+interface LandingFooterProps {
+  inViewRef?: RefObject<HTMLElement>;
+  isVisible?: boolean;
+}
 
-export default function LandingFooter({ inViewRef, isVisible }) {
+export default function LandingFooter({ inViewRef, isVisible }: LandingFooterProps) {
   return (
     <footer className="landing-footer">
       <div className="landing-footer__inner">

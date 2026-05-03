@@ -1,8 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Zap, TrendingUp, Target } from "lucide-react";
+import { RefObject } from "react";
 
-export default function HeroSection({ inViewRef, isVisible }) {
+interface HeroSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
+
+export default function HeroSection({ inViewRef, isVisible }: HeroSectionProps) {
   return (
     <section
       ref={inViewRef}

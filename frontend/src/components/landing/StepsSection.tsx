@@ -1,4 +1,5 @@
 import { UserPlus, PenLine, BrainCircuit, Rocket } from "lucide-react";
+import { RefObject } from "react";
 
 const STEPS = [
   { num: "01", title: "Daftar Akun", desc: "Buat akun gratis dalam 30 detik. Tanpa ribet, tanpa kartu kredit.", icon: UserPlus, color: "purple" },
@@ -7,7 +8,12 @@ const STEPS = [
   { num: "04", title: "Level Up!", desc: "Kumpulkan streak, badge, dan naik peringkat di leaderboard!", icon: Rocket, color: "purple" },
 ];
 
-export default function StepsSection({ inViewRef, isVisible }) {
+interface StepsSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
+
+export default function StepsSection({ inViewRef, isVisible }: StepsSectionProps) {
   return (
     <section
       ref={inViewRef}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, RefObject } from "react";
 
 const LEADERBOARD_DATA = [
   { rank: 1, name: "Rina S.", streak: 45, badge: 12, score: 9800, medal: "gold" },
@@ -8,7 +8,12 @@ const LEADERBOARD_DATA = [
   { rank: 5, name: "Dina W.", streak: 25, badge: 6, score: 5890, medal: "" },
 ];
 
-export default function LeaderboardSection({ inViewRef, isVisible }) {
+interface LeaderboardSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
+
+export default function LeaderboardSection({ inViewRef, isVisible }: LeaderboardSectionProps) {
   return (
     <section
       ref={inViewRef}

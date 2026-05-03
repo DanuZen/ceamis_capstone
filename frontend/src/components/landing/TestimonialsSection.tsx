@@ -1,3 +1,5 @@
+import { RefObject } from "react";
+
 const TESTIMONIALS = [
   { 
     text: "Sumpah, AI-nya jujur banget pas ngeroasting pengeluaran kopi gue. Sekarang tabungan gue jadi lebih sehat!", 
@@ -19,7 +21,12 @@ const TESTIMONIALS = [
   },
 ];
 
-export default function TestimonialsSection({ inViewRef, isVisible }) {
+interface TestimonialsSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
+
+export default function TestimonialsSection({ inViewRef, isVisible }: TestimonialsSectionProps) {
   return (
     <section
       ref={inViewRef}

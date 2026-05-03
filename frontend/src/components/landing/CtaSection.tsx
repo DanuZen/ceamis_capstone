@@ -1,6 +1,12 @@
 import Link from "next/link";
+import { RefObject } from "react";
 
-export default function CtaSection({ inViewRef, isVisible }) {
+interface CtaSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
+
+export default function CtaSection({ inViewRef, isVisible }: CtaSectionProps) {
   return (
     <section
       ref={inViewRef}

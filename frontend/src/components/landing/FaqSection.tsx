@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, RefObject } from "react";
 
 const FAQ_DATA = [
   { 
@@ -15,7 +15,12 @@ const FAQ_DATA = [
   },
 ];
 
-export default function FaqSection({ inViewRef, isVisible }) {
+interface FaqSectionProps {
+  inViewRef: RefObject<HTMLElement>;
+  isVisible: boolean;
+}
+
+export default function FaqSection({ inViewRef, isVisible }: FaqSectionProps) {
   return (
     <section
       ref={inViewRef}
