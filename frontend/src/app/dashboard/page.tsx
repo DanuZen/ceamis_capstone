@@ -108,7 +108,7 @@ export default function DashboardPage() {
       >
         <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-lime)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Flame size={24} color="#0A192F" strokeWidth={2.5} />
+            <Flame size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>5 Hari</div>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
         
         <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-purple)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Wallet size={24} color="#F8FAFC" strokeWidth={2.5} />
+            <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp 2.4jt</div>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
 
         <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-orange)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Target size={24} color="#0A192F" strokeWidth={2.5} />
+            <Target size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>78/100</div>
@@ -138,7 +138,7 @@ export default function DashboardPage() {
 
         <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-white)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Trophy size={24} color="#0A192F" strokeWidth={2.5} />
+            <Trophy size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>#3</div>

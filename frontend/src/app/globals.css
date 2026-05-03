@@ -8,15 +8,15 @@
 :root {
   /* ── Brand Colors (CEAMIS Dark Tech Palette) ── */
   --color-navy: #0A192F;
-  --color-purple: #6236FF;
-  --color-lime: #CCFF00;
-  --color-orange: #FF5733;
+  --color-purple: #5833EE;
+  --color-lime: #B8FF00;
+  --color-orange: #FF5233;
   --color-pink: #FF3366;
-  --color-white: #F8FAFC;
+  --color-white: #FFFFFF;
 
   --color-primary: var(--color-purple);
-  --color-primary-hover: #5027E6;
-  --color-primary-light: rgba(98, 54, 255, 0.15);
+  --color-primary-hover: #4726C9;
+  --color-primary-light: rgba(88, 51, 238, 0.1);
 
   /* ── Status Colors ── */
   --color-success: var(--color-lime);
@@ -25,7 +25,7 @@
   --color-info: #3B82F6;
 
   /* ── Surface & Background ── */
-  --color-bg: #ffffff;
+  --color-bg: #F1F5F9;
   --color-surface: var(--color-white);
   --color-surface-elevated: #FFFFFF;
 

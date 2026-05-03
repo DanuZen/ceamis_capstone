@@ -1,4 +1,4 @@
-import { Search, Bell, Settings, Calendar, Star, Flame } from "lucide-react";
+import { Search, Calendar, Star, Flame } from "lucide-react";
 
 export default function Navbar() {
   const today = new Date().toLocaleDateString("id-ID", { 
@@ -82,21 +82,8 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <button
-            className="btn-brutal btn-brutal--secondary btn-brutal--sm"
-            style={{ width: "40px", height: "40px", padding: 0, borderRadius: "50%", background: "var(--color-white)" }}
-          >
-            <Bell size={20} />
-          </button>
-          
-          <button
-            className="btn-brutal btn-brutal--secondary btn-brutal--sm"
-            style={{ width: "40px", height: "40px", padding: 0, borderRadius: "50%", background: "var(--color-white)" }}
-          >
-            <Settings size={20} />
-          </button>
-        </div>
+        {/* Notification and Settings moved to Sidebar */}
+
 
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", borderLeft: "2px solid var(--color-border-light)", paddingLeft: "1.25rem" }}>
           <div style={{ textAlign: "right", display: "none lg:block" }}>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -11,7 +12,9 @@ import {
   Bot, 
   BookOpen,
   LogOut,
-  Home
+  Home,
+  Bell,
+  Settings
 } from "lucide-react";
 
 const navItems = [
@@ -26,6 +29,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
 
   return (
     <aside className="sidebar">
@@ -97,14 +101,104 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="sidebar__footer" style={{ padding: "1.5rem", borderTop: "2px dashed rgba(248, 250, 252, 0.1)" }}>
-        <button 
-          className="btn-brutal btn-brutal--ghost" 
-          style={{ width: "100%", justifyContent: "flex-start", padding: "0.75rem 1rem", color: "var(--color-orange)", gap: "1rem", fontWeight: 800 }}
-        >
-          <LogOut size={20} />
-          <span>Keluar</span>
-        </button>
+      <div className="sidebar__footer" style={{ padding: "1.5rem", borderTop: "2px dashed rgba(248, 250, 252, 0.1)", position: "relative" }}>
+        {/* Floating Label */}
+        <div style={{ 
+          position: "absolute", 
+          top: "-15px", 
+          left: "50%", 
+          transform: "translateX(-50%)",
+          background: "var(--color-navy)",
+          color: "var(--color-white)",
+          padding: "0.25rem 0.75rem",
+          borderRadius: "var(--radius-brutal-sm)",
+          fontSize: "0.7rem",
+          fontWeight: 900,
+          textTransform: "uppercase",
+          letterSpacing: "1px",
+          border: "2px solid var(--color-white)",
+          boxShadow: "2px 2px 0px var(--color-navy)",
+          opacity: hoveredLabel ? 1 : 0,
+          visibility: hoveredLabel ? "visible" : "hidden",
+          transition: "all 0.2s",
+          pointerEvents: "none",
+          display: "flex",
+          alignItems: "center",
+          whiteSpace: "nowrap"
+        }}>
+          {hoveredLabel}
+        </div>
+
+        <div style={{ display: "flex", gap: "1rem", justifyContent: "center", marginTop: "0.5rem" }}>
+          <Link href="/dashboard/notifications" 
+            onMouseEnter={() => setHoveredLabel("Notifikasi")} 
+            onMouseLeave={() => setHoveredLabel(null)}
+          >
+            <button 
+              className="btn-brutal" 
+              style={{ 
+                width: "48px", 
+                height: "48px", 
+                padding: 0, 
+                borderRadius: "50%", 
+                background: "var(--color-white)", 
+                border: "3px solid var(--color-navy)",
+                boxShadow: "3px 3px 0px var(--color-purple)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <Bell size={22} color="var(--color-navy)" strokeWidth={2.5} />
+            </button>
+          </Link>
+          
+          <Link href="/dashboard/settings"
+            onMouseEnter={() => setHoveredLabel("Pengaturan")} 
+            onMouseLeave={() => setHoveredLabel(null)}
+          >
+            <button 
+              className="btn-brutal" 
+              style={{ 
+                width: "48px", 
+                height: "48px", 
+                padding: 0, 
+                borderRadius: "50%", 
+                background: "var(--color-white)", 
+                border: "3px solid var(--color-navy)",
+                boxShadow: "3px 3px 0px var(--color-lime)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <Settings size={22} color="var(--color-navy)" strokeWidth={2.5} />
+            </button>
+          </Link>
+
+          <Link href="/"
+            onMouseEnter={() => setHoveredLabel("Keluar")} 
+            onMouseLeave={() => setHoveredLabel(null)}
+          >
+            <button 
+              className="btn-brutal" 
+              style={{ 
+                width: "48px", 
+                height: "48px", 
+                padding: 0, 
+                borderRadius: "50%", 
+                background: "var(--color-orange)", 
+                border: "3px solid var(--color-navy)",
+                boxShadow: "3px 3px 0px var(--color-white)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <LogOut size={22} color="var(--color-navy)" strokeWidth={2.5} />
+            </button>
+          </Link>
+        </div>
       </div>
     </aside>
   );
