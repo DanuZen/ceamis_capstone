@@ -9,11 +9,12 @@
   height: 100vh;
   background: var(--color-navy);
   color: var(--color-text-inverse);
-  border-right: var(--border-width) solid var(--color-border);
+  border-right: 4px solid rgba(255,255,255,0.1);
   display: flex;
   flex-direction: column;
   z-index: 50;
   overflow-y: auto;
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sidebar__logo {
@@ -93,7 +94,7 @@
    ═══════════════════════════════════════════════ */
 .navbar {
   height: var(--navbar-height);
-  background: var(--color-white);
+  background: var(--color-lime);
   border-bottom: 4px solid var(--color-navy);
   display: flex;
   align-items: center;
@@ -150,6 +151,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .dashboard-main {
@@ -298,5 +300,30 @@
 .btn-brutal:active {
   transform: translate(0, 0);
   box-shadow: none;
+}
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR COLLAPSED LOGIC
+   ═══════════════════════════════════════════════ */
+.dashboard-layout--collapsed .sidebar {
+  width: var(--sidebar-collapsed);
+}
+
+.dashboard-layout--collapsed .dashboard-content {
+  margin-left: var(--sidebar-collapsed);
+}
+
+.dashboard-layout--collapsed .sidebar-text {
+  display: none !important;
+}
+
+.dashboard-layout--collapsed .sidebar__link {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.dashboard-layout--collapsed .sidebar__footer button {
+  padding: 0.75rem;
+  justify-content: center;
 }
 

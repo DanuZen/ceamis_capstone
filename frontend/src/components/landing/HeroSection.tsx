@@ -29,8 +29,8 @@ export default function HeroSection({ inViewRef, isVisible }: HeroSectionProps) 
             CEAMIS bantu Gen-Z Indonesia catat keuangan dengan cara yang fun — AI insight, gamifikasi seru, dan notifikasi sarkas yang bikin kamu mikir dua kali sebelum checkout!
           </p>
           <div className="landing-hero__actions">
-            <Link href="/auth" className="btn-brutal btn-brutal--primary btn-brutal--lg">
-              Mulai Sekarang — Gratis!
+            <Link href="/onboarding" className="btn-brutal btn-brutal--primary btn-brutal--lg">
+              Kelola Uangmu — Gratis!
             </Link>
             <Link href="#fitur" className="btn-brutal btn-brutal--secondary btn-brutal--lg">
               Lihat Fitur

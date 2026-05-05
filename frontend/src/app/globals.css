@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
+/* ── CEAMIS Imports ── */
+@import "../styles/components.css";
+@import "../styles/dashboard.css";
+@import "../styles/landing.css";
 /* ═══════════════════════════════════════════════
    CEAMIS — Neo-Brutalism Game Theme
    Inspired by Saweria.co
@@ -64,6 +68,17 @@
   box-sizing: border-box;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
@@ -87,11 +102,6 @@ a {
   text-decoration: none;
 }
 
-
-/* ── CEAMIS Imports ── */
-@import "../styles/components.css";
-@import "../styles/dashboard.css";
-@import "../styles/landing.css";
 
 /* ═══════════════════════════════════════════════
    ANIMATIONS

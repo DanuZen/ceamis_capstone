@@ -4,14 +4,15 @@ import Link from "next/link";
 import { 
   Wallet, 
   Sparkles, 
-  Trophy, 
+  User, 
   Flame, 
   Bot, 
   BookOpen,
   ArrowRight,
   ShieldAlert,
   TrendingUp,
-  Target
+  Target,
+  BarChart3
 } from "lucide-react";
 
 const featureCards = [
@@ -30,32 +31,32 @@ const featureCards = [
     icon: Sparkles
   },
   {
-    href: "/dashboard/gamification",
-    title: "Gamifikasi",
-    desc: "Streak, Badge, dan Leaderboard. Makin rajin, makin banyak reward!",
-    color: "orange",
-    icon: Trophy
-  },
-  {
     href: "/dashboard/warnings",
     title: "Warning System",
     desc: "Notifikasi sarkas kalau kebanyakan impulsif. Dijamin mikir dua kali!",
-    color: "purple",
+    color: "orange",
     icon: Flame
   },
   {
     href: "/dashboard/chatbot",
     title: "Chatbot AI",
     desc: "Konsultasi keuangan dengan chatbot yang paham bahasa Gen-Z.",
-    color: "lime",
+    color: "purple",
     icon: Bot
   },
   {
     href: "/dashboard/education",
     title: "Edukasi Adaptif",
     desc: "Materi finansial yang menyesuaikan kebutuhan dan level kamu.",
-    color: "orange",
+    color: "lime",
     icon: BookOpen
+  },
+  {
+    href: "/dashboard/profile",
+    title: "Profil & Pencapaian",
+    desc: "Lihat badge, streak, dan statistik pencapaian finansialmu.",
+    color: "orange",
+    icon: User
   },
 ];
 
@@ -67,18 +68,13 @@ const RECENT_TRANSACTIONS = [
 ];
 
 export default function DashboardPage() {
+  // Dynamic label from AI cluster — will come from API/context
+  const userLabel = "Si Hemat";
+
   return (
     <div style={{ paddingBottom: "2rem" }}>
-      {/* Welcome Section */}
+      {/* Welcome Section — simplified, no duplicate level/streak badges */}
       <div style={{ marginBottom: "2rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <div className="badge-brutal badge-brutal--lime" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.3rem 0.75rem" }}>
-            <Flame size={14} /> Level 12
-          </div>
-          <div className="badge-brutal badge-brutal--purple" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.3rem 0.75rem" }}>
-            <TrendingUp size={14} /> 5 Hari Streak
-          </div>
-        </div>
         <h1
           style={{
             fontFamily: "var(--font-heading)",
@@ -89,10 +85,13 @@ export default function DashboardPage() {
             color: "var(--color-navy)"
           }}
         >
-          Halo, <span style={{ color: "var(--color-purple)" }}>Pejuang Finansial!</span>
+          Halo, <span style={{ color: "var(--color-purple)" }}>Danu Zen!</span>
         </h1>
-        <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", maxWidth: "600px" }}>
-          Selamat datang kembali di dashboard CEAMIS. Siap untuk mengontrol impuls belanja dan level up keuanganmu hari ini?
+        <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", maxWidth: "600px", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          Siap untuk mengontrol keuanganmu hari ini?
+          <span className="badge-brutal badge-brutal--lime" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.6rem", fontSize: "0.75rem" }}>
+            {userLabel}
+          </span>
         </p>
       </div>
 
@@ -138,11 +137,11 @@ export default function DashboardPage() {
 
         <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-white)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Trophy size={24} color="var(--color-navy)" strokeWidth={2.5} />
+            <BarChart3 size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>#3</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Ranking Global</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>42</div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Transaksi Bulan Ini</div>
           </div>
         </div>
       </div>
