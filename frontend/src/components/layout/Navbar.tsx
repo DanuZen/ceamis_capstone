@@ -6,6 +6,7 @@ import {
   User, LogOut, Target, Users, Zap, PanelLeft
 } from "lucide-react";
 import Link from "next/link";
+import { useUser } from "@/context/UserContext";
 
 interface NavbarProps {
   toggleSidebar?: () => void;
@@ -39,8 +40,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
     day: 'numeric' 
   });
 
-  // Dynamic label from AI cluster — will come from API/context
-  const userLabel = "Si Hemat";
+  const { userData } = useUser();
 
   return (
     <header className="navbar">
@@ -202,22 +202,22 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
             {/* Level & Progress */}
             <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", width: "90px", paddingRight: "0.75rem", borderRight: "2px dashed rgba(0,0,0,0.15)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.65rem", fontWeight: 800 }}>
-                <span style={{ color: "var(--color-navy)" }}>LVL 7</span>
-                <span style={{ color: "var(--color-purple)" }}>65%</span>
+                <span style={{ color: "var(--color-navy)" }}>LVL {userData.level}</span>
+                <span style={{ color: "var(--color-purple)" }}>{Math.round((userData.xp / (userData.level * 1000)) * 100)}%</span>
               </div>
               <div style={{ width: "100%", height: "6px", background: "var(--color-bg)", borderRadius: "100px", border: "1.5px solid var(--color-navy)", overflow: "hidden" }}>
-                <div style={{ width: "65%", height: "100%", background: "var(--color-purple)" }}></div>
+                <div style={{ width: `${(userData.xp / (userData.level * 1000)) * 100}%`, height: "100%", background: "var(--color-purple)" }}></div>
               </div>
             </div>
 
             {/* Badge Count */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--color-navy)", paddingRight: "0.75rem", borderRight: "2px dashed rgba(0,0,0,0.15)" }} title="5 Badge Diraih">
-              <Star size={14} color="var(--color-orange)" strokeWidth={2.5} fill="var(--color-orange)" /> 5
+            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--color-navy)", paddingRight: "0.75rem", borderRight: "2px dashed rgba(0,0,0,0.15)" }} title={`${userData.unlockedBadges?.length || 0} Badge Diraih`}>
+              <Star size={14} color="var(--color-orange)" strokeWidth={2.5} fill="var(--color-orange)" /> {userData.unlockedBadges?.length || 0}
             </div>
 
             {/* Streak Indicator */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--color-navy)" }} title="5 Hari Streak">
-              <Flame size={14} color="var(--color-danger, #e74c3c)" strokeWidth={2.5} fill="var(--color-danger, #e74c3c)" /> 5
+            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--color-navy)" }} title={`${userData.streak} Hari Streak`}>
+              <Flame size={14} color="var(--color-danger, #e74c3c)" strokeWidth={2.5} fill="var(--color-danger, #e74c3c)" /> {userData.streak}
             </div>
           </div>
 
@@ -234,15 +234,19 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
               transition: "all 0.1s ease"
             }}>
               <div style={{ textAlign: "right", color: showProfileMenu ? "var(--color-white)" : "inherit" }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 800, color: showProfileMenu ? "var(--color-white)" : "var(--color-navy)", lineHeight: "1.2" }}>Danu Zen</div>
-                <div style={{ fontSize: "0.65rem", fontWeight: 800, color: showProfileMenu ? "var(--color-lime)" : "var(--color-text-muted)" }}>{userLabel}</div>
+                <div style={{ fontSize: "0.85rem", fontWeight: 800, color: showProfileMenu ? "var(--color-white)" : "var(--color-navy)", lineHeight: "1.2" }}>{userData.name.split(" ")[0]}</div>
+                <div style={{ fontSize: "0.65rem", fontWeight: 800, color: showProfileMenu ? "var(--color-lime)" : "var(--color-text-muted)" }}>{userData.label}</div>
               </div>
               <div style={{ 
                 width: "36px", height: "36px", background: "var(--color-purple)", color: "var(--color-white)", 
                 fontSize: "0.9rem", fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", 
-                borderRadius: "50%", border: "2px solid var(--color-navy)"
+                borderRadius: "50%", border: "2px solid var(--color-navy)", overflow: "hidden"
               }}>
-                DZ
+                {userData.avatarUrl ? (
+                  <img src={userData.avatarUrl} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  userData.name.substring(0, 2).toUpperCase()
+                )}
               </div>
               <ChevronDown size={16} color={showProfileMenu ? "var(--color-white)" : "var(--color-navy)"} style={{ marginRight: "0.25rem", transform: showProfileMenu ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
             </div>
@@ -259,13 +263,17 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                   <div style={{ 
                     width: "48px", height: "48px", background: "var(--color-purple)", color: "var(--color-white)", 
                     fontSize: "1.2rem", fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", 
-                    borderRadius: "50%", border: "2px solid var(--color-navy)"
+                    borderRadius: "50%", border: "2px solid var(--color-navy)", overflow: "hidden"
                   }}>
-                    DZ
+                    {userData.avatarUrl ? (
+                      <img src={userData.avatarUrl} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      userData.name.substring(0, 2).toUpperCase()
+                    )}
                   </div>
                   <div>
-                    <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-navy)", lineHeight: 1.2 }}>Danu Zen</div>
-                    <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-muted)" }}>danu.zen@example.com</div>
+                    <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-navy)", lineHeight: 1.2 }}>{userData.name}</div>
+                    <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-muted)" }}>{userData.email}</div>
                   </div>
                 </div>
 
@@ -274,11 +282,11 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                   <div style={{ flex: 1, padding: "0.75rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
                     <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--color-text-muted)", marginBottom: "0.2rem" }}>EXP Progress</div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-                      <span style={{ fontSize: "0.8rem", fontWeight: 900, color: "var(--color-navy)" }}>LVL 7</span>
-                      <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-purple)" }}>1,250/2,000 XP</span>
+                      <span style={{ fontSize: "0.8rem", fontWeight: 900, color: "var(--color-navy)" }}>LVL {userData.level}</span>
+                      <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-purple)" }}>{userData.xp}/{userData.level * 1000} XP</span>
                     </div>
                     <div style={{ height: "8px", background: "rgba(0,0,0,0.1)", borderRadius: "100px", border: "1.5px solid var(--color-navy)", overflow: "hidden" }}>
-                      <div style={{ width: "65%", height: "100%", background: "var(--color-purple)" }} />
+                      <div style={{ width: `${(userData.xp / (userData.level * 1000)) * 100}%`, height: "100%", background: "var(--color-purple)" }} />
                     </div>
                   </div>
                 </div>
@@ -286,7 +294,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                 {/* Badges Summary */}
                 <div style={{ marginBottom: "1.25rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-                    <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>Koleksi Badge (5)</span>
+                    <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>Koleksi Badge ({userData.unlockedBadges?.length || 0})</span>
                     <Link href="/dashboard/profile" onClick={() => setShowProfileMenu(false)} style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-purple)", textDecoration: "none" }}>Lihat Semua</Link>
                   </div>
                   <div style={{ display: "flex", gap: "0.6rem" }}>
@@ -302,13 +310,15 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                         <badge.icon size={20} color="var(--color-navy)" />
                       </div>
                     ))}
-                    <div style={{ 
-                      width: "40px", height: "40px", borderRadius: "50%", background: "var(--color-bg)", 
-                      border: "2px dashed var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)"
-                    }}>
-                      +2
-                    </div>
+                    {userData.unlockedBadges && userData.unlockedBadges.length > 3 && (
+                      <div style={{ 
+                        width: "40px", height: "40px", borderRadius: "50%", background: "var(--color-bg)", 
+                        border: "2px dashed var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)"
+                      }}>
+                        +{userData.unlockedBadges.length - 3}
+                      </div>
+                    )}
                   </div>
                 </div>
 

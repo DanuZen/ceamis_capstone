@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Target, Wallet, ShieldCheck, PiggyBank,
   TrendingUp, ArrowRight, Plus, CheckCircle2,
@@ -10,6 +10,7 @@ import {
   Shield, Laptop, Plane, GraduationCap
 } from "lucide-react";
 import React from "react";
+import { useTransactions } from "@/context/TransactionContext";
 
 // ── Icon Mapping (replaces emojis) ──────────────
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
@@ -53,15 +54,10 @@ interface BudgetCategory {
   icon: string;
 }
 
-const INITIAL_BUDGET: BudgetCategory[] = [
-  { id: "kos", name: "Kos / Kontrakan", type: "needs", allocated: 1200000, spent: 1200000, icon: "home" },
-  { id: "makan", name: "Makan & Minum", type: "needs", allocated: 900000, spent: 750000, icon: "utensils" },
-  { id: "transport", name: "Transportasi", type: "needs", allocated: 400000, spent: 320000, icon: "car" },
-  { id: "pulsa", name: "Pulsa & Internet", type: "needs", allocated: 150000, spent: 150000, icon: "smartphone" },
-  { id: "streaming", name: "Streaming & Hiburan", type: "wants", allocated: 200000, spent: 154000, icon: "tv" },
-  { id: "belanja", name: "Belanja Online", type: "wants", allocated: 300000, spent: 280000, icon: "cart" },
-  { id: "nongkrong", name: "Nongkrong & Kopi", type: "wants", allocated: 250000, spent: 190000, icon: "coffee" },
-  { id: "jajan", name: "Jajan & Cemilan", type: "wants", allocated: 150000, spent: 95000, icon: "candy" },
+const DEFAULT_BUDGET: BudgetCategory[] = [
+  { id: "makan", name: "Makan & Minum", type: "needs", allocated: 0, spent: 0, icon: "utensils" },
+  { id: "transport", name: "Transportasi", type: "needs", allocated: 0, spent: 0, icon: "car" },
+  { id: "hiburan", name: "Hiburan & Keinginan", type: "wants", allocated: 0, spent: 0, icon: "tv" },
 ];
 
 // ── Savings Targets ─────────────────────────────────
@@ -75,11 +71,7 @@ interface SavingsTarget {
   deadline: string;
 }
 
-const INITIAL_TARGETS: SavingsTarget[] = [
-  { id: 1, name: "Dana Darurat", target: 9000000, current: 3200000, icon: "shield", color: "lime", deadline: "Des 2026" },
-  { id: 2, name: "MacBook Baru", target: 15000000, current: 5500000, icon: "laptop", color: "purple", deadline: "Jun 2027" },
-  { id: 3, name: "Liburan Bali", target: 3000000, current: 1800000, icon: "plane", color: "orange", deadline: "Agu 2026" },
-];
+const DEFAULT_TARGETS: SavingsTarget[] = [];
 
 const ICON_OPTIONS = [
   { key: "target", label: "Target" },
@@ -93,15 +85,59 @@ const ICON_OPTIONS = [
 ];
 
 export default function PlanningPage() {
-  const [budget] = useState(INITIAL_BUDGET);
-  const [targets, setTargets] = useState(INITIAL_TARGETS);
+  const { transactions } = useTransactions();
+  const [budget, setBudget] = useState<BudgetCategory[]>([]);
+  const [targets, setTargets] = useState<SavingsTarget[]>([]);
   const [activeView, setActiveView] = useState<"budget" | "targets">("budget");
   const [showAddTarget, setShowAddTarget] = useState(false);
   const [newTarget, setNewTarget] = useState({ name: "", target: "", icon: "target", deadline: "" });
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const income = 4500000;
-  const needsItems = budget.filter(b => b.type === "needs");
-  const wantsItems = budget.filter(b => b.type === "wants");
+  useEffect(() => {
+    const savedBudget = localStorage.getItem("ceamis_budget");
+    const savedTargets = localStorage.getItem("ceamis_targets");
+    if (savedBudget) {
+      setBudget(JSON.parse(savedBudget));
+    } else {
+      setBudget(DEFAULT_BUDGET);
+    }
+    if (savedTargets) {
+      setTargets(JSON.parse(savedTargets));
+    } else {
+      setTargets(DEFAULT_TARGETS);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("ceamis_budget", JSON.stringify(budget));
+      localStorage.setItem("ceamis_targets", JSON.stringify(targets));
+    }
+  }, [budget, targets, isLoaded]);
+
+  // Calculate dynamic spending from transactions
+  const today = new Date();
+  const currentMonthStr = today.toLocaleDateString("id-ID", { month: "short" });
+  const currentYearStr = today.getFullYear().toString();
+  
+  const filteredTransactions = transactions.filter(tx => {
+    return tx.date.includes(currentMonthStr) && tx.date.includes(currentYearStr);
+  });
+
+  const dynamicIncome = filteredTransactions.filter(tx => tx.type === "pemasukan").reduce((sum, tx) => sum + tx.amount, 0);
+  const income = dynamicIncome > 0 ? dynamicIncome : 4500000; // Use actual income, fallback to 4.5M if 0 to prevent NaN
+
+  const budgetWithSpent = budget.map(b => {
+    // Match transactions by category name (case-insensitive partial match for robustness)
+    const spent = filteredTransactions
+      .filter(tx => tx.type === "pengeluaran" && tx.category.toLowerCase().includes(b.name.split(" ")[0].toLowerCase()))
+      .reduce((sum, tx) => sum + tx.amount, 0);
+    return { ...b, spent };
+  });
+
+  const needsItems = budgetWithSpent.filter(b => b.type === "needs");
+  const wantsItems = budgetWithSpent.filter(b => b.type === "wants");
   const totalNeeds = needsItems.reduce((s, b) => s + b.allocated, 0);
   const totalWants = wantsItems.reduce((s, b) => s + b.allocated, 0);
   const totalSpentNeeds = needsItems.reduce((s, b) => s + b.spent, 0);
@@ -129,10 +165,23 @@ export default function PlanningPage() {
 
   const deleteTarget = (id: number) => setTargets(targets.filter(t => t.id !== id));
 
+  const handleUpdateAllocation = (id: string, newAmount: number) => {
+    setBudget(budget.map(b => b.id === id ? { ...b, allocated: newAmount } : b));
+  };
+
   // ── Budget category row ───────────────
   const BudgetRow = ({ item }: { item: BudgetCategory }) => {
-    const pct = Math.round((item.spent / item.allocated) * 100);
-    const isOverBudget = item.spent > item.allocated;
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState(item.allocated.toString());
+
+    const pct = item.allocated > 0 ? Math.round((item.spent / item.allocated) * 100) : 0;
+    const isOverBudget = item.spent > item.allocated && item.allocated > 0;
+
+    const handleSave = () => {
+      handleUpdateAllocation(item.id, parseInt(editValue) || 0);
+      setIsEditing(false);
+    };
+
     return (
       <div style={{
         display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem",
@@ -141,11 +190,29 @@ export default function PlanningPage() {
       }}>
         <IconBox iconKey={item.icon} size={20} bg={item.type === "needs" ? "var(--color-lime)" : "var(--color-orange)"} />
         <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", alignItems: "center" }}>
             <span style={{ fontWeight: 800, fontSize: "0.9375rem" }}>{item.name}</span>
-            <span style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem", color: isOverBudget ? "var(--color-danger, #e74c3c)" : "var(--color-navy)" }}>
-              {formatRp(item.spent)} / {formatRp(item.allocated)}
-            </span>
+            {isEditing ? (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input 
+                  type="number" 
+                  value={editValue} 
+                  onChange={e => setEditValue(e.target.value)}
+                  className="input-brutal"
+                  style={{ width: "100px", padding: "0.2rem 0.5rem", fontSize: "0.8rem", border: "2px solid var(--color-navy)" }}
+                  autoFocus
+                />
+                <button onClick={handleSave} className="btn-brutal" style={{ padding: "0.2rem 0.5rem", background: "var(--color-lime)" }}>OK</button>
+              </div>
+            ) : (
+              <span 
+                onClick={() => setIsEditing(true)}
+                style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem", color: isOverBudget ? "var(--color-danger, #e74c3c)" : "var(--color-navy)", cursor: "pointer", borderBottom: "1px dashed var(--color-navy)" }}
+                title="Klik untuk ubah budget"
+              >
+                {formatRp(item.spent)} / {formatRp(item.allocated)}
+              </span>
+            )}
           </div>
           <div style={{ width: "100%", height: "10px", background: "var(--color-bg)", border: "1.5px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
             <div style={{

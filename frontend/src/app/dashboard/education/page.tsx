@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { BookOpen, Award, PlayCircle, Clock } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 const initialModules = [
   {
@@ -62,6 +63,7 @@ const initialModules = [
 ];
 
 export default function EducationPage() {
+  const { unlockBadge } = useUser();
   const [modules, setModules] = useState(initialModules);
 
   useEffect(() => {
@@ -78,6 +80,12 @@ export default function EducationPage() {
 
   const totalCompleted = modules.filter(m => m.progress === 100).length;
   const overallProgress = Math.round((modules.reduce((acc, m) => acc + m.progress, 0) / (modules.length * 100)) * 100);
+
+  useEffect(() => {
+    if (totalCompleted >= 3) {
+      unlockBadge("Bookworm");
+    }
+  }, [totalCompleted, unlockBadge]);
 
   const getLevelBadge = (level: string) => {
     switch (level) {

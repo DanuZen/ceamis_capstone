@@ -7,35 +7,64 @@ import {
   Filter, BarChart3, ArrowRight, FileSpreadsheet,
   Banknote, Target, Lightbulb
 } from "lucide-react";
+import { useTransactions } from "@/context/TransactionContext";
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
-const CATEGORY_DATA = [
-  { name: "Makanan & Minuman", amount: 850000, percentage: 35, color: "orange" },
-  { name: "Transportasi", amount: 450000, percentage: 18, color: "purple" },
-  { name: "Belanja", amount: 380000, percentage: 16, color: "lime" },
-  { name: "Hiburan", amount: 300000, percentage: 12, color: "pink" },
-  { name: "Kesehatan", amount: 250000, percentage: 10, color: "purple" },
-  { name: "Lainnya", amount: 220000, percentage: 9, color: "orange" },
-];
-
-const MONTHLY_SUMMARY = {
-  income: 4500000,
-  expense: 2450000,
-  savings: 2050000,
-  savingsRate: 45.6,
-  transactions: 42,
-  topCategory: "Makanan & Minuman",
+const CATEGORY_COLORS: Record<string, string> = {
+  "Makanan & Minuman": "orange",
+  "Transportasi": "purple",
+  "Belanja": "lime",
+  "Hiburan": "pink",
+  "Kesehatan": "purple",
+  "Lainnya": "orange",
+  "default": "lime"
 };
 
 export default function ReportsPage() {
-  const [selectedMonth, setSelectedMonth] = useState(4); // May (0-indexed)
-  const [selectedYear] = useState(2026);
+  const { transactions } = useTransactions();
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear] = useState(new Date().getFullYear());
 
   const formatRupiah = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
+
+  // Filter transactions by selected month and year
+  const currentMonthStr = MONTHS[selectedMonth];
+  const currentYearStr = selectedYear.toString();
+  
+  const filteredTransactions = transactions.filter(tx => {
+    return tx.date.includes(currentMonthStr) && tx.date.includes(currentYearStr);
+  });
+
+  const income = filteredTransactions.filter(tx => tx.type === "pemasukan").reduce((sum, tx) => sum + tx.amount, 0);
+  const expense = filteredTransactions.filter(tx => tx.type === "pengeluaran").reduce((sum, tx) => sum + tx.amount, 0);
+  const savings = income - expense;
+  const savingsRate = income > 0 ? ((savings / income) * 100).toFixed(1) : "0";
+
+  // Category breakdown
+  const categoryMap = new Map<string, number>();
+  filteredTransactions.filter(tx => tx.type === "pengeluaran").forEach(tx => {
+    categoryMap.set(tx.category, (categoryMap.get(tx.category) || 0) + tx.amount);
+  });
+
+  const CATEGORY_DATA = Array.from(categoryMap.entries()).map(([name, amount]) => ({
+    name,
+    amount,
+    percentage: expense > 0 ? Math.round((amount / expense) * 100) : 0,
+    color: CATEGORY_COLORS[name] || CATEGORY_COLORS["default"]
+  })).sort((a, b) => b.amount - a.amount);
+
+  const MONTHLY_SUMMARY = {
+    income,
+    expense,
+    savings,
+    savingsRate,
+    transactions: filteredTransactions.length,
+    topCategory: CATEGORY_DATA.length > 0 ? CATEGORY_DATA[0].name : "Belum ada",
+  };
 
   const handleExportExcel = () => {
     const monthName = MONTHS[selectedMonth];
@@ -241,6 +270,11 @@ export default function ReportsPage() {
           </h3>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {CATEGORY_DATA.length === 0 && (
+              <div style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
+                Belum ada pengeluaran di bulan ini.
+              </div>
+            )}
             {CATEGORY_DATA.map((cat) => (
               <div key={cat.name}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
@@ -299,7 +333,7 @@ export default function ReportsPage() {
                 </div>
               </div>
               <div style={{ marginTop: "1rem", padding: "0.75rem", background: "var(--color-bg)", borderRadius: "var(--radius-brutal-sm)", border: "2px dashed var(--color-navy)", fontSize: "0.8rem" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.35rem" }}><Lightbulb size={14} color="var(--color-navy)" style={{ flexShrink: 0, marginTop: "2px" }} /><span><strong>Insight:</strong> Pengeluaran F&B kamu masih yang terbesar ({CATEGORY_DATA[0].percentage}%). Coba kurangi 10% bulan depan ya!</span></div>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.35rem" }}><Lightbulb size={14} color="var(--color-navy)" style={{ flexShrink: 0, marginTop: "2px" }} /><span><strong>Insight:</strong> {CATEGORY_DATA.length > 0 ? `Pengeluaran ${MONTHLY_SUMMARY.topCategory} kamu yang terbesar (${CATEGORY_DATA[0]?.percentage}%). Coba dievaluasi lagi ya!` : `Catat transaksi pertamamu bulan ini!`}</span></div>
               </div>
             </div>
           </div>

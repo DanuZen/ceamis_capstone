@@ -14,6 +14,8 @@ import {
   Target,
   BarChart3
 } from "lucide-react";
+import { useTransactions } from "@/context/TransactionContext";
+import { useUser } from "@/context/UserContext";
 
 const featureCards = [
   {
@@ -60,16 +62,23 @@ const featureCards = [
   },
 ];
 
-const RECENT_TRANSACTIONS = [
-  { id: 1, name: "Kopi Kenangan Mantan", category: "F&B", amount: -25000, date: "Hari ini", type: "expense" },
-  { id: 2, name: "Gaji Freelance", category: "Income", amount: 1500000, date: "Kemarin", type: "income" },
-  { id: 3, name: "Netflix Subscription", category: "Entertainment", amount: -54000, date: "2 Hari lalu", type: "expense" },
-  { id: 4, name: "Topup OVO", category: "Wallet", amount: -100000, date: "2 Hari lalu", type: "expense" },
-];
-
 export default function DashboardPage() {
+  const { transactions } = useTransactions();
+  const { userData } = useUser();
   // Dynamic label from AI cluster — will come from API/context
-  const userLabel = "Si Hemat";
+
+  const totalPemasukan = transactions
+    .filter(tx => tx.type === "pemasukan")
+    .reduce((sum, tx) => sum + tx.amount, 0);
+
+  const totalPengeluaran = transactions
+    .filter(tx => tx.type === "pengeluaran")
+    .reduce((sum, tx) => sum + tx.amount, 0);
+
+  const sisaSaldo = totalPemasukan - totalPengeluaran;
+  
+  // Get recent 4 transactions
+  const recentTransactions = transactions.slice(0, 4);
 
   return (
     <div style={{ paddingBottom: "2rem" }}>
@@ -85,12 +94,12 @@ export default function DashboardPage() {
             color: "var(--color-navy)"
           }}
         >
-          Halo, <span style={{ color: "var(--color-purple)" }}>Danu Zen!</span>
+          Halo, <span style={{ color: "var(--color-purple)" }}>{userData.name.split(" ")[0]}!</span>
         </h1>
         <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", maxWidth: "600px", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           Siap untuk mengontrol keuanganmu hari ini?
           <span className="badge-brutal badge-brutal--lime" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.6rem", fontSize: "0.75rem" }}>
-            {userLabel}
+            {userData.label}
           </span>
         </p>
       </div>
@@ -110,7 +119,7 @@ export default function DashboardPage() {
             <Flame size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>5 Hari</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>{userData.streak} Hari</div>
             <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Streak Aktif</div>
           </div>
         </div>
@@ -120,7 +129,7 @@ export default function DashboardPage() {
             <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp 2.4jt</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp {(sisaSaldo/1000).toLocaleString("id-ID")}k</div>
             <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Saldo Bulan Ini</div>
           </div>
         </div>
@@ -140,7 +149,7 @@ export default function DashboardPage() {
             <BarChart3 size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>42</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>{transactions.length}</div>
             <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Transaksi Bulan Ini</div>
           </div>
         </div>
@@ -230,37 +239,39 @@ export default function DashboardPage() {
             </h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1 }}>
-              {RECENT_TRANSACTIONS.map((trx, i) => (
-                <div key={trx.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "1.25rem", borderBottom: i !== RECENT_TRANSACTIONS.length - 1 ? "2px solid rgba(10, 25, 47, 0.1)" : "none" }}>
+              {recentTransactions.length > 0 ? recentTransactions.map((trx, i) => (
+                <div key={trx.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "1.25rem", borderBottom: i !== recentTransactions.length - 1 ? "2px solid rgba(10, 25, 47, 0.1)" : "none" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                     <div style={{ 
                       width: "44px", 
                       height: "44px", 
                       borderRadius: "var(--radius-brutal-sm)", 
-                      background: trx.type === 'income' ? 'var(--color-lime)' : 'var(--color-orange)',
+                      background: trx.type === 'pemasukan' ? 'var(--color-lime)' : 'var(--color-orange)',
                       border: "2px solid var(--color-navy)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       boxShadow: "2px 2px 0px var(--color-navy)"
                     }}>
-                      {trx.type === 'income' ? <Wallet size={20} color="var(--color-navy)" /> : <ShieldAlert size={20} color="var(--color-navy)" />}
+                      {trx.type === 'pemasukan' ? <Wallet size={20} color="var(--color-navy)" /> : <ShieldAlert size={20} color="var(--color-navy)" />}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--color-navy)" }}>{trx.name}</div>
+                      <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--color-navy)" }}>{trx.desc}</div>
                       <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", marginTop: "0.1rem" }}>{trx.date} • {trx.category}</div>
                     </div>
                   </div>
                   <div style={{ 
                     fontWeight: 800, 
                     fontFamily: "var(--font-heading)",
-                    color: trx.type === 'income' ? 'var(--color-navy)' : 'var(--color-danger)',
+                    color: trx.type === 'pemasukan' ? 'var(--color-navy)' : 'var(--color-danger)',
                     fontSize: "1rem"
                   }}>
-                    {trx.type === 'income' ? '+' : '-'}Rp{(Math.abs(trx.amount)/1000).toLocaleString('id-ID')}k
+                    {trx.type === 'pemasukan' ? '+' : '-'}Rp{(Math.abs(trx.amount)/1000).toLocaleString('id-ID')}k
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.875rem", padding: "1rem" }}>Belum ada aktivitas.</div>
+              )}
             </div>
 
             <Link href="/dashboard/transactions" className="btn-brutal btn-brutal--secondary" style={{ marginTop: "1.5rem", textAlign: "center", display: "block", width: "100%" }}>
