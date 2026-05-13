@@ -1,25 +1,76 @@
-from fastapi import APIRouter
+# app/api/chatbot.py
+from fastapi import APIRouter, HTTPException
 from app.schemas.request_response import ChatRequest, ChatResponse
+from app.utils.prompt_builder import build_system_prompt
+from app.utils.llm_client import call_llm
+from app.utils.safety_filter import (
+    check_message,
+    SENSITIVE_DISCLAIMER
+)
 
 router = APIRouter()
+
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """
-    [MOCK] AI Financial Chatbot.
-    Akan diintegrasikan dengan Anthropic/OpenAI API setelah setup.
+    CAMI — AI Financial Chatbot CEAMIS.
+    Powered by Gemini 1.5 Flash (primary) + Groq Llama 3 (fallback).
     """
 
-    last_message = request.messages[-1].content.lower() if request.messages else ""
+    # ── Validasi request ──────────────────────────────────
+    if not request.messages:
+        raise HTTPException(
+            status_code=400,
+            detail="Messages tidak boleh kosong"
+        )
 
-    # Respons dummy berdasarkan keyword
-    if "hemat" in last_message:
-        reply = "[MOCK] Tips hemat: coba metode 50/30/20 — 50% needs, 30% wants, 20% saving!"
-    elif "investasi" in last_message:
-        reply = "[MOCK] Untuk pemula, reksa dana pasar uang adalah pilihan yang aman dan likuid."
-    elif "hutang" in last_message:
-        reply = "[MOCK] Prioritaskan lunasi hutang dengan bunga tertinggi dulu (metode avalanche)."
-    else:
-        reply = "[MOCK] Halo! Saya CEAMIS AI Assistant. Ada yang bisa saya bantu soal keuanganmu?"
+    last_message = request.messages[-1].content
 
-    return ChatResponse(reply=reply, is_mock=True)
+    if not last_message.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Pesan tidak boleh kosong"
+        )
+
+    # ── Safety check ──────────────────────────────────────
+    safety = check_message(last_message)
+
+    if safety["status"] == "crisis":
+        return ChatResponse(
+            reply    =safety["response"],
+            is_mock  =False,
+            triggered="crisis_filter"
+        )
+
+    if safety["status"] == "off_topic":
+        return ChatResponse(
+            reply    =safety["response"],
+            is_mock  =False,
+            triggered="off_topic_filter"
+        )
+
+    # ── Bangun system prompt ───────────────────────────────
+    ctx = request.financial_context or {}
+    system_prompt = build_system_prompt(ctx)
+
+    # Jika topik sensitif, tambahkan disclaimer ke system prompt
+    if safety["status"] == "sensitive":
+        topic = safety.get("topic", "topik ini")
+        disclaimer = SENSITIVE_DISCLAIMER.format(topic=topic)
+        system_prompt += f"\n\n## DISCLAIMER KHUSUS\n{disclaimer}"
+
+    # ── Format messages history ────────────────────────────
+    messages = [
+        {"role": m.role, "content": m.content}
+        for m in request.messages
+    ]
+
+    # ── Panggil LLM ───────────────────────────────────────
+    reply = await call_llm(system_prompt, messages)
+
+    return ChatResponse(
+        reply    =reply,
+        is_mock  =False,
+        triggered=safety["status"]
+    )
