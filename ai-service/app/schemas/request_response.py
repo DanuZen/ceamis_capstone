@@ -153,30 +153,55 @@ class RecommendationResponse(BaseModel):
 # ═══════════════════════════════════════════════════
 # MODEL 4 — CHATBOT
 # ═══════════════════════════════════════════════════
+# Ganti bagian chatbot schema dengan ini:
+
 class ChatMessage(BaseModel):
-    role: str                         # "user" | "assistant"
+    role: str       # "user" | "assistant"
     content: str
 
 class ChatRequest(BaseModel):
     user_id: str
     messages: List[ChatMessage]
-    financial_context: Optional[dict] = None   # inject kondisi keuangan ke prompt
+    financial_context: Optional[dict] = None
 
     class Config:
         json_schema_extra = {
             "example": {
                 "user_id": "user-123",
                 "messages": [
-                    {"role": "user", "content": "Gimana cara mulai investasi?"}
+                    {
+                        "role"   : "user",
+                        "content": "Gimana kondisi keuangan aku bulan ini?"
+                    }
                 ],
                 "financial_context": {
-                    "health_score": 72.5,
-                    "risk_profile": "moderat",
-                    "current_saving_rate": 0.17
+                    "username"      : "Raka",
+                    "segmen"        : "A",
+                    "health_score"  : 58.5,
+                    "health_label"  : "cukup",
+                    "cluster_label" : "Si Impulsif",
+                    "risk_profile"  : "Optimizer",
+                    "saving_rate"   : 0.12,
+                    "wants_ratio"   : 0.38,
+                    "impulsive_ratio": 0.18,
+                    "budget_adherence": 0.70,
+                    "income_avg"    : 1500000,
+                    "streak_count"  : 5,
+                    "active_goals"  : [
+                        {
+                            "goal_name"    : "Beli Laptop",
+                            "target_amount": 8000000,
+                            "months_left"  : 8
+                        }
+                    ],
+                    "top_cut_categories": ["hiburan", "ngopi"],
+                    "months_to_goal": 11.2,
+                    "gap_rate"      : 0.09
                 }
             }
         }
 
 class ChatResponse(BaseModel):
-    reply: str
-    is_mock: bool = True
+    reply    : str
+    is_mock  : bool = True
+    triggered: Optional[str] = None   # "ok"|"crisis"|"off_topic"|"sensitive"
