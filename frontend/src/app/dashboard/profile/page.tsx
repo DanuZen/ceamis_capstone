@@ -6,17 +6,18 @@ import {
   User, Edit3, Calendar, TrendingUp, Award,
   ChevronRight, CheckCircle2, X, Save, Upload
 } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
-// Badge data — will come from API in production
-const badges = [
-  { icon: Target, name: "First Step", desc: "Catat transaksi pertama", unlocked: true, color: "lime" },
-  { icon: Flame, name: "On Fire!", desc: "Streak 3 hari berturut", unlocked: true, color: "orange" },
-  { icon: Zap, name: "Konsisten", desc: "Streak 7 hari berturut", unlocked: true, color: "purple" },
-  { icon: Trophy, name: "Champion", desc: "Streak 30 hari berturut", unlocked: false, color: "orange" },
-  { icon: Star, name: "AI Explorer", desc: "Baca 5 AI Insight", unlocked: true, color: "lime" },
-  { icon: Medal, name: "Hemat Master", desc: "Kurangi pengeluaran 20%", unlocked: false, color: "purple" },
-  { icon: Star, name: "Bookworm", desc: "Selesaikan 3 modul edukasi", unlocked: false, color: "lime" },
-  { icon: Trophy, name: "Legendary", desc: "Raih semua badge", unlocked: false, color: "orange" },
+// Badge definitions (static metadata)
+const badgeDefinitions = [
+  { id: "First Step", icon: Target, name: "First Step", desc: "Catat transaksi pertama", color: "lime" },
+  { id: "On Fire!", icon: Flame, name: "On Fire!", desc: "Streak 3 hari berturut", color: "orange" },
+  { id: "Konsisten", icon: Zap, name: "Konsisten", desc: "Streak 7 hari berturut", color: "purple" },
+  { id: "Champion", icon: Trophy, name: "Champion", desc: "Streak 30 hari berturut", color: "orange" },
+  { id: "AI Explorer", icon: Star, name: "AI Explorer", desc: "Baca 5 AI Insight", color: "lime" },
+  { id: "Hemat Master", icon: Medal, name: "Hemat Master", desc: "Kurangi pengeluaran 20%", color: "purple" },
+  { id: "Bookworm", icon: Star, name: "Bookworm", desc: "Selesaikan 3 modul edukasi", color: "lime" },
+  { id: "Legendary", icon: Trophy, name: "Legendary", desc: "Raih semua badge", color: "orange" },
 ];
 
 // Stats data
@@ -27,24 +28,15 @@ const stats = [
 ];
 
 export default function ProfilePage() {
+  const { userData, updateUserData } = useUser();
   const [activeTab, setActiveTab] = useState<"badges" | "stats">("badges");
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Dynamic label from AI cluster — placeholder until backend integration
-  const userLabel = "Si Hemat"; // Will come from API/context
-  
-  const [userData, setUserData] = useState({
-    name: "Danu Zen",
-    email: "danuzen@ceamis.id",
-    phone: "081234567890",
-    avatarUrl: ""
-  });
-
   const [editForm, setEditForm] = useState({ ...userData });
 
   const handleSaveProfile = () => {
-    setUserData(editForm);
+    updateUserData(editForm);
     setIsEditing(false);
   };
 
@@ -143,7 +135,7 @@ export default function ProfilePage() {
                   fontSize: "0.8rem",
                 }}
               >
-                <Zap size={14} /> {userLabel}
+                <Zap size={14} /> {userData.label}
               </div>
             </div>
             <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.9375rem", margin: "0 0 1rem 0" }}>
@@ -165,10 +157,10 @@ export default function ProfilePage() {
               >
                 <Zap size={16} color="var(--color-purple)" strokeWidth={3} />
                 <span style={{ color: "var(--color-white)", fontWeight: 800, fontSize: "0.875rem" }}>
-                  Level 7
+                  Level {userData.level}
                 </span>
                 <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", fontWeight: 600 }}>
-                  • 1950/3000 XP
+                  • {userData.xp}/{userData.level * 1000} XP
                 </span>
               </div>
               <div
@@ -184,7 +176,7 @@ export default function ProfilePage() {
               >
                 <Flame size={16} color="var(--color-orange)" strokeWidth={3} />
                 <span style={{ color: "var(--color-white)", fontWeight: 800, fontSize: "0.875rem" }}>
-                  5 Hari Streak
+                  {userData.streak} Hari Streak
                 </span>
               </div>
             </div>
@@ -296,16 +288,16 @@ export default function ProfilePage() {
               className="badge-brutal badge-brutal--orange"
               style={{ padding: "0.3rem 0.75rem", fontSize: "0.875rem" }}
             >
-              5 Hari
+              {userData.streak} Hari
             </span>
           </div>
           <div className="progress-brutal" style={{ height: "28px", border: "3px solid var(--color-navy)" }}>
             <div
               className="progress-brutal__fill"
-              style={{ width: "71%", background: "var(--color-orange)", borderRight: "3px solid var(--color-navy)" }}
+              style={{ width: `${Math.min(100, (userData.streak / 7) * 100)}%`, background: "var(--color-orange)", borderRight: "3px solid var(--color-navy)" }}
             />
             <div className="progress-brutal__label" style={{ fontSize: "0.9375rem", fontWeight: 700 }}>
-              5 / 7 hari (target mingguan)
+              {userData.streak} / 7 hari (target mingguan)
             </div>
           </div>
           <p
@@ -350,19 +342,19 @@ export default function ProfilePage() {
               className="badge-brutal badge-brutal--purple"
               style={{ padding: "0.3rem 0.75rem", fontSize: "0.875rem" }}
             >
-              Level 7
+              Level {userData.level}
             </span>
           </div>
           <div className="progress-brutal" style={{ height: "28px", border: "3px solid var(--color-navy)" }}>
             <div
               className="progress-brutal__fill"
-              style={{ width: "65%", background: "var(--color-purple)", borderRight: "3px solid var(--color-navy)" }}
+              style={{ width: `${(userData.xp / (userData.level * 1000)) * 100}%`, background: "var(--color-purple)", borderRight: "3px solid var(--color-navy)" }}
             />
             <div
               className="progress-brutal__label"
               style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-white)" }}
             >
-              1950 / 3000 XP
+              {userData.xp} / {userData.level * 1000} XP
             </div>
           </div>
           <p
@@ -374,8 +366,8 @@ export default function ProfilePage() {
               margin: "1rem 0 0 0",
             }}
           >
-            Kumpulkan <span style={{ color: "var(--color-orange)", fontWeight: 800 }}>1050 XP</span> lagi untuk mencapai
-            Level 8!
+            Kumpulkan <span style={{ color: "var(--color-orange)", fontWeight: 800 }}>{(userData.level * 1000) - userData.xp} XP</span> lagi untuk mencapai
+            Level {userData.level + 1}!
           </p>
         </div>
       </div>
@@ -421,79 +413,74 @@ export default function ProfilePage() {
       {/* Badge Collection Tab */}
       {activeTab === "badges" && (
         <div>
-          <div
-            className="stagger-children"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: "1.5rem",
-            }}
-          >
-            {badges.map((badge) => (
-              <div
-                key={badge.name}
-                className="card-brutal"
-                style={{
-                  textAlign: "center",
-                  padding: "2rem 1.5rem",
-                  opacity: badge.unlocked ? 1 : 0.6,
-                  filter: badge.unlocked ? "none" : "grayscale(1)",
-                  background: badge.unlocked ? "var(--color-white)" : "var(--color-bg)",
-                  border: "2.5px solid var(--color-navy)",
-                  borderStyle: badge.unlocked ? "solid" : "dashed",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  boxShadow: badge.unlocked ? "4px 4px 0px var(--color-navy)" : "none",
-                  transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                  cursor: "pointer",
-                }}
-              >
+          {/* Badges Info */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
+            <div>
+              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", color: "var(--color-navy)", margin: "0 0 0.5rem 0" }}>Koleksi Badge</h2>
+              <p style={{ color: "var(--color-text-muted)", margin: 0, fontSize: "0.9375rem", fontWeight: 500 }}>
+                Kumpulkan semua badge dengan mencapai target keuanganmu!
+              </p>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 900, color: "var(--color-navy)", lineHeight: 1 }}>
+                {userData.unlockedBadges?.length || 0}<span style={{ fontSize: "1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>/{badgeDefinitions.length}</span>
+              </div>
+              <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--color-purple)", marginTop: "0.25rem" }}>Badge Diraih</div>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
+            {badgeDefinitions.map((badge, idx) => {
+              const isUnlocked = userData.unlockedBadges?.includes(badge.id);
+              return (
                 <div
+                  key={idx}
+                  className="card-brutal"
                   style={{
-                    width: "64px",
-                    height: "64px",
-                    borderRadius: "50%",
-                    background: badge.unlocked ? `var(--color-${badge.color})` : "var(--color-border-light)",
-                    border: "2px solid var(--color-navy)",
+                    padding: "1.25rem",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: "1.25rem",
-                    boxShadow: badge.unlocked ? "3px 3px 0px var(--color-navy)" : "none",
-                    color: badge.unlocked
-                      ? badge.color === "lime"
-                        ? "var(--color-navy)"
-                        : "var(--color-white)"
-                      : "var(--color-text-light)",
+                    gap: "1rem",
+                    background: isUnlocked ? "var(--color-white)" : "var(--color-bg)",
+                    opacity: isUnlocked ? 1 : 0.6,
+                    border: isUnlocked ? "2px solid var(--color-navy)" : "2px dashed var(--color-text-muted)",
+                    boxShadow: isUnlocked ? `3px 3px 0px var(--color-${badge.color})` : "none"
                   }}
                 >
-                  <badge.icon size={32} strokeWidth={2.5} />
-                </div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontWeight: 800,
-                    fontSize: "1.125rem",
-                    marginBottom: "0.5rem",
-                    color: "var(--color-navy)",
-                  }}
-                >
-                  {badge.name}
-                </div>
-                <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.5 }}>
-                  {badge.desc}
-                </div>
-                {badge.unlocked && (
                   <div
-                    className="badge-brutal badge-brutal--lime"
-                    style={{ marginTop: "1rem", padding: "0.2rem 0.6rem", fontSize: "0.7rem" }}
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "50%",
+                      background: isUnlocked ? `var(--color-${badge.color})` : "transparent",
+                      border: "2px solid var(--color-navy)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0
+                    }}
                   >
-                    <CheckCircle2 size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.2rem" }} /> Diraih
+                    <badge.icon size={24} color="var(--color-navy)" />
                   </div>
-                )}
-              </div>
-            ))}
+                  <div>
+                    <h4 style={{ margin: "0 0 0.25rem 0", fontFamily: "var(--font-heading)", fontSize: "1.0625rem", color: "var(--color-navy)" }}>
+                      {badge.name}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--color-text-muted)", fontWeight: 600, lineHeight: 1.4 }}>
+                      {badge.desc}
+                    </p>
+                    {isUnlocked && (
+                      <div
+                        className="badge-brutal badge-brutal--lime"
+                        style={{ display: "inline-block", marginTop: "0.5rem", padding: "0.2rem 0.6rem", fontSize: "0.7rem" }}
+                      >
+                        <CheckCircle2 size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.2rem" }} /> Diraih
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

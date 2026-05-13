@@ -2,23 +2,26 @@
 
 import { useState } from "react";
 import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter } from "lucide-react";
+import { useTransactions } from "@/context/TransactionContext";
 
 export default function HistoryPage() {
   const [filter, setFilter] = useState<"semua" | "pemasukan" | "pengeluaran">("semua");
+  const { transactions } = useTransactions();
 
-  const dummyTransactions = [
-    { id: 1, desc: "Kopi Starbucks", amount: -55000, type: "pengeluaran", category: "F&B", date: "1 Mei 2026" },
-    { id: 2, desc: "Gaji Freelance", amount: 2500000, type: "pemasukan", category: "Pendapatan", date: "30 Apr 2026" },
-    { id: 3, desc: "Gopay Top-up", amount: -200000, type: "pengeluaran", category: "Digital", date: "29 Apr 2026" },
-    { id: 4, desc: "Uang makan dari ortu", amount: 500000, type: "pemasukan", category: "Transfer", date: "28 Apr 2026" },
-    { id: 5, desc: "Skincare The Ordinary", amount: -189000, type: "pengeluaran", category: "Self-care", date: "27 Apr 2026" },
-    { id: 6, desc: "Nonton Bioskop", amount: -75000, type: "pengeluaran", category: "Hiburan", date: "25 Apr 2026" },
-  ];
-
-  const filteredTransactions = dummyTransactions.filter(tx => {
+  const filteredTransactions = transactions.filter(tx => {
     if (filter === "semua") return true;
     return tx.type === filter;
   });
+
+  const totalPemasukan = transactions
+    .filter(tx => tx.type === "pemasukan")
+    .reduce((sum, tx) => sum + tx.amount, 0);
+
+  const totalPengeluaran = transactions
+    .filter(tx => tx.type === "pengeluaran")
+    .reduce((sum, tx) => sum + tx.amount, 0);
+
+  const sisaSaldo = totalPemasukan - totalPengeluaran;
 
   return (
     <div style={{ paddingBottom: "3rem" }}>
@@ -56,7 +59,7 @@ export default function HistoryPage() {
             <TrendingUp size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp 3.0jt</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(totalPemasukan/1000).toLocaleString("id-ID")}k</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Pemasukan</div>
           </div>
         </div>
@@ -66,7 +69,7 @@ export default function HistoryPage() {
             <TrendingDown size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp 519k</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(totalPengeluaran/1000).toLocaleString("id-ID")}k</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Pengeluaran</div>
           </div>
         </div>
@@ -76,7 +79,7 @@ export default function HistoryPage() {
             <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp 2.4jt</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(sisaSaldo/1000).toLocaleString("id-ID")}k</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Sisa Saldo</div>
           </div>
         </div>
@@ -86,7 +89,7 @@ export default function HistoryPage() {
             <List size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>12 Trx</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{transactions.length} Trx</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Total Bulan Ini</div>
           </div>
         </div>

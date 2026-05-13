@@ -100,22 +100,13 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       {/* Logo Section */}
       <div className="sidebar__logo" style={{ padding: "2rem 1.5rem 1rem 1.5rem" }}>
         <div style={{
-          width: "52px",
-          height: "52px",
-          background: "var(--color-lime)",
-          borderRadius: "var(--radius-brutal-sm)",
-          border: "3px solid var(--color-navy)",
-          boxShadow: "4px 4px 0px var(--color-lime)",
+          width: "72px",
+          height: "72px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontFamily: "var(--font-heading)",
-          fontWeight: 900,
-          fontSize: "1.75rem",
-          color: "var(--color-navy)",
-          transform: "rotate(-3deg)"
         }}>
-          C
+          <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
         <div className="sidebar-text" style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontSize: "1.5rem", fontWeight: 900, letterSpacing: "2px", color: "var(--color-white)", lineHeight: 1 }}>CEAMIS</span>

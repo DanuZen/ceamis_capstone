@@ -198,7 +198,9 @@ export default function LandingPage() {
       {/* ── Navbar ── */}
       <nav className="landing-nav">
         <div className="landing-nav__brand">
-          <div className="landing-nav__logo">C</div>
+          <div className="landing-nav__logo" style={{ width: "64px", height: "64px", background: "transparent", border: "none", boxShadow: "none" }}>
+            <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          </div>
           <span className="landing-nav__name">CEAMIS</span>
         </div>
         <div className="landing-nav__links">
@@ -536,7 +538,9 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <div className="landing-footer__inner">
           <div className="landing-footer__brand">
-            <div className="landing-nav__logo" style={{ width: 36, height: 36, fontSize: "1rem", boxShadow: '3px 3px 0px var(--color-lime)' }}>C</div>
+            <div className="landing-nav__logo" style={{ width: 56, height: 56, background: "transparent", border: "none", boxShadow: "none" }}>
+              <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            </div>
             <div>
               <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.125rem", color: "var(--color-white)" }}>CEAMIS</div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.5)" }}>Control Every Awful Money Impulse System</div>

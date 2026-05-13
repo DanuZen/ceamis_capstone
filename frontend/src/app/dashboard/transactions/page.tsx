@@ -3,6 +3,7 @@
 import { Wallet, Plus, Coffee, Utensils, Car, ShoppingBag, Zap, Sparkles, TrendingUp, ArrowRight, Tag, Home, Gamepad2, Banknote } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { useTransactions, TransactionType } from "@/context/TransactionContext";
 
 // ── Smart Tracking Data ─────────────────────
 const SPENDING_PATTERN = {
@@ -25,8 +26,11 @@ const CATEGORY_MAP: Record<string, "needs" | "wants"> = {
 };
 
 export default function TransactionsPage() {
+  const { addTransaction } = useTransactions();
+  
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
+  const [type, setType] = useState<TransactionType>("pengeluaran");
   const [category, setCategory] = useState("Makanan & Minuman");
   const [tag, setTag] = useState<"needs" | "wants">("needs");
 
@@ -182,7 +186,20 @@ export default function TransactionsPage() {
             </div>
             
             <form
-              onSubmit={(e) => { e.preventDefault(); alert("Transaksi disimpan!"); setDesc(""); setAmount(""); }}
+              onSubmit={(e) => { 
+                e.preventDefault(); 
+                if (!desc || !amount) return;
+                addTransaction({
+                  desc,
+                  amount: parseFloat(amount),
+                  type,
+                  category,
+                  tag
+                });
+                alert("Transaksi disimpan!"); 
+                setDesc(""); 
+                setAmount(""); 
+              }}
               style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
             >
               <div>
@@ -220,9 +237,14 @@ export default function TransactionsPage() {
                   <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
                     TIPE
                   </label>
-                  <select className="input-brutal" style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", height: "auto", boxShadow: "4px 4px 0px var(--color-navy)", fontWeight: 700, background: "var(--color-bg)" }}>
-                    <option>Pengeluaran</option>
-                    <option>Pemasukan</option>
+                  <select 
+                    value={type}
+                    onChange={(e) => setType(e.target.value as TransactionType)}
+                    className="input-brutal" 
+                    style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", height: "auto", boxShadow: "4px 4px 0px var(--color-navy)", fontWeight: 700, background: "var(--color-bg)" }}
+                  >
+                    <option value="pengeluaran">Pengeluaran</option>
+                    <option value="pemasukan">Pemasukan</option>
                   </select>
                 </div>
               </div>

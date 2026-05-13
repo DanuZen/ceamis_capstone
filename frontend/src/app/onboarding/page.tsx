@@ -125,12 +125,11 @@ export default function OnboardingPage() {
       <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <div style={{
-            width: "40px", height: "40px", background: "var(--color-lime)",
-            borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
-            boxShadow: "3px 3px 0px var(--color-navy)", display: "flex",
-            alignItems: "center", justifyContent: "center", fontFamily: "var(--font-heading)",
-            fontWeight: 900, fontSize: "1.25rem", color: "var(--color-navy)", transform: "rotate(-3deg)"
-          }}>C</div>
+            width: "64px", height: "64px", display: "flex",
+            alignItems: "center", justifyContent: "center"
+          }}>
+            <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          </div>
           <span style={{ fontWeight: 900, fontSize: "1.25rem", letterSpacing: "2px", color: "var(--color-navy)" }}>CEAMIS</span>
         </Link>
         <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-muted)" }}>

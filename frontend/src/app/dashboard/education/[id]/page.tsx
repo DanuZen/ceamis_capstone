@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Clock, ChevronRight, CheckCircle } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 const moduleData = {
   "1": {
@@ -43,6 +44,7 @@ const moduleData = {
 };
 
 export default function ModuleDetailPage() {
+  const { addXp } = useUser();
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
@@ -73,6 +75,11 @@ export default function ModuleDetailPage() {
   }, [progress, id]);
 
   const handleFinish = () => {
+    const isCompleted = localStorage.getItem(`ceamis_module_${id}_completed`);
+    if (!isCompleted) {
+      addXp(150); // Add 150 XP for finishing a module
+      localStorage.setItem(`ceamis_module_${id}_completed`, "true");
+    }
     localStorage.setItem(`ceamis_module_${id}_progress`, "100");
     router.push("/dashboard/education");
   };

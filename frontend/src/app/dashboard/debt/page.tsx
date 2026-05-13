@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   HandCoins, Plus, ArrowDownLeft, ArrowUpRight,
   Calendar, User, AlertTriangle, CheckCircle2,
@@ -21,15 +21,10 @@ interface DebtEntry {
   createdAt: string;
 }
 
-const INITIAL_DATA: DebtEntry[] = [
-  { id: 1, type: "utang", person: "Andi", amount: 500000, description: "Pinjam untuk bayar kos", dueDate: "2026-05-15", status: "belum_lunas", createdAt: "2026-04-20" },
-  { id: 2, type: "piutang", person: "Budi", amount: 250000, description: "Minjemin buat beli buku", dueDate: "2026-05-10", status: "belum_lunas", createdAt: "2026-04-25" },
-  { id: 3, type: "utang", person: "Sari", amount: 150000, description: "Pinjam untuk makan", dueDate: "2026-04-30", status: "jatuh_tempo", createdAt: "2026-04-15" },
-  { id: 4, type: "piutang", person: "Dina", amount: 300000, description: "Talangan beli tiket", dueDate: "2026-04-28", status: "lunas", createdAt: "2026-04-10" },
-];
+const DEFAULT_DATA: DebtEntry[] = [];
 
 export default function DebtPage() {
-  const [entries, setEntries] = useState<DebtEntry[]>(INITIAL_DATA);
+  const [entries, setEntries] = useState<DebtEntry[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "utang" | "piutang">("all");
   const [newEntry, setNewEntry] = useState({
@@ -39,6 +34,23 @@ export default function DebtPage() {
     description: "",
     dueDate: "",
   });
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("ceamis_debts");
+    if (saved) {
+      setEntries(JSON.parse(saved));
+    } else {
+      setEntries(DEFAULT_DATA);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("ceamis_debts", JSON.stringify(entries));
+    }
+  }, [entries, isLoaded]);
 
   const filteredEntries = entries.filter(e =>
     activeTab === "all" ? true : e.type === activeTab
