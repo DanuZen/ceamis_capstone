@@ -153,7 +153,6 @@ class RecommendationResponse(BaseModel):
 # ═══════════════════════════════════════════════════
 # MODEL 4 — CHATBOT
 # ═══════════════════════════════════════════════════
-# Ganti bagian chatbot schema dengan ini:
 
 class ChatMessage(BaseModel):
     role: str       # "user" | "assistant"
@@ -205,3 +204,65 @@ class ChatResponse(BaseModel):
     reply    : str
     is_mock  : bool = True
     triggered: Optional[str] = None   # "ok"|"crisis"|"off_topic"|"sensitive"
+
+
+# ═══════════════════════════════════════════════════
+# ADAPTIVE EDUCATION
+# ═══════════════════════════════════════════════════
+
+class ModuleContentRequest(BaseModel):
+    user_id: str
+
+class ModuleSection(BaseModel):
+    section_title: str
+    content      : str
+    key_point    : str
+
+class ModuleContentResponse(BaseModel):
+    module_id   : str
+    title       : str
+    level       : int
+    level_label : str
+    duration    : str
+    xp_reward   : int
+    sections    : List[dict]
+    summary     : str
+    action_items: List[str]
+    fun_fact    : str
+    quiz_count  : int
+    pass_score  : int
+    is_mock     : bool = True
+
+class ModuleListResponse(BaseModel):
+    total_modules: int
+    levels       : List[dict]
+
+class QuizRequest(BaseModel):
+    user_id: str
+
+class QuizQuestion(BaseModel):
+    question_id : int
+    question    : str
+    options     : List[str]
+    correct_idx : int
+    explanation : str
+
+class QuizResponse(BaseModel):
+    module_id : str
+    title     : str
+    pass_score: int
+    xp_reward : int
+    questions : List[QuizQuestion]
+    is_mock   : bool = True
+
+class InsightRequest(BaseModel):
+    user_id: str
+    financial_context: Optional[dict] = None
+
+class InsightResponse(BaseModel):
+    user_id       : str
+    weekly_insight: str
+    highlight     : str
+    challenge     : str
+    motivation    : str
+    is_mock       : bool = True
