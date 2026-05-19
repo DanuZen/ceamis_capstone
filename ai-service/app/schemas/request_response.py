@@ -77,37 +77,88 @@ class SpendingClusterResponse(BaseModel):
 
 
 # ═══════════════════════════════════════════════════
-# MODEL 3 — RISK PROFILE
+# MODEL 3 — RISK PROFILE (UPDATED — Real Model)
 # ═══════════════════════════════════════════════════
+
 class RiskProfileRequest(BaseModel):
-    user_id: str
-    age_range: str                    # "17-22" | "23-27" | "28-35"
-    income_source: str                # "beasiswa" | "freelance" | "kerja tetap" | dll
-    monthly_income_range: str         # "< 500k" | "500k-1jt" | "1jt-3jt" | dll
-    primary_goal: str                 # "hemat" | "investasi" | "lunasi_hutang" | dll
-    financial_literacy_level: str     # "pemula" | "menengah" | "mahir"
-    spending_habit: str               # "boros" | "cukup" | "hemat"
+    # ── Rasio keuangan ────────────────────────────
+    saving_rate      : float   # [0,1]
+    dti_ratio        : float   # [0,1]
+    disposable_ratio : float   # [0,1]
+    expense_ratio    : float   # [0,2]
+    ceamis_score     : float   # [0,1]
+
+    # ── Aset & tabungan ───────────────────────────
+    punya_tabungan        : int    # 0 atau 1
+    jumlah_tabungan_bulan : float  # [0,36]
+    punya_investasi       : int    # 0 atau 1
+
+    # ── Perilaku finansial (NFWBS) ────────────────
+    SAVEHABIT    : int   # [1,4]
+    SELFCONTROL_1: int   # [1,5]
+    SCFHORIZON   : int   # [1,6]
+    FINGOALS     : int   # [1,4]
+
+    # ── Profil & preferensi ───────────────────────
+    toleransi_rugi_enc   : int   # rendah=0, sedang=1, tinggi=2
+    tujuan_keuangan_enc  : int   # darurat=0,pensiun=1,aset=2,bebas=3
+    tanggungan_keluarga  : int   # [0,10]
+    Age                  : int   # [18,70]
+    city_tier_enc        : int   # Tier_3=0, Tier_2=1, Tier_1=2
+
+    # ── One-hot occupation ────────────────────────
+    occ_Professional : int   # 0 atau 1
+    occ_Retired      : int   # 0 atau 1
+    occ_Self_Employed: int   # 0 atau 1
+    occ_Student      : int   # 0 atau 1
+
+    # ── One-hot investasi ─────────────────────────
+    inv_deposito          : int   # 0 atau 1
+    inv_deposito_obligasi : int   # 0 atau 1
+    inv_saham_obligasi    : int   # 0 atau 1
+    inv_saham_reksa_dana  : int   # 0 atau 1
+    inv_tidak_ada         : int   # 0 atau 1
 
     class Config:
         json_schema_extra = {
             "example": {
-                "user_id": "user-123",
-                "age_range": "23-27",
-                "income_source": "kerja tetap",
-                "monthly_income_range": "3jt-5jt",
-                "primary_goal": "investasi",
-                "financial_literacy_level": "menengah",
-                "spending_habit": "cukup"
+                "saving_rate"          : 0.138,
+                "dti_ratio"            : 0.0,
+                "disposable_ratio"     : 0.382,
+                "expense_ratio"        : 0.618,
+                "ceamis_score"         : 0.544,
+                "punya_tabungan"       : 1,
+                "jumlah_tabungan_bulan": 1.34,
+                "punya_investasi"      : 0,
+                "SAVEHABIT"            : 4,
+                "SELFCONTROL_1"        : 5,
+                "SCFHORIZON"           : 5,
+                "FINGOALS"             : 4,
+                "toleransi_rugi_enc"   : 1,
+                "tujuan_keuangan_enc"  : 1,
+                "tanggungan_keluarga"  : 0,
+                "Age"                  : 54,
+                "city_tier_enc"        : 1,
+                "occ_Professional"     : 1,
+                "occ_Retired"          : 0,
+                "occ_Self_Employed"    : 0,
+                "occ_Student"          : 0,
+                "inv_deposito"         : 0,
+                "inv_deposito_obligasi": 0,
+                "inv_saham_obligasi"   : 0,
+                "inv_saham_reksa_dana" : 0,
+                "inv_tidak_ada"        : 1,
             }
         }
 
+
 class RiskProfileResponse(BaseModel):
-    user_id: str
-    risk_profile: str                 # "konservatif" | "moderat" | "agresif"
-    risk_score: float                 # 0.0 - 1.0
-    description: str
-    suggested_allocation: dict        # {"saham": "60%", "reksa_dana": "25%", ...}
-    is_mock: bool = True
+    risk_profile  : str    # "Konservatif" | "Moderat" | "Agresif"
+    confidence    : float  # probabilitas prediksi (0-1)
+    probabilities : dict   # prob tiap kelas
+    description   : str
+    suggestion    : str
+    is_mock       : bool = True
 
 
 # ═══════════════════════════════════════════════════
