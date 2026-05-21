@@ -82,42 +82,34 @@ class SpendingClusterResponse(BaseModel):
 
 class RiskProfileRequest(BaseModel):
     # ── Rasio keuangan ────────────────────────────
-    saving_rate      : float   # [0,1]
-    dti_ratio        : float   # [0,1]
-    disposable_ratio : float   # [0,1]
-    expense_ratio    : float   # [0,2]
-    ceamis_score     : float   # [0,1]
+    saving_rate      : float
+    dti_ratio        : float
+    disposable_ratio : float
+    expense_ratio    : float
+    ceamis_score     : float
 
     # ── Aset & tabungan ───────────────────────────
-    punya_tabungan        : int    # 0 atau 1
-    jumlah_tabungan_bulan : float  # [0,36]
-    punya_investasi       : int    # 0 atau 1
+    punya_tabungan        : int
+    jumlah_tabungan_bulan : float
 
-    # ── Perilaku finansial (NFWBS) ────────────────
-    SAVEHABIT    : int   # [1,4]
-    SELFCONTROL_1: int   # [1,5]
-    SCFHORIZON   : int   # [1,6]
-    FINGOALS     : int   # [1,4]
+    # ── Perilaku finansial (dari onboarding) ──────
+    SAVEHABIT    : int
+    SELFCONTROL_1: int
+    SCFHORIZON   : int
+    FINGOALS     : int
 
-    # ── Profil & preferensi ───────────────────────
-    toleransi_rugi_enc   : int   # rendah=0, sedang=1, tinggi=2
-    tujuan_keuangan_enc  : int   # darurat=0,pensiun=1,aset=2,bebas=3
-    tanggungan_keluarga  : int   # [0,10]
-    Age                  : int   # [18,70]
-    city_tier_enc        : int   # Tier_3=0, Tier_2=1, Tier_1=2
+    # ── Profil user (dari onboarding) ─────────────
+    toleransi_rugi_enc  : int
+    tujuan_keuangan_enc : int
+    tanggungan_keluarga : int
+    Age                 : int
+    city_tier_enc       : int
 
-    # ── One-hot occupation ────────────────────────
-    occ_Professional : int   # 0 atau 1
-    occ_Retired      : int   # 0 atau 1
-    occ_Self_Employed: int   # 0 atau 1
-    occ_Student      : int   # 0 atau 1
-
-    # ── One-hot investasi ─────────────────────────
-    inv_deposito          : int   # 0 atau 1
-    inv_deposito_obligasi : int   # 0 atau 1
-    inv_saham_obligasi    : int   # 0 atau 1
-    inv_saham_reksa_dana  : int   # 0 atau 1
-    inv_tidak_ada         : int   # 0 atau 1
+    # ── Occupation (dari onboarding) ──────────────
+    occ_Professional : int
+    occ_Retired      : int
+    occ_Self_Employed: int
+    occ_Student      : int
 
     class Config:
         json_schema_extra = {
@@ -129,7 +121,6 @@ class RiskProfileRequest(BaseModel):
                 "ceamis_score"         : 0.544,
                 "punya_tabungan"       : 1,
                 "jumlah_tabungan_bulan": 1.34,
-                "punya_investasi"      : 0,
                 "SAVEHABIT"            : 4,
                 "SELFCONTROL_1"        : 5,
                 "SCFHORIZON"           : 5,
@@ -143,11 +134,6 @@ class RiskProfileRequest(BaseModel):
                 "occ_Retired"          : 0,
                 "occ_Self_Employed"    : 0,
                 "occ_Student"          : 0,
-                "inv_deposito"         : 0,
-                "inv_deposito_obligasi": 0,
-                "inv_saham_obligasi"   : 0,
-                "inv_saham_reksa_dana" : 0,
-                "inv_tidak_ada"        : 1,
             }
         }
 
