@@ -19,33 +19,43 @@ LABEL_NAMES = ['Konservatif', 'Moderat', 'Agresif']
 PROFILE_INFO = {
     "Konservatif": {
         "description": (
-            "Kamu cenderung menghindari risiko dan "
-            "lebih suka instrumen keuangan yang aman dan stabil."
+            "Kamu lebih nyaman dengan pendekatan keuangan "
+            "yang aman dan stabil. Fokus utamamu saat ini "
+            "adalah memastikan kebutuhan dasar terpenuhi "
+            "dan mulai membangun kebiasaan menabung."
         ),
         "suggestion": (
-            "Fokus pada tabungan dan dana darurat terlebih dahulu. "
-            "Instrumen seperti deposito atau reksa dana pasar uang "
-            "cocok untukmu."
+            "Mulai dengan menetapkan target tabungan kecil "
+            "yang realistis. Prioritaskan dana darurat minimal "
+            "1 bulan pengeluaran sebelum memikirkan hal lain."
         )
     },
     "Moderat": {
         "description": (
-            "Kamu nyaman dengan risiko yang seimbang antara "
-            "keamanan dan potensi pertumbuhan."
+            "Kamu sudah cukup sadar finansial dan mulai "
+            "berani mengelola keuangan lebih aktif. "
+            "Kamu punya keseimbangan antara keamanan "
+            "dan keinginan berkembang."
         ),
         "suggestion": (
-            "Pertimbangkan kombinasi tabungan dan instrumen "
-            "reksa dana campuran setelah dana darurat terpenuhi."
+            "Tetapkan target tabungan yang lebih ambisius "
+            "dan mulai pisahkan pos pengeluaran dengan lebih "
+            "terstruktur. Dana darurat 3 bulan adalah target "
+            "berikutnya."
         )
     },
     "Agresif": {
         "description": (
-            "Kamu siap mengambil risiko lebih tinggi untuk "
-            "mendapatkan potensi return yang lebih besar."
+            "Kamu sangat goal-oriented dan punya disiplin "
+            "finansial yang tinggi. Kamu siap untuk "
+            "mengoptimalkan keuangan secara penuh dan "
+            "mengejar target tabungan yang ambisius."
         ),
         "suggestion": (
-            "Pastikan dana darurat sudah aman terlebih dahulu "
-            "sebelum mengalokasikan ke instrumen berisiko tinggi."
+            "Maksimalkan saving rate kamu dan buat target "
+            "tabungan yang spesifik dengan deadline jelas. "
+            "Kamu sudah siap untuk strategi keuangan "
+            "yang lebih advanced."
         )
     }
 }
