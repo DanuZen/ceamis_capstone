@@ -10,25 +10,39 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY", ""))
 
-MAX_TOKENS   = int(os.getenv("MAX_OUTPUT_TOKENS", 600))
+# PERBAIKAN: Default token dinaikkan dari 600 menjadi 4096 agar JSON tidak terpotong di tengah jalan
+MAX_TOKENS   = int(os.getenv("MAX_OUTPUT_TOKENS", 4096))
 TEMPERATURE  = float(os.getenv("LLM_TEMPERATURE", 0.7))
 MAX_HISTORY  = int(os.getenv("MAX_HISTORY_MESSAGES", 10))
 
 
 async def call_gemini(system_prompt: str, messages: list) -> str:
-    """Panggil Gemini 1.5 Flash API."""
+    """Panggil Gemini 2.5 Flash API lewat rute Stable v1."""
+    
+    # PERBAIKAN: Hapus system_instruction dari sini agar SDK TIDAK memaksa rute v1beta
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        system_instruction=system_prompt,
+        model_name="gemini-2.5-flash",
         generation_config=genai.GenerationConfig(
             max_output_tokens=MAX_TOKENS,
             temperature=TEMPERATURE,
         )
     )
 
-    # Konversi format ke Gemini
-    # Gemini: role "user" & "model" (bukan "assistant")
+    # Inisialisasi history chat
     history = []
+    
+    # PERBAIKAN: Suntikkan system prompt sebagai pesan pembuka di awal history
+    if system_prompt:
+        history.append({
+            "role": "user",
+            "parts": [f"CONTEXT & SYSTEM INSTRUCTION:\n{system_prompt}\n\nHarap patuhi instruksi di atas secara mutlak untuk seluruh percakapan kita ke depan."]
+        })
+        history.append({
+            "role": "model",
+            "parts": ["Baik, saya mengerti instruksi sistem tersebut. Saya akan merespon dengan gaya Gen-Z dan mengembalikan format JSON sesuai ketentuan."]
+        })
+
+    # Konversi sisa pesan dari frontend/internal ke format Gemini
     for msg in messages[:-1]:
         role = "user" if msg["role"] == "user" else "model"
         history.append({
@@ -36,6 +50,7 @@ async def call_gemini(system_prompt: str, messages: list) -> str:
             "parts": [msg["content"]]
         })
 
+    # Mulai sesi chat dengan history yang sudah mengikat system prompt di rute v1
     chat     = model.start_chat(history=history)
     response = chat.send_message(messages[-1]["content"])
 

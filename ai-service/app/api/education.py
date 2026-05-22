@@ -250,15 +250,13 @@ correct_idx adalah 0 untuk A, 1 untuk B, 2 untuk C, 3 untuk D.
 
 
 # ════════════════════════════════════════════════
-# ENDPOINT 4 — Weekly Insight (tetap ada, opsional)
-# Insight umum, tidak personal — cocok untuk semua user
+# ENDPOINT 4 — Weekly Insight (Diselaraskan dengan POST & Skema Pydantic Anda)
 # ════════════════════════════════════════════════
-@router.get("/education/insight/weekly")
-async def get_weekly_insight():
+@router.post("/education/insight/weekly", response_model=InsightResponse)
+async def get_weekly_insight(request: InsightRequest):
     """
-    Generate weekly insight umum tentang literasi keuangan.
-    Tidak bergantung data user — sama untuk semua.
-    Bisa di-cache / di-refresh tiap minggu.
+    Menghasilkan weekly insight umum tentang literasi keuangan anak muda.
+    Endpoint ini menggunakan POST untuk menyesuaikan dengan parameter input InsightRequest.
     """
     import datetime
     week_num = datetime.date.today().isocalendar()[1]
@@ -267,23 +265,30 @@ async def get_weekly_insight():
     system_prompt = """
 Kamu adalah financial educator Gen-Z Indonesia.
 Buat weekly insight keuangan yang relevan, fresh, dan actionable.
-PENTING: Balas HANYA dengan JSON valid.
+
+PENTING ATURAN FORMAT JSON (PATUHI SECARA MUTLAK):
+1. Balas HANYA dengan JSON valid, tanpa tambahan teks basa-basi lainnya di luar blok JSON.
+2. DILARANG keras menggunakan tanda kutip ganda (") di dalam teks nilai string JSON. Jika ada istilah, slang, atau kutipan kata, gunakan tanda kutip tunggal (') saja.
+   CONTOH SALAH: "Jangan "FOMO" ya"
+   CONTOH BENAR: "Jangan 'FOMO' ya"
+3. Jangan gunakan enter asli (pindah baris) di dalam nilai string JSON. Gunakan literal '\\n' jika diperlukan untuk membuat paragraf baru.
 """.strip()
+
+    # Memanfaatkan payload konteks finansial pengguna jika dikirimkan oleh frontend
+    context_text = ""
+    if request.financial_context:
+        context_text = f"\nKonteks kondisi keuangan terkini user: {json.dumps(request.financial_context)}"
 
     user_prompt = f"""
 Buat weekly financial insight untuk minggu ke-{week_num} tahun {year}.
+Tema harus sangat relevan dengan kondisi keuangan riil anak muda di Indonesia saat ini (mahasiswa, pekerja muda, anak kos).{context_text}
 
-Tema harus relevan dengan kondisi keuangan Gen-Z Indonesia saat ini.
-Hindari topik yang sama dengan minggu-minggu umum.
-
-Balas dengan JSON:
+Balas dengan format JSON persis seperti berikut (samakan persis penulisan key-nya):
 {{
-  "week"         : {week_num},
-  "theme"        : "tema minggu ini",
-  "insight"      : "insight utama, 2-3 kalimat",
-  "did_you_know" : "fakta menarik seputar keuangan yang jarang diketahui",
-  "weekly_challenge": "tantangan keuangan minggu ini yang bisa dicoba semua orang",
-  "quote"        : "quote motivasi keuangan yang relate untuk Gen-Z"
+  "weekly_insight": "tulis 2-3 kalimat santai berisi saran keuangan utama untuk minggu ini",
+  "highlight"     : "satu fakta menarik atau poin paling krusial terkait kondisi keuangan anak muda",
+  "challenge"     : "tantangan berhemat atau menabung seru yang bisa dicoba minggu ini",
+  "motivation"    : "kalimat motivasi keuangan yang ngena dan relevan untuk Gen-Z"
 }}
 """
 
@@ -291,12 +296,40 @@ Balas dengan JSON:
 
     try:
         raw  = await call_llm(system_prompt, messages)
-        raw  = raw.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        return json.loads(raw.strip())
+        cleaned_json = extract_json_robust(raw)
+        data = json.loads(cleaned_json)
+        
+        # Mapping data hasil LLM ke struktur skema InsightResponse Anda
+        return InsightResponse(
+            user_id        = request.user_id,
+            weekly_insight = data.get("weekly_insight", ""),
+            highlight      = data.get("highlight", ""),
+            challenge      = data.get("challenge", ""),
+            motivation     = data.get("motivation", ""),
+            is_mock        = False
+        )
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except (json.JSONDecodeError, KeyError) as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Gagal generate weekly insight karena masalah format parser: {str(e)}"
+        )
+    
+# ==========================================================
+# HELPER — Ekstraksi JSON Aman (Sangat Stabil & Tanpa Bug Regex)
+# ==========================================================
+def extract_json_robust(raw_text: str) -> str:
+    """
+    Memotong dan mengambil string JSON saja dari output LLM secara aman.
+    Mencari tanda kurung kurawal terluar untuk menghindari kegagalan parser.
+    Bebas dari bug interpretasi visual markdown.
+    """
+    raw_text = raw_text.strip()
+    
+    start_idx = raw_text.find('{')
+    end_idx = raw_text.rfind('}')
+    
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        return raw_text[start_idx:end_idx+1]
+        
+    return raw_text
