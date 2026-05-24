@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 fastapi==0.136.1
 uvicorn[standard]==0.46.0
 tensorflow==2.20.0
@@ -14,3 +15,16 @@ google-genai==1.68.0
 openai==2.32.0
 httpx==0.28.1
 python-multipart==0.0.26
+=======
+fastapi==0.111.0
+uvicorn==0.30.0
+pydantic==2.7.0
+python-dotenv==1.0.0
+google-generativeai>=0.8.3
+groq==0.9.0
+httpx==0.27.0
+numpy==1.26.4
+scikit-learn==1.6.1
+joblib==1.4.2
+tensorflow==2.16.2
+>>>>>>> d52a41bd1303a70a9e533ff032112149fa6dfdee
