@@ -77,37 +77,74 @@ class SpendingClusterResponse(BaseModel):
 
 
 # ═══════════════════════════════════════════════════
-# MODEL 3 — RISK PROFILE
+# MODEL 3 — RISK PROFILE (UPDATED — Real Model)
 # ═══════════════════════════════════════════════════
+
 class RiskProfileRequest(BaseModel):
-    user_id: str
-    age_range: str                    # "17-22" | "23-27" | "28-35"
-    income_source: str                # "beasiswa" | "freelance" | "kerja tetap" | dll
-    monthly_income_range: str         # "< 500k" | "500k-1jt" | "1jt-3jt" | dll
-    primary_goal: str                 # "hemat" | "investasi" | "lunasi_hutang" | dll
-    financial_literacy_level: str     # "pemula" | "menengah" | "mahir"
-    spending_habit: str               # "boros" | "cukup" | "hemat"
+    # ── Rasio keuangan ────────────────────────────
+    saving_rate      : float
+    dti_ratio        : float
+    disposable_ratio : float
+    expense_ratio    : float
+    ceamis_score     : float
+
+    # ── Aset & tabungan ───────────────────────────
+    punya_tabungan        : int
+    jumlah_tabungan_bulan : float
+
+    # ── Perilaku finansial (dari onboarding) ──────
+    SAVEHABIT    : int
+    SELFCONTROL_1: int
+    SCFHORIZON   : int
+    FINGOALS     : int
+
+    # ── Profil user (dari onboarding) ─────────────
+    toleransi_rugi_enc  : int
+    tujuan_keuangan_enc : int
+    tanggungan_keluarga : int
+    Age                 : int
+    city_tier_enc       : int
+
+    # ── Occupation (dari onboarding) ──────────────
+    occ_Professional : int
+    occ_Retired      : int
+    occ_Self_Employed: int
+    occ_Student      : int
 
     class Config:
         json_schema_extra = {
             "example": {
-                "user_id": "user-123",
-                "age_range": "23-27",
-                "income_source": "kerja tetap",
-                "monthly_income_range": "3jt-5jt",
-                "primary_goal": "investasi",
-                "financial_literacy_level": "menengah",
-                "spending_habit": "cukup"
+                "saving_rate"          : 0.138,
+                "dti_ratio"            : 0.0,
+                "disposable_ratio"     : 0.382,
+                "expense_ratio"        : 0.618,
+                "ceamis_score"         : 0.544,
+                "punya_tabungan"       : 1,
+                "jumlah_tabungan_bulan": 1.34,
+                "SAVEHABIT"            : 4,
+                "SELFCONTROL_1"        : 5,
+                "SCFHORIZON"           : 5,
+                "FINGOALS"             : 4,
+                "toleransi_rugi_enc"   : 1,
+                "tujuan_keuangan_enc"  : 1,
+                "tanggungan_keluarga"  : 0,
+                "Age"                  : 54,
+                "city_tier_enc"        : 1,
+                "occ_Professional"     : 1,
+                "occ_Retired"          : 0,
+                "occ_Self_Employed"    : 0,
+                "occ_Student"          : 0,
             }
         }
 
+
 class RiskProfileResponse(BaseModel):
-    user_id: str
-    risk_profile: str                 # "konservatif" | "moderat" | "agresif"
-    risk_score: float                 # 0.0 - 1.0
-    description: str
-    suggested_allocation: dict        # {"saham": "60%", "reksa_dana": "25%", ...}
-    is_mock: bool = True
+    risk_profile  : str    # "Konservatif" | "Moderat" | "Agresif"
+    confidence    : float  # probabilitas prediksi (0-1)
+    probabilities : dict   # prob tiap kelas
+    description   : str
+    suggestion    : str
+    is_mock       : bool = True
 
 
 # ═══════════════════════════════════════════════════
