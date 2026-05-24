@@ -7,11 +7,6 @@ node_modules/
 dist/
 build/
 
-# ── Environment ───────────────────────────────
-.env
-.env.*
-!.env.example
-
 # ── Logs ──────────────────────────────────────
 logs/
 *.log
