@@ -17,6 +17,7 @@ import {
   Lock
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
+import { useGuest } from "@/context/GuestContext";
 
 // ── Grouped Navigation ──────────────────────
 interface NavItem {
@@ -24,6 +25,7 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number; style?: React.CSSProperties }>;
   color: string;
+  guestRestricted?: boolean; // true = dikunci untuk guest
 }
 
 interface NavGroup {
@@ -43,17 +45,17 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboard/transactions", label: "Transaksi", icon: Wallet, color: "lime" },
       { href: "/dashboard/history", label: "Riwayat", icon: History, color: "orange" },
-      { href: "/dashboard/planning", label: "Perencanaan", icon: Target, color: "purple" },
+      { href: "/dashboard/planning", label: "Perencanaan", icon: Target, color: "purple", guestRestricted: true },
       { href: "/dashboard/debt", label: "Utang & Piutang", icon: HandCoins, color: "orange" },
       { href: "/dashboard/reports", label: "Laporan", icon: FileText, color: "lime" },
-      { href: "/dashboard/education", label: "Edukasi", icon: BookOpen, color: "orange" },
+      { href: "/dashboard/education", label: "Edukasi", icon: BookOpen, color: "orange", guestRestricted: true },
     ],
   },
   {
     title: "AI & TOOLS",
     items: [
-      { href: "/dashboard/warnings", label: "Warning System", icon: AlertTriangle, color: "pink" },
-      { href: "/dashboard/chatbot", label: "Chatbot AI", icon: Bot, color: "lime" },
+      { href: "/dashboard/warnings", label: "Warning System", icon: AlertTriangle, color: "pink", guestRestricted: true },
+      { href: "/dashboard/chatbot", label: "Chatbot AI", icon: Bot, color: "lime", guestRestricted: true },
     ],
   },
 ];
@@ -61,6 +63,7 @@ const navGroups: NavGroup[] = [
 export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const pathname = usePathname();
   const { userData } = useUser();
+  const { isGuest } = useGuest();
   const warningTriggered = userData.warningTriggered;
   const healthScore = userData.healthScore;
 
@@ -69,6 +72,41 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       item.href === "/dashboard"
         ? pathname === "/dashboard"
         : pathname.startsWith(item.href);
+
+    // Guest restriction — visible tapi terkunci
+    const isGuestLocked = isGuest && item.guestRestricted;
+    if (isGuestLocked) {
+      return (
+        <div
+          key={item.href}
+          title={`Fitur ini memerlukan akun terdaftar`}
+          style={{
+            padding: "0.75rem 1.25rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.85rem",
+            borderRadius: "var(--radius-brutal-sm)",
+            opacity: 0.4,
+            cursor: "not-allowed",
+            border: "2px dashed rgba(255,255,255,0.15)",
+            userSelect: "none",
+          }}
+        >
+          <Lock 
+            size={18} 
+            color="rgba(255,255,255,0.5)"
+            strokeWidth={2.5}
+            style={{ minWidth: "18px" }}
+          />
+          <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap", color: "rgba(255,255,255,0.5)" }}>
+            {item.label}
+          </span>
+          <span className="sidebar-text" style={{ fontSize: "0.6rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "100px", padding: "0.1rem 0.4rem", color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap", marginLeft: "auto" }}>
+            GUEST
+          </span>
+        </div>
+      );
+    }
 
     // Warning System: hanya bisa diakses jika warningTriggered (score < 40)
     const isWarningItem = item.href === "/dashboard/warnings";

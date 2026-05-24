@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Bot, Send, MessageSquare, Sparkles, RefreshCw, Zap } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useTransactions } from "@/context/TransactionContext";
+import { useGuest } from "@/context/GuestContext";
+import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 
 // ── Tipe ─────────────────────────────────────────────────────────────────────
 type Role = "user" | "assistant";
@@ -44,6 +46,7 @@ function renderMarkdown(text: string) {
 export default function ChatbotPage() {
   const { userData } = useUser();
   const { transactions } = useTransactions();
+  const { isGuest } = useGuest();
 
   const [messages, setMessages]     = useState<ChatMessage[]>([]);
   const [input, setInput]           = useState("");
@@ -158,7 +161,7 @@ export default function ChatbotPage() {
   const statusLabel = isConnected === null ? "Connecting..."
     : isConnected ? "Gemini + Groq" : "Offline (fallback)";
 
-  return (
+  const pageContent = (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--navbar-height) - 4rem)" }}>
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
@@ -337,4 +340,10 @@ export default function ChatbotPage() {
       `}</style>
     </div>
   );
+
+  return isGuest ? (
+    <GuestLockOverlay featureName="Chatbot AI (CAMI)" variant="page">
+      {pageContent}
+    </GuestLockOverlay>
+  ) : pageContent;
 }

@@ -3,9 +3,21 @@
 import { AlertTriangle, Flame, ShieldAlert, Zap, HeartPulse, Shield, Lock, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/context/UserContext";
+import { useGuest } from "@/context/GuestContext";
+import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 
 export default function WarningsPage() {
   const { userData } = useUser();
+  const { isGuest } = useGuest();
+
+  // ── Guard: Guest tidak bisa akses Warning System ──────────────────────────
+  if (isGuest) {
+    return (
+      <GuestLockOverlay featureName="Warning System" variant="page">
+        <div style={{ minHeight: "60vh" }} />
+      </GuestLockOverlay>
+    );
+  }
 
   // ── Guard: hanya bisa diakses jika health score < 40 ──────────────────────
   if (!userData.warningTriggered) {

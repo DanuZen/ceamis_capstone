@@ -338,7 +338,7 @@ export default function TransactionsPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!desc || !amount) return;
-                addTransaction({ desc, amount: parseFloat(amount), type, category, tag });
+                addTransaction({ description: desc, amount: parseFloat(amount), type, category, tag });
                 alert("Transaksi disimpan!");
                 setDesc(""); setAmount("");
               }}

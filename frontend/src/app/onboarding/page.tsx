@@ -8,6 +8,8 @@ import {
   ArrowRight, ArrowLeft, CheckCircle2, Sparkles,
   ChevronRight, Zap
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { onboardingApi } from "@/lib/api";
 
 const STEPS = [
   { id: 1, title: "Kenalan Dulu", icon: User, color: "purple" },
@@ -58,7 +60,9 @@ const RISK_PROFILES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     age: "",
@@ -101,10 +105,31 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleFinish = () => {
-    // In production, this would send data to the backend
-    console.log("Onboarding data:", formData);
-    router.push("/dashboard");
+  const handleFinish = async () => {
+    if (!canProceed()) return;
+    setIsSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await onboardingApi.save({
+          user_id: user.id,
+          name: formData.name,
+          age: parseInt(formData.age),
+          income: parseFloat(formData.income),
+          income_source: formData.incomeSource,
+          top_expenses: formData.topExpenses,
+          monthly_expense: parseFloat(formData.monthlyExpense || "0"),
+          goals: formData.goals,
+          risk_profile: formData.riskProfile,
+        });
+      }
+    } catch (err) {
+      console.error("Onboarding save error:", err);
+      // Tetap lanjut ke dashboard meski API gagal
+    } finally {
+      setIsSubmitting(false);
+      router.push("/dashboard");
+    }
   };
 
   const cardStyle: React.CSSProperties = {
@@ -482,19 +507,20 @@ export default function OnboardingPage() {
           </button>
         ) : (
           <button
-            onClick={() => canProceed() && handleFinish()}
+            onClick={() => canProceed() && !isSubmitting && handleFinish()}
             className="btn-brutal"
+            disabled={isSubmitting}
             style={{
               flex: 1, padding: "1rem 1.5rem", fontWeight: 900, fontSize: "1.125rem",
               background: canProceed() ? "var(--color-lime)" : "var(--color-border-light)",
               color: "var(--color-navy)",
               display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem",
               boxShadow: canProceed() ? "6px 6px 0px var(--color-navy)" : "none",
-              cursor: canProceed() ? "pointer" : "not-allowed",
+              cursor: (canProceed() && !isSubmitting) ? "pointer" : "not-allowed",
               opacity: canProceed() ? 1 : 0.6,
             }}
           >
-            <Sparkles size={20} /> Masuk ke Dashboard!
+            <Sparkles size={20} /> {isSubmitting ? "Menyimpan..." : "Masuk ke Dashboard!"}
           </button>
         )}
       </div>

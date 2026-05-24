@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import React from "react";
 import { useTransactions } from "@/context/TransactionContext";
+import { useGuest } from "@/context/GuestContext";
+import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 
 // ── Icon Mapping (replaces emojis) ──────────────
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
@@ -126,6 +128,7 @@ interface RiskResult {
 
 export default function PlanningPage() {
   const { transactions } = useTransactions();
+  const { isGuest } = useGuest();
   const [budget, setBudget] = useState<BudgetCategory[]>([]);
   const [targets, setTargets] = useState<SavingsTarget[]>([]);
   const [activeView, setActiveView] = useState<"budget" | "targets">("budget");
@@ -325,7 +328,7 @@ export default function PlanningPage() {
 
   const allAnswered = RISK_QUIZ.every(q => quizAnswers[q.id] !== undefined);
 
-  return (
+  const pageContent = (
     <div style={{ paddingBottom: "3rem" }}>
       {/* Header */}
       <div style={{ marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
@@ -700,4 +703,10 @@ export default function PlanningPage() {
       )}
     </div>
   );
+
+  return isGuest ? (
+    <GuestLockOverlay featureName="Perencanaan Keuangan" variant="page">
+      {pageContent}
+    </GuestLockOverlay>
+  ) : pageContent;
 }

@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import { 
   Search, Calendar, Star, Flame, Bell, ChevronDown, 
-  User, LogOut, Target, Users, Zap, PanelLeft
+  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus
 } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/context/UserContext";
+import { useGuest } from "@/context/GuestContext";
 
 interface NavbarProps {
   toggleSidebar?: () => void;
@@ -41,9 +42,47 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
   });
 
   const { userData } = useUser();
+  const { isGuest } = useGuest();
 
   return (
-    <header className="navbar">
+    <>
+      {/* Guest Banner */}
+      {isGuest && (
+        <div style={{
+          background: "var(--color-navy)",
+          borderBottom: "3px solid var(--color-lime)",
+          padding: "0.5rem 1.5rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "1rem",
+          flexWrap: "wrap",
+        }}>
+          <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>
+            Kamu sedang dalam <strong style={{ color: "var(--color-lime)" }}>Mode Guest</strong> — beberapa fitur terkunci.
+          </span>
+          <Link href="/auth" style={{ textDecoration: "none" }}>
+            <button
+              className="btn-brutal"
+              style={{
+                padding: "0.3rem 1rem",
+                background: "var(--color-lime)",
+                color: "var(--color-navy)",
+                fontWeight: 800,
+                fontSize: "0.75rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                border: "2px solid var(--color-lime)",
+                boxShadow: "2px 2px 0px rgba(255,255,255,0.3)",
+              }}
+            >
+              <UserPlus size={13} /> Daftar Sekarang — Gratis!
+            </button>
+          </Link>
+        </div>
+      )}
+      <header className="navbar">
       <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           {/* Sidebar Toggle */}
@@ -359,5 +398,6 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
         </div>
       </div>
     </header>
+    </>
   );
 }
