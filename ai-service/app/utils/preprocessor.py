@@ -8,7 +8,12 @@ Menangani:
 
 import numpy as np
 import joblib
-import tensorflow as tf
+try:
+    import tensorflow as tf
+    _TF_AVAILABLE = True
+except Exception:
+    tf = None
+    _TF_AVAILABLE = False
 from typing import Dict, List, Any
 
 
@@ -128,47 +133,52 @@ def features_to_numpy(features: Dict[str, float]) -> np.ndarray:
 
 BASE = "app/models"
 
+if _TF_AVAILABLE:
+    class RiskProfileAttentionLayer(tf.keras.layers.Layer):
+        """Custom attention layer dari notebook training Model 3."""
 
-class RiskProfileAttentionLayer(tf.keras.layers.Layer):
-    """Custom attention layer dari notebook training Model 3."""
+        def __init__(self, units=32, **kwargs):
+            super(RiskProfileAttentionLayer, self).__init__(**kwargs)
+            self.units = units
+            self.dense = tf.keras.layers.Dense(units, activation="relu")
 
-    def __init__(self, units=32, **kwargs):
-        super(RiskProfileAttentionLayer, self).__init__(**kwargs)
-        self.units = units
-        self.dense = tf.keras.layers.Dense(units, activation="relu")
+        def call(self, inputs):
+            attention_weights = tf.nn.softmax(inputs, axis=-1)
+            attended          = inputs * attention_weights
+            return self.dense(attended)
 
-    def call(self, inputs):
-        attention_weights = tf.nn.softmax(inputs, axis=-1)
-        attended          = inputs * attention_weights
-        return self.dense(attended)
-
-    def get_config(self):
-        config = super().get_config()
-        config.update({"units": self.units})
-        return config
+        def get_config(self):
+            config = super().get_config()
+            config.update({"units": self.units})
+            return config
+else:
+    RiskProfileAttentionLayer = None
 
 
-class WeightedCrossEntropyLoss(tf.keras.losses.Loss):
-    """Custom loss function dari notebook training Model 3."""
+if _TF_AVAILABLE:
+    class WeightedCrossEntropyLoss(tf.keras.losses.Loss):
+        """Custom loss function dari notebook training Model 3."""
 
-    def __init__(self, class_weights=None, **kwargs):
-        super().__init__(**kwargs)
-        if class_weights is None:
-            class_weights = [1.0, 1.0, 2.0]
-        self.class_weights = tf.constant(class_weights, dtype=tf.float32)
+        def __init__(self, class_weights=None, **kwargs):
+            super().__init__(**kwargs)
+            if class_weights is None:
+                class_weights = [1.0, 1.0, 2.0]
+            self.class_weights = tf.constant(class_weights, dtype=tf.float32)
 
-    def call(self, y_true, y_pred):
-        y_true    = tf.cast(y_true, tf.int32)
-        y_true_oh = tf.one_hot(y_true, depth=3)
-        y_pred    = tf.clip_by_value(y_pred, 1e-7, 1.0 - 1e-7)
-        ce        = -tf.reduce_sum(y_true_oh * tf.math.log(y_pred), axis=-1)
-        weights   = tf.reduce_sum(y_true_oh * self.class_weights, axis=-1)
-        return tf.reduce_mean(weights * ce)
+        def call(self, y_true, y_pred):
+            y_true    = tf.cast(y_true, tf.int32)
+            y_true_oh = tf.one_hot(y_true, depth=3)
+            y_pred    = tf.clip_by_value(y_pred, 1e-7, 1.0 - 1e-7)
+            ce        = -tf.reduce_sum(y_true_oh * tf.math.log(y_pred), axis=-1)
+            weights   = tf.reduce_sum(y_true_oh * self.class_weights, axis=-1)
+            return tf.reduce_mean(weights * ce)
 
-    def get_config(self):
-        config = super().get_config()
-        config.update({"class_weights": self.class_weights.numpy().tolist()})
-        return config
+        def get_config(self):
+            config = super().get_config()
+            config.update({"class_weights": self.class_weights.numpy().tolist()})
+            return config
+else:
+    WeightedCrossEntropyLoss = None
 
 
 # Singleton — load model sekali saat startup

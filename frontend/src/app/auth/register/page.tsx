@@ -91,24 +91,24 @@ export default function RegisterPage() {
             </span>
           </div>
 
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "4rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem", color: "var(--color-lime)", textShadow: "4px 4px 0px var(--color-navy)" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "4rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem", color: "var(--color-white)" }}>
             Control Every<br/>Money-Issue<br/>Simply.
           </h2>
           <p style={{ fontSize: "1.125rem", fontWeight: 600, lineHeight: 1.6, maxWidth: "85%", marginBottom: "3rem", color: "var(--color-white)" }}>
             Platform manajemen keuangan brutalist Gen-Z yang dilengkapi AI cerdas untuk melacak, merencanakan, dan mengedukasi finansialmu secara real-time.
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "90%" }}>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "var(--color-navy)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", color: "var(--color-white)", fontWeight: 800, fontSize: "1.05rem", boxShadow: "4px 4px 0px rgba(0,0,0,0.3)" }}>
-                <div style={{ background: "var(--color-lime)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}><Zap size={20} /></div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "90%" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
+                <div style={{ background: "var(--color-lime)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><Zap size={20} /></div>
                 AI Spending Pattern & Risk Profile
              </div>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "var(--color-navy)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", color: "var(--color-white)", fontWeight: 800, fontSize: "1.05rem", boxShadow: "4px 4px 0px rgba(0,0,0,0.3)" }}>
-                <div style={{ background: "var(--color-orange)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}><ShieldCheck size={20} /></div>
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
+                <div style={{ background: "var(--color-orange)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><ShieldCheck size={20} /></div>
                 Sistem Peringatan Dini (Warning Gate)
              </div>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "var(--color-navy)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", color: "var(--color-white)", fontWeight: 800, fontSize: "1.05rem", boxShadow: "4px 4px 0px rgba(0,0,0,0.3)" }}>
-                <div style={{ background: "var(--color-white)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}><User size={20} /></div>
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
+                <div style={{ background: "var(--color-white)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><User size={20} /></div>
                 Chatbot CAMI & Edukasi Finansial
              </div>
           </div>
@@ -133,28 +133,6 @@ export default function RegisterPage() {
         }}
       >
         <div style={{ width: "100%", maxWidth: 420 }}>
-          {/* Tombol Kembali (Berada di atas Auth Card, sejajar kiri) */}
-          <button
-            onClick={() => router.push("/")}
-            className="btn-brutal"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.5rem 1rem",
-              marginBottom: "1.5rem",
-              background: "var(--color-white)",
-              color: "var(--color-navy)",
-              border: "2px solid var(--color-navy)",
-              boxShadow: "3px 3px 0px var(--color-navy)",
-              fontWeight: 800,
-              fontSize: "0.85rem",
-              cursor: "pointer",
-            }}
-          >
-            <ArrowLeft size={16} strokeWidth={2.5} /> Beranda
-          </button>
-
           {/* Logo (Hanya tampil di Mobile karena Desktop sudah ada di kiri) */}
           <div className="hide-on-desktop" style={{ marginBottom: "1.5rem" }}>
             <Link
@@ -190,23 +168,12 @@ export default function RegisterPage() {
           </Link>
           </div>
 
-          {/* Register Card */}
-          <div
-            className="animate-bounce-in"
-            style={{
-              width: "100%", padding: "2.5rem 2.25rem",
-              background: "var(--color-white)",
-              border: "3px solid var(--color-navy)",
-              borderTop: "8px solid var(--color-lime)",
-              borderRadius: "var(--radius-brutal-lg)",
-              boxShadow: "8px 8px 0px rgba(10, 25, 47, 0.15)", // shadow yang lebih soft
-              position: "relative",
-            }}
-          >
+          {/* Header Text (Dipindah ke luar card) */}
+          <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
             <h1
               style={{
                 fontFamily: "var(--font-heading)", fontSize: "2rem",
-                marginBottom: "0.5rem", textAlign: "center", color: "var(--color-navy)",
+                marginBottom: "0.5rem", color: "var(--color-navy)",
                 fontWeight: 900
               }}
             >
@@ -214,12 +181,26 @@ export default function RegisterPage() {
             </h1>
             <p
               style={{
-                textAlign: "center", color: "var(--color-text-muted)",
-                marginBottom: "2rem", fontSize: "0.95rem", fontWeight: 500
+                color: "var(--color-text-muted)",
+                margin: 0, fontSize: "1rem", fontWeight: 500
               }}
             >
               Mulai perjalanan finansial brutalist-mu hari ini.
             </p>
+          </div>
+
+          {/* Register Card */}
+          <div
+            style={{
+              width: "100%", padding: "2.5rem 2.25rem",
+              background: "var(--color-white)",
+              border: "3px solid var(--color-navy)",
+              borderTop: "8px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-lg)",
+              boxShadow: "8px 8px 0px #D1D5DB",
+              position: "relative",
+            }}
+          >
 
             {/* Success Message */}
             {success && (
@@ -324,6 +305,29 @@ export default function RegisterPage() {
             </div>
 
           </div>
+
+          <div style={{ marginTop: "1.5rem", display: "flex", justifyContent: "center" }}>
+            <button
+              onClick={() => router.push("/")}
+              className="btn-brutal"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.5rem 1.5rem",
+                background: "var(--color-white)",
+                color: "var(--color-navy)",
+                border: "2px solid var(--color-navy)",
+                boxShadow: "3px 3px 0px var(--color-navy)",
+                fontWeight: 800,
+                fontSize: "0.85rem",
+                cursor: "pointer",
+              }}
+            >
+              <ArrowLeft size={16} strokeWidth={2.5} /> Kembali ke Beranda
+            </button>
+          </div>
+
         </div>
       </div>
     </div>

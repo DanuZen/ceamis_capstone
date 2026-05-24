@@ -1,60 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   User, Wallet, ShoppingBag, Target, Shield,
-  ArrowRight, ArrowLeft, CheckCircle2, Sparkles,
-  ChevronRight, Zap
+  ArrowRight, ArrowLeft, CheckCircle2, Sparkles, ChevronRight,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { onboardingApi } from "@/lib/api";
 
 const STEPS = [
-  { id: 1, title: "Kenalan Dulu", icon: User, color: "purple" },
-  { id: 2, title: "Pendapatan", icon: Wallet, color: "lime" },
-  { id: 3, title: "Pengeluaran", icon: ShoppingBag, color: "orange" },
-  { id: 4, title: "Tujuan Finansial", icon: Target, color: "purple" },
-  { id: 5, title: "Profil Risiko", icon: Shield, color: "lime" },
+  {
+    id: 1, title: "Kenalan Dulu", subtitle: "Biar CEAMIS kenal kamu!", icon: User,
+    accent: "#a78bfa", bg: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", emoji: "👋"
+  },
+  {
+    id: 2, title: "Pendapatan", subtitle: "Berapa pemasukan bulananmu?", icon: Wallet,
+    accent: "#34d399", bg: "linear-gradient(135deg, #059669 0%, #0d9488 100%)", emoji: "💸"
+  },
+  {
+    id: 3, title: "Pengeluaran", subtitle: "Uangmu kemana aja?", icon: ShoppingBag,
+    accent: "#fb923c", bg: "linear-gradient(135deg, #ea580c 0%, #dc2626 100%)", emoji: "🛍️"
+  },
+  {
+    id: 4, title: "Tujuan", subtitle: "Mau ke mana duitmu?", icon: Target,
+    accent: "#60a5fa", bg: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)", emoji: "🎯"
+  },
+  {
+    id: 5, title: "Profil Risiko", subtitle: "Tipe investor apa kamu?", icon: Shield,
+    accent: "#facc15", bg: "linear-gradient(135deg, #d97706 0%, #b45309 100%)", emoji: "🧠"
+  },
 ];
 
 const EXPENSE_CATEGORIES = [
-  "Kos / Kontrakan", "Makan & Minum", "Transportasi",
-  "Hiburan & Streaming", "Belanja Online", "Pulsa & Internet",
-  "Kesehatan", "Pendidikan"
+  { label: "Kos / Kontrakan", emoji: "🏠" },
+  { label: "Makan & Minum", emoji: "🍜" },
+  { label: "Transportasi", emoji: "🚗" },
+  { label: "Hiburan & Streaming", emoji: "🎬" },
+  { label: "Belanja Online", emoji: "📦" },
+  { label: "Pulsa & Internet", emoji: "📱" },
+  { label: "Kesehatan", emoji: "💊" },
+  { label: "Pendidikan", emoji: "📚" },
 ];
 
 const FINANCIAL_GOALS = [
-  { id: "tabungan", label: "Menabung rutin", desc: "Punya tabungan darurat 3-6 bulan", icon: "💰" },
-  { id: "investasi", label: "Mulai investasi", desc: "Belajar dan mulai investasi kecil-kecilan", icon: "📈" },
-  { id: "bebas_utang", label: "Bebas utang", desc: "Melunasi semua utang yang ada", icon: "🔓" },
-  { id: "dana_darurat", label: "Dana darurat", desc: "Siapkan dana untuk keadaan tidak terduga", icon: "🛡️" },
-  { id: "beli_gadget", label: "Beli gadget / barang impian", desc: "Nabung untuk beli sesuatu yang diinginkan", icon: "🎯" },
-  { id: "traveling", label: "Dana traveling", desc: "Kumpulkan dana untuk jalan-jalan", icon: "✈️" },
+  { id: "tabungan",    label: "Menabung rutin",           desc: "Punya tabungan darurat 3-6 bulan", emoji: "💰" },
+  { id: "investasi",  label: "Mulai investasi",           desc: "Belajar dan mulai investasi kecil-kecilan", emoji: "📈" },
+  { id: "bebas_utang",label: "Bebas utang",               desc: "Melunasi semua utang yang ada", emoji: "🔓" },
+  { id: "dana_darurat",label: "Dana darurat",             desc: "Siapkan untuk keadaan tidak terduga", emoji: "🛡️" },
+  { id: "beli_gadget", label: "Beli gadget / impian",     desc: "Nabung untuk beli sesuatu yang diinginkan", emoji: "🎯" },
+  { id: "traveling",  label: "Dana traveling",            desc: "Kumpulkan dana untuk jalan-jalan", emoji: "✈️" },
 ];
 
 const RISK_PROFILES = [
   {
-    id: "konservatif",
-    label: "Konservatif",
+    id: "konservatif", label: "Konservatif", emoji: "🛡️",
     desc: "Aman dulu, baru untung. Prioritas ke tabungan dan dana darurat.",
-    emoji: "🛡️",
-    color: "lime",
+    color: "#059669", tag: "AMAN & STABIL",
   },
   {
-    id: "moderat",
-    label: "Moderat",
+    id: "moderat", label: "Moderat", emoji: "⚖️",
     desc: "Seimbang antara aman dan cuan. Mix tabungan dan investasi ringan.",
-    emoji: "⚖️",
-    color: "purple",
+    color: "#2563eb", tag: "BALANCED",
   },
   {
-    id: "agresif",
-    label: "Agresif",
+    id: "agresif", label: "Agresif", emoji: "🚀",
     desc: "Berani ambil risiko untuk return lebih besar. Cocok yang udah paham.",
-    emoji: "🚀",
-    color: "orange",
+    color: "#dc2626", tag: "HIGH RETURN",
   },
 ];
 
@@ -63,36 +76,31 @@ export default function OnboardingPage() {
   const supabase = createClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [animating, setAnimating] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    age: "",
-    income: "",
-    incomeSource: "gaji",
-    topExpenses: [] as string[],
-    monthlyExpense: "",
-    goals: [] as string[],
-    riskProfile: "",
+    name: "", age: "", income: "", incomeSource: "gaji",
+    topExpenses: [] as string[], monthlyExpense: "",
+    goals: [] as string[], riskProfile: "",
   });
 
+  const step = STEPS[currentStep - 1];
   const progress = (currentStep / STEPS.length) * 100;
 
-  const toggleExpense = (cat: string) => {
-    setFormData(prev => ({
-      ...prev,
-      topExpenses: prev.topExpenses.includes(cat)
-        ? prev.topExpenses.filter(c => c !== cat)
-        : [...prev.topExpenses, cat]
-    }));
+  const goNext = () => {
+    if (!canProceed()) return;
+    setAnimating(true);
+    setTimeout(() => { setCurrentStep(p => p + 1); setAnimating(false); }, 200);
+  };
+  const goPrev = () => {
+    setAnimating(true);
+    setTimeout(() => { setCurrentStep(p => p - 1); setAnimating(false); }, 200);
   };
 
-  const toggleGoal = (goal: string) => {
-    setFormData(prev => ({
-      ...prev,
-      goals: prev.goals.includes(goal)
-        ? prev.goals.filter(g => g !== goal)
-        : [...prev.goals, goal]
-    }));
-  };
+  const toggleExpense = (cat: string) =>
+    setFormData(p => ({ ...p, topExpenses: p.topExpenses.includes(cat) ? p.topExpenses.filter(c => c !== cat) : [...p.topExpenses, cat] }));
+
+  const toggleGoal = (goal: string) =>
+    setFormData(p => ({ ...p, goals: p.goals.includes(goal) ? p.goals.filter(g => g !== goal) : [...p.goals, goal] }));
 
   const canProceed = () => {
     switch (currentStep) {
@@ -125,404 +133,379 @@ export default function OnboardingPage() {
       }
     } catch (err) {
       console.error("Onboarding save error:", err);
-      // Tetap lanjut ke dashboard meski API gagal
     } finally {
       setIsSubmitting(false);
       router.push("/dashboard");
     }
   };
 
-  const cardStyle: React.CSSProperties = {
-    background: "var(--color-white)",
-    border: "4px solid var(--color-navy)",
-    borderRadius: "var(--radius-brutal)",
-    padding: "3rem",
-    boxShadow: "10px 10px 0px var(--color-navy)",
-    width: "100%",
-    maxWidth: "640px",
-    position: "relative",
-    overflow: "hidden",
-  };
-
   return (
-    <div style={{ width: "100%", maxWidth: "700px", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem" }}>
-      {/* Top Bar */}
-      <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <div style={{
-            width: "64px", height: "64px", display: "flex",
-            alignItems: "center", justifyContent: "center"
-          }}>
-            <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "var(--font-body, 'Inter', sans-serif)", background: "#0f172a" }}>
+      {/* LEFT PANEL */}
+      <div style={{
+        width: "380px", flexShrink: 0,
+        background: step.bg,
+        display: "flex", flexDirection: "column",
+        padding: "2.5rem",
+        position: "relative", overflow: "hidden",
+        transition: "background 0.5s ease",
+      }}>
+        {/* Background decoration */}
+        <div style={{ position: "absolute", top: -80, right: -80, width: 280, height: 280, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: -60, left: -60, width: 220, height: 220, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none" }} />
+
+        {/* Logo */}
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", marginBottom: "3rem" }}>
+          <div style={{ width: 44, height: 44, background: "rgba(255,255,255,0.15)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)", border: "1.5px solid rgba(255,255,255,0.25)" }}>
+            <img src="/images/logo_ceamis.png" alt="CEAMIS" style={{ width: 28, height: 28, objectFit: "contain" }} />
           </div>
-          <span style={{ fontWeight: 900, fontSize: "1.25rem", letterSpacing: "2px", color: "var(--color-navy)" }}>CEAMIS</span>
+          <span style={{ fontWeight: 900, fontSize: "1.1rem", letterSpacing: "3px", color: "white" }}>CEAMIS</span>
         </Link>
-        <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-muted)" }}>
-          Step {currentStep} / {STEPS.length}
-        </span>
-      </div>
 
-      {/* Progress Bar */}
-      <div style={{ width: "100%", height: "12px", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
-        <div style={{
-          width: `${progress}%`, height: "100%", background: `var(--color-${STEPS[currentStep - 1].color})`,
-          transition: "width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)", borderRadius: "100px",
-        }} />
-      </div>
-
-      {/* Step Indicators */}
-      <div style={{ display: "flex", gap: "0.5rem", width: "100%", justifyContent: "center" }}>
-        {STEPS.map((step) => (
-          <div key={step.id} style={{
-            display: "flex", alignItems: "center", gap: "0.35rem",
-            padding: "0.3rem 0.6rem", borderRadius: "var(--radius-brutal-sm)",
-            border: `2px solid ${currentStep >= step.id ? "var(--color-navy)" : "var(--color-border-light)"}`,
-            background: currentStep === step.id ? `var(--color-${step.color})` : currentStep > step.id ? "var(--color-lime)" : "var(--color-white)",
-            opacity: currentStep >= step.id ? 1 : 0.5,
-            fontSize: "0.7rem", fontWeight: 800, color: "var(--color-navy)",
-            transition: "all 0.3s",
-          }}>
-            {currentStep > step.id ? <CheckCircle2 size={12} /> : <step.icon size={12} />}
-            <span style={{ display: currentStep === step.id ? "inline" : "none" }}>{step.title}</span>
+        {/* Step Info */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <div style={{ fontSize: "4rem", marginBottom: "1rem", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))" }}>{step.emoji}</div>
+          <div style={{ fontSize: "0.7rem", fontWeight: 800, letterSpacing: "3px", color: "rgba(255,255,255,0.6)", marginBottom: "0.5rem" }}>
+            LANGKAH {currentStep} DARI {STEPS.length}
           </div>
-        ))}
+          <h1 style={{ fontSize: "2.2rem", fontWeight: 900, color: "white", margin: "0 0 0.75rem 0", lineHeight: 1.1 }}>
+            {step.title}
+          </h1>
+          <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "1rem", margin: 0, lineHeight: 1.6 }}>
+            {step.subtitle}
+          </p>
+        </div>
+
+        {/* Step indicators */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+          {STEPS.map((s) => (
+            <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", opacity: currentStep >= s.id ? 1 : 0.35, transition: "opacity 0.3s" }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: "50%",
+                background: currentStep > s.id ? "rgba(255,255,255,0.9)" : currentStep === s.id ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)",
+                border: "2px solid rgba(255,255,255,0.4)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.3s",
+              }}>
+                {currentStep > s.id
+                  ? <CheckCircle2 size={14} color="#059669" strokeWidth={3} />
+                  : <s.icon size={12} color="white" />}
+              </div>
+              <span style={{ fontSize: "0.8rem", fontWeight: currentStep === s.id ? 800 : 500, color: currentStep === s.id ? "white" : "rgba(255,255,255,0.6)" }}>
+                {s.title}
+              </span>
+              {currentStep === s.id && (
+                <div style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: "white" }} />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Main Card */}
-      <div style={cardStyle}>
-        {/* Step 1 — Kenalan */}
-        {currentStep === 1 && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-              <div style={{
-                width: "48px", height: "48px", background: "var(--color-purple)",
-                borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)",
-                boxShadow: "3px 3px 0px var(--color-navy)", display: "flex",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                <User size={24} color="var(--color-white)" strokeWidth={2.5} />
-              </div>
+      {/* RIGHT PANEL */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#0f172a", overflowY: "auto" }}>
+        {/* Progress bar */}
+        <div style={{ height: 4, background: "rgba(255,255,255,0.07)" }}>
+          <div style={{ height: "100%", background: step.accent, width: `${progress}%`, transition: "width 0.5s cubic-bezier(0.34,1.56,0.64,1)" }} />
+        </div>
+
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2.5rem" }}>
+          <div
+            style={{
+              width: "100%", maxWidth: 560,
+              opacity: animating ? 0 : 1,
+              transform: animating ? "translateY(12px)" : "translateY(0)",
+              transition: "opacity 0.2s ease, transform 0.2s ease",
+            }}
+          >
+            {/* STEP 1 */}
+            {currentStep === 1 && (
               <div>
-                <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", margin: 0, color: "var(--color-navy)" }}>
-                  Kenalan dulu, yuk! 👋
+                <h2 style={{ fontSize: "1.75rem", fontWeight: 900, color: "white", marginBottom: "0.5rem" }}>
+                  Halo! Siapa namamu? 👋
                 </h2>
-              </div>
-            </div>
-            <p style={{ color: "var(--color-text-muted)", marginBottom: "2rem", fontSize: "1rem" }}>
-              Biar CEAMIS bisa kasih saran yang pas buat kamu.
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              <div>
-                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                  NAMA KAMU
-                </label>
-                <input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="input-brutal"
-                  placeholder="Masukkan nama kamu..."
-                  style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
-                />
-              </div>
-              <div>
-                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                  UMUR
-                </label>
-                <input
-                  value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                  className="input-brutal"
-                  type="number"
-                  placeholder="Contoh: 21"
-                  style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2 — Pendapatan */}
-        {currentStep === 2 && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-              <div style={{
-                width: "48px", height: "48px", background: "var(--color-lime)",
-                borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)",
-                boxShadow: "3px 3px 0px var(--color-navy)", display: "flex",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                <Wallet size={24} color="var(--color-navy)" strokeWidth={2.5} />
-              </div>
-              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", margin: 0, color: "var(--color-navy)" }}>
-                Berapa pendapatanmu? 💸
-              </h2>
-            </div>
-            <p style={{ color: "var(--color-text-muted)", marginBottom: "2rem", fontSize: "1rem" }}>
-              Tenang, data ini aman dan cuma buat analisis pribadi kamu.
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              <div>
-                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                  SUMBER PENDAPATAN UTAMA
-                </label>
-                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                  {["gaji", "freelance", "bisnis", "uang_saku"].map((src) => (
-                    <button
-                      key={src}
-                      onClick={() => setFormData({ ...formData, incomeSource: src })}
-                      className="btn-brutal"
-                      style={{
-                        padding: "0.6rem 1.25rem", fontSize: "0.9rem", fontWeight: 800,
-                        background: formData.incomeSource === src ? "var(--color-lime)" : "var(--color-white)",
-                        transform: formData.incomeSource === src ? "translate(-2px, -2px)" : "none",
-                        boxShadow: formData.incomeSource === src ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-                      }}
-                    >
-                      {src === "gaji" && "💼 Gaji"}
-                      {src === "freelance" && "💻 Freelance"}
-                      {src === "bisnis" && "🏪 Bisnis"}
-                      {src === "uang_saku" && "🎓 Uang Saku"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                  PENDAPATAN BULANAN (RP)
-                </label>
-                <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", fontSize: "1.125rem", fontWeight: 800, color: "var(--color-navy)" }}>Rp</span>
-                  <input
-                    value={formData.income}
-                    onChange={(e) => setFormData({ ...formData, income: e.target.value })}
-                    className="input-brutal"
-                    type="number"
-                    placeholder="0"
-                    style={{ border: "3px solid var(--color-navy)", padding: "1rem 1rem 1rem 3rem", fontSize: "1.125rem", width: "100%", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
+                <p style={{ color: "#64748b", marginBottom: "2.5rem", fontSize: "0.95rem" }}>
+                  Biar CEAMIS bisa kasih saran yang pas buat kamu.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                  <InputField
+                    label="NAMA KAMU" placeholder="Masukkan nama kamu..."
+                    value={formData.name} onChange={v => setFormData({ ...formData, name: v })}
+                    accent={step.accent}
+                  />
+                  <InputField
+                    label="UMUR" placeholder="Contoh: 21" type="number"
+                    value={formData.age} onChange={v => setFormData({ ...formData, age: v })}
+                    accent={step.accent}
                   />
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Step 3 — Pengeluaran */}
-        {currentStep === 3 && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-              <div style={{
-                width: "48px", height: "48px", background: "var(--color-orange)",
-                borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)",
-                boxShadow: "3px 3px 0px var(--color-navy)", display: "flex",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                <ShoppingBag size={24} color="var(--color-navy)" strokeWidth={2.5} />
+            {/* STEP 2 */}
+            {currentStep === 2 && (
+              <div>
+                <h2 style={{ fontSize: "1.75rem", fontWeight: 900, color: "white", marginBottom: "0.5rem" }}>
+                  Berapa pendapatanmu? 💸
+                </h2>
+                <p style={{ color: "#64748b", marginBottom: "2.5rem", fontSize: "0.95rem" }}>
+                  Tenang, data ini aman dan hanya untuk analisis pribadi kamu.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "2px", color: "#64748b", marginBottom: "0.75rem" }}>
+                      SUMBER PENDAPATAN
+                    </label>
+                    <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+                      {[
+                        { id: "gaji", label: "💼 Gaji" },
+                        { id: "freelance", label: "💻 Freelance" },
+                        { id: "bisnis", label: "🏪 Bisnis" },
+                        { id: "uang_saku", label: "🎓 Uang Saku" },
+                      ].map(src => (
+                        <button
+                          key={src.id}
+                          onClick={() => setFormData({ ...formData, incomeSource: src.id })}
+                          style={{
+                            padding: "0.6rem 1.25rem", borderRadius: 10, fontSize: "0.875rem", fontWeight: 700,
+                            border: `2px solid ${formData.incomeSource === src.id ? step.accent : "rgba(255,255,255,0.1)"}`,
+                            background: formData.incomeSource === src.id ? `${step.accent}22` : "rgba(255,255,255,0.04)",
+                            color: formData.incomeSource === src.id ? step.accent : "#94a3b8",
+                            cursor: "pointer", transition: "all 0.2s",
+                          }}
+                        >{src.label}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <InputField
+                    label="PENDAPATAN BULANAN (RP)" placeholder="0" type="number"
+                    value={formData.income} onChange={v => setFormData({ ...formData, income: v })}
+                    accent={step.accent} prefix="Rp"
+                  />
+                </div>
               </div>
-              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", margin: 0, color: "var(--color-navy)" }}>
-                Uangmu habis ke mana? 🤔
-              </h2>
-            </div>
-            <p style={{ color: "var(--color-text-muted)", marginBottom: "2rem", fontSize: "1rem" }}>
-              Pilih kategori pengeluaran rutin utama kamu (bisa lebih dari satu).
-            </p>
+            )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-              {EXPENSE_CATEGORIES.map((cat) => {
-                const selected = formData.topExpenses.includes(cat);
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => toggleExpense(cat)}
-                    className="btn-brutal"
-                    style={{
-                      padding: "1rem", fontSize: "0.9rem", fontWeight: 800, textAlign: "left",
-                      background: selected ? "var(--color-orange)" : "var(--color-white)",
-                      color: selected ? "var(--color-white)" : "var(--color-navy)",
-                      transform: selected ? "translate(-2px, -2px)" : "none",
-                      boxShadow: selected ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-                      display: "flex", alignItems: "center", gap: "0.5rem",
-                    }}
-                  >
-                    {selected ? <CheckCircle2 size={16} /> : <ChevronRight size={16} />}
-                    {cat}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ marginTop: "1.5rem" }}>
-              <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                ESTIMASI PENGELUARAN BULANAN (RP)
-              </label>
-              <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", fontSize: "1.125rem", fontWeight: 800, color: "var(--color-navy)" }}>Rp</span>
-                <input
-                  value={formData.monthlyExpense}
-                  onChange={(e) => setFormData({ ...formData, monthlyExpense: e.target.value })}
-                  className="input-brutal"
-                  type="number"
-                  placeholder="0"
-                  style={{ border: "3px solid var(--color-navy)", padding: "1rem 1rem 1rem 3rem", fontSize: "1.125rem", width: "100%", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
+            {/* STEP 3 */}
+            {currentStep === 3 && (
+              <div>
+                <h2 style={{ fontSize: "1.75rem", fontWeight: 900, color: "white", marginBottom: "0.5rem" }}>
+                  Uangmu habis ke mana? 🛍️
+                </h2>
+                <p style={{ color: "#64748b", marginBottom: "2rem", fontSize: "0.95rem" }}>
+                  Pilih kategori pengeluaran rutin kamu (bisa lebih dari satu).
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem", marginBottom: "1.5rem" }}>
+                  {EXPENSE_CATEGORIES.map(cat => {
+                    const sel = formData.topExpenses.includes(cat.label);
+                    return (
+                      <button
+                        key={cat.label}
+                        onClick={() => toggleExpense(cat.label)}
+                        style={{
+                          padding: "0.875rem 1rem", borderRadius: 12, fontSize: "0.875rem", fontWeight: 700,
+                          border: `2px solid ${sel ? step.accent : "rgba(255,255,255,0.08)"}`,
+                          background: sel ? `${step.accent}22` : "rgba(255,255,255,0.04)",
+                          color: sel ? step.accent : "#94a3b8",
+                          cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem",
+                          transition: "all 0.2s", textAlign: "left",
+                        }}
+                      >
+                        <span style={{ fontSize: "1.1rem" }}>{cat.emoji}</span>
+                        <span>{cat.label}</span>
+                        {sel && <CheckCircle2 size={14} style={{ marginLeft: "auto", flexShrink: 0 }} />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <InputField
+                  label="ESTIMASI PENGELUARAN BULANAN (RP)" placeholder="0" type="number"
+                  value={formData.monthlyExpense} onChange={v => setFormData({ ...formData, monthlyExpense: v })}
+                  accent={step.accent} prefix="Rp"
                 />
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Step 4 — Tujuan Finansial */}
-        {currentStep === 4 && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-              <div style={{
-                width: "48px", height: "48px", background: "var(--color-purple)",
-                borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)",
-                boxShadow: "3px 3px 0px var(--color-navy)", display: "flex",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                <Target size={24} color="var(--color-white)" strokeWidth={2.5} />
+            {/* STEP 4 */}
+            {currentStep === 4 && (
+              <div>
+                <h2 style={{ fontSize: "1.75rem", fontWeight: 900, color: "white", marginBottom: "0.5rem" }}>
+                  Mau ke mana duitmu? 🎯
+                </h2>
+                <p style={{ color: "#64748b", marginBottom: "2rem", fontSize: "0.95rem" }}>
+                  Pilih tujuan finansial kamu (bisa lebih dari satu).
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                  {FINANCIAL_GOALS.map(goal => {
+                    const sel = formData.goals.includes(goal.id);
+                    return (
+                      <button
+                        key={goal.id}
+                        onClick={() => toggleGoal(goal.id)}
+                        style={{
+                          padding: "1rem 1.25rem", borderRadius: 12, textAlign: "left",
+                          border: `2px solid ${sel ? step.accent : "rgba(255,255,255,0.08)"}`,
+                          background: sel ? `${step.accent}18` : "rgba(255,255,255,0.04)",
+                          cursor: "pointer", display: "flex", alignItems: "center", gap: "1rem",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>{goal.emoji}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 800, fontSize: "0.9rem", color: sel ? step.accent : "white" }}>{goal.label}</div>
+                          <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "0.15rem" }}>{goal.desc}</div>
+                        </div>
+                        {sel && <CheckCircle2 size={18} color={step.accent} style={{ flexShrink: 0 }} />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", margin: 0, color: "var(--color-navy)" }}>
-                Mau ke mana duitmu? 🎯
-              </h2>
-            </div>
-            <p style={{ color: "var(--color-text-muted)", marginBottom: "2rem", fontSize: "1rem" }}>
-              Pilih tujuan finansial kamu (bisa lebih dari satu).
-            </p>
+            )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              {FINANCIAL_GOALS.map((goal) => {
-                const selected = formData.goals.includes(goal.id);
-                return (
-                  <button
-                    key={goal.id}
-                    onClick={() => toggleGoal(goal.id)}
-                    className="btn-brutal"
-                    style={{
-                      padding: "1.25rem", textAlign: "left",
-                      background: selected ? "var(--color-purple)" : "var(--color-white)",
-                      color: selected ? "var(--color-white)" : "var(--color-navy)",
-                      transform: selected ? "translate(-2px, -2px)" : "none",
-                      boxShadow: selected ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-                      display: "flex", alignItems: "center", gap: "1rem",
-                    }}
-                  >
-                    <span style={{ fontSize: "1.5rem" }}>{goal.icon}</span>
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: "1rem" }}>{goal.label}</div>
-                      <div style={{ fontSize: "0.8rem", opacity: 0.8, fontWeight: 500, marginTop: "0.15rem" }}>{goal.desc}</div>
-                    </div>
-                    {selected && <CheckCircle2 size={20} style={{ marginLeft: "auto" }} />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Step 5 — Profil Risiko */}
-        {currentStep === 5 && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-              <div style={{
-                width: "48px", height: "48px", background: "var(--color-lime)",
-                borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)",
-                boxShadow: "3px 3px 0px var(--color-navy)", display: "flex",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                <Shield size={24} color="var(--color-navy)" strokeWidth={2.5} />
+            {/* STEP 5 */}
+            {currentStep === 5 && (
+              <div>
+                <h2 style={{ fontSize: "1.75rem", fontWeight: 900, color: "white", marginBottom: "0.5rem" }}>
+                  Gaya finansialmu gimana? 🧠
+                </h2>
+                <p style={{ color: "#64748b", marginBottom: "2rem", fontSize: "0.95rem" }}>
+                  Pilih profil yang paling cocok dengan kepribadian finansialmu.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  {RISK_PROFILES.map(profile => {
+                    const sel = formData.riskProfile === profile.id;
+                    return (
+                      <button
+                        key={profile.id}
+                        onClick={() => setFormData({ ...formData, riskProfile: profile.id })}
+                        style={{
+                          padding: "1.25rem 1.5rem", borderRadius: 16, textAlign: "left",
+                          border: `2px solid ${sel ? profile.color : "rgba(255,255,255,0.08)"}`,
+                          background: sel ? `${profile.color}18` : "rgba(255,255,255,0.04)",
+                          cursor: "pointer", display: "flex", alignItems: "center", gap: "1.25rem",
+                          transition: "all 0.25s",
+                          boxShadow: sel ? `0 0 0 4px ${profile.color}22` : "none",
+                        }}
+                      >
+                        <span style={{ fontSize: "2.2rem", flexShrink: 0 }}>{profile.emoji}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.25rem" }}>
+                            <span style={{ fontWeight: 900, fontSize: "1.05rem", color: sel ? profile.color : "white" }}>{profile.label}</span>
+                            <span style={{ fontSize: "0.6rem", fontWeight: 800, letterSpacing: "1.5px", color: profile.color, background: `${profile.color}22`, padding: "2px 8px", borderRadius: 4 }}>
+                              {profile.tag}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5 }}>{profile.desc}</div>
+                        </div>
+                        {sel && <CheckCircle2 size={20} color={profile.color} style={{ flexShrink: 0 }} />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", margin: 0, color: "var(--color-navy)" }}>
-                Gaya finansialmu gimana? 🧠
-              </h2>
-            </div>
-            <p style={{ color: "var(--color-text-muted)", marginBottom: "2rem", fontSize: "1rem" }}>
-              Pilih profil yang paling cocok dengan kepribadian finansialmu.
-            </p>
+            )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {RISK_PROFILES.map((profile) => {
-                const selected = formData.riskProfile === profile.id;
-                return (
-                  <button
-                    key={profile.id}
-                    onClick={() => setFormData({ ...formData, riskProfile: profile.id })}
-                    className="btn-brutal"
-                    style={{
-                      padding: "1.5rem", textAlign: "left",
-                      background: selected ? `var(--color-${profile.color})` : "var(--color-white)",
-                      color: selected && profile.color !== "lime" ? "var(--color-white)" : "var(--color-navy)",
-                      transform: selected ? "translate(-3px, -3px)" : "none",
-                      boxShadow: selected ? "6px 6px 0px var(--color-navy)" : "3px 3px 0px var(--color-navy)",
-                      display: "flex", alignItems: "center", gap: "1.25rem",
-                      border: selected ? "3px solid var(--color-navy)" : "3px solid var(--color-navy)",
-                    }}
-                  >
-                    <span style={{ fontSize: "2.5rem" }}>{profile.emoji}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 900, fontSize: "1.25rem", fontFamily: "var(--font-heading)" }}>{profile.label}</div>
-                      <div style={{ fontSize: "0.9rem", opacity: 0.85, fontWeight: 500, marginTop: "0.25rem", lineHeight: 1.4 }}>{profile.desc}</div>
-                    </div>
-                    {selected && <CheckCircle2 size={24} />}
-                  </button>
-                );
-              })}
+            {/* NAV BUTTONS */}
+            <div style={{ display: "flex", gap: "1rem", marginTop: "2.5rem" }}>
+              {currentStep > 1 && (
+                <button
+                  onClick={goPrev}
+                  style={{
+                    padding: "0.875rem 1.5rem", borderRadius: 12, fontWeight: 700, fontSize: "0.9rem",
+                    background: "rgba(255,255,255,0.06)", color: "#94a3b8",
+                    border: "1.5px solid rgba(255,255,255,0.1)", cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: "0.5rem",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <ArrowLeft size={16} /> Kembali
+                </button>
+              )}
+
+              {currentStep < STEPS.length ? (
+                <button
+                  onClick={goNext}
+                  disabled={!canProceed()}
+                  style={{
+                    flex: 1, padding: "0.875rem 1.5rem", borderRadius: 12,
+                    fontWeight: 800, fontSize: "1rem",
+                    background: canProceed() ? step.accent : "rgba(255,255,255,0.06)",
+                    color: canProceed() ? "#0f172a" : "#334155",
+                    border: "none", cursor: canProceed() ? "pointer" : "not-allowed",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                    transition: "all 0.25s",
+                    boxShadow: canProceed() ? `0 8px 24px ${step.accent}44` : "none",
+                    transform: canProceed() ? "translateY(0)" : "none",
+                  }}
+                >
+                  Lanjut <ArrowRight size={18} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleFinish}
+                  disabled={!canProceed() || isSubmitting}
+                  style={{
+                    flex: 1, padding: "0.875rem 1.5rem", borderRadius: 12,
+                    fontWeight: 900, fontSize: "1rem",
+                    background: canProceed() ? "linear-gradient(135deg, #a78bfa, #60a5fa)" : "rgba(255,255,255,0.06)",
+                    color: canProceed() ? "white" : "#334155",
+                    border: "none", cursor: canProceed() ? "pointer" : "not-allowed",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem",
+                    transition: "all 0.25s",
+                    boxShadow: canProceed() ? "0 8px 32px rgba(167,139,250,0.4)" : "none",
+                  }}
+                >
+                  <Sparkles size={20} />
+                  {isSubmitting ? "Menyimpan..." : "Masuk ke Dashboard!"}
+                </button>
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Navigation Buttons */}
-      <div style={{ display: "flex", gap: "1rem", width: "100%", maxWidth: "640px" }}>
-        {currentStep > 1 && (
-          <button
-            onClick={() => setCurrentStep(prev => prev - 1)}
-            className="btn-brutal"
-            style={{
-              padding: "1rem 1.5rem", fontWeight: 800, fontSize: "1rem",
-              background: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.5rem",
-              boxShadow: "4px 4px 0px var(--color-navy)",
-            }}
-          >
-            <ArrowLeft size={18} /> Kembali
-          </button>
+// ── Reusable Input Component ──────────────────────────────────────────────────
+
+function InputField({
+  label, placeholder, value, onChange, type = "text", accent, prefix,
+}: {
+  label: string; placeholder: string; value: string;
+  onChange: (v: string) => void; type?: string;
+  accent: string; prefix?: string;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div>
+      <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "2px", color: focused ? accent : "#64748b", marginBottom: "0.6rem", transition: "color 0.2s" }}>
+        {label}
+      </label>
+      <div style={{ position: "relative" }}>
+        {prefix && (
+          <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", fontWeight: 800, color: "#475569", fontSize: "0.95rem" }}>
+            {prefix}
+          </span>
         )}
-        
-        {currentStep < STEPS.length ? (
-          <button
-            onClick={() => canProceed() && setCurrentStep(prev => prev + 1)}
-            className="btn-brutal"
-            style={{
-              flex: 1, padding: "1rem 1.5rem", fontWeight: 800, fontSize: "1rem",
-              background: canProceed() ? "var(--color-navy)" : "var(--color-border-light)",
-              color: canProceed() ? "var(--color-white)" : "var(--color-text-muted)",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-              boxShadow: canProceed() ? "4px 4px 0px var(--color-purple)" : "none",
-              cursor: canProceed() ? "pointer" : "not-allowed",
-              opacity: canProceed() ? 1 : 0.6,
-            }}
-          >
-            Lanjut <ArrowRight size={18} />
-          </button>
-        ) : (
-          <button
-            onClick={() => canProceed() && !isSubmitting && handleFinish()}
-            className="btn-brutal"
-            disabled={isSubmitting}
-            style={{
-              flex: 1, padding: "1rem 1.5rem", fontWeight: 900, fontSize: "1.125rem",
-              background: canProceed() ? "var(--color-lime)" : "var(--color-border-light)",
-              color: "var(--color-navy)",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem",
-              boxShadow: canProceed() ? "6px 6px 0px var(--color-navy)" : "none",
-              cursor: (canProceed() && !isSubmitting) ? "pointer" : "not-allowed",
-              opacity: canProceed() ? 1 : 0.6,
-            }}
-          >
-            <Sparkles size={20} /> {isSubmitting ? "Menyimpan..." : "Masuk ke Dashboard!"}
-          </button>
-        )}
+        <input
+          type={type}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          style={{
+            width: "100%", padding: prefix ? "1rem 1rem 1rem 3rem" : "1rem",
+            background: "rgba(255,255,255,0.05)",
+            border: `2px solid ${focused ? accent : "rgba(255,255,255,0.08)"}`,
+            borderRadius: 12, color: "white", fontSize: "1rem", fontWeight: 600,
+            outline: "none", transition: "border-color 0.2s, box-shadow 0.2s",
+            boxShadow: focused ? `0 0 0 4px ${accent}22` : "none",
+            boxSizing: "border-box",
+          }}
+        />
       </div>
     </div>
   );

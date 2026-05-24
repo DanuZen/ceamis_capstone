@@ -76,36 +76,51 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+
     if (!user) {
-      // Load dari localStorage untuk guest/unauthenticated
-      const saved = localStorage.getItem("ceamis_user");
-      if (saved) {
-        try { setUserData(JSON.parse(saved)); } catch { /* ignore */ }
-      }
+      // User tidak login → clear semua data dan reset ke default
+      localStorage.removeItem("ceamis_user");
+      setUserData(defaultUser);
       setIsLoadingUser(false);
       return;
+    }
+
+    // Cek apakah localStorage milik user yang sama
+    const savedRaw = localStorage.getItem("ceamis_user");
+    let savedData: UserData | null = null;
+    if (savedRaw) {
+      try {
+        const parsed = JSON.parse(savedRaw);
+        // Hanya pakai jika ID cocok dengan user yang login sekarang
+        if (parsed.id === user.id) {
+          savedData = parsed;
+        } else {
+          // User berbeda → hapus cache lama
+          localStorage.removeItem("ceamis_user");
+        }
+      } catch {
+        localStorage.removeItem("ceamis_user");
+      }
     }
 
     try {
       const profile = await usersApi.getProfile(user.id);
       const mapped = mapApiToUserData(profile);
       setUserData(mapped);
-      // Cache minimal di localStorage sebagai fallback
+      // Cache dengan user ID untuk validasi berikutnya
       localStorage.setItem("ceamis_user", JSON.stringify(mapped));
     } catch {
-      // Fallback: gunakan localStorage
-      const saved = localStorage.getItem("ceamis_user");
-      if (saved) {
-        try { setUserData(JSON.parse(saved)); } catch { /* ignore */ }
-      }
-      // Fallback default dengan data dari auth
-      if (!userData.id) {
-        setUserData(prev => ({
-          ...prev,
+      // Fallback: gunakan localStorage HANYA jika milik user yang sama
+      if (savedData) {
+        setUserData(savedData);
+      } else {
+        // Akun baru atau data tidak ada → mulai dari defaultUser dengan data auth
+        setUserData({
+          ...defaultUser,
           id: user.id,
           email: user.email || "",
           name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-        }));
+        });
       }
     } finally {
       setIsLoadingUser(false);
@@ -114,9 +129,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refreshUser();
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      refreshUser();
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        // Hapus semua data saat logout
+        localStorage.removeItem("ceamis_user");
+        localStorage.removeItem("ceamis_transactions");
+        setUserData(defaultUser);
+      } else {
+        refreshUser();
+      }
     });
     return () => subscription.unsubscribe();
   }, []);

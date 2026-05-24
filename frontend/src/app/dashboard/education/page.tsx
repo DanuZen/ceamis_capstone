@@ -158,13 +158,13 @@ export default function EducationPage() {
           gap: "1.5rem",
         }}
       >
-        {modules.map((mod) => {
+        {modules.map((mod, index) => {
           const accentColor = `var(--color-${mod.color})`;
           return (
             <Link 
               key={mod.id} 
               href={`/dashboard/education/${mod.id}`}
-              className="card-brutal" 
+              className="card-brutal module-card" 
               style={{ 
                 cursor: "pointer", 
                 display: "flex", 
@@ -174,7 +174,9 @@ export default function EducationPage() {
                 background: "var(--color-white)",
                 overflow: "hidden",
                 textDecoration: "none",
-                ["--card-shadow-color" as any]: accentColor
+                ["--card-shadow-color" as any]: accentColor,
+                animation: `fadeUp 0.5s ease-out ${index * 0.1}s both`,
+                transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease"
               }}
             >
               <div style={{ background: accentColor, padding: "1rem 1.5rem", borderBottom: "3px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>

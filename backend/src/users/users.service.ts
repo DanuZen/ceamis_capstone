@@ -10,13 +10,33 @@ export class UsersService {
   ) {}
 
   async getProfile(userId: string) {
-    const { data, error } = await this.supabase
+    let { data, error } = await this.supabase
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
       .single();
 
-    if (error) throw new NotFoundException(`User profile not found: ${error.message}`);
+    if (error && error.code === 'PGRST116') {
+      // Profil tidak ditemukan, auto-create
+      const newProfile = {
+        id: userId,
+        health_score: 50,
+        xp: 0,
+        level: 1,
+        streak: 0,
+      };
+      const { data: created, error: createError } = await this.supabase
+        .from('user_profiles')
+        .insert([newProfile])
+        .select()
+        .single();
+        
+      if (createError) throw new Error(`Failed to create profile: ${createError.message}`);
+      return created;
+    } else if (error) {
+      throw new NotFoundException(`User profile not found: ${error.message}`);
+    }
+    
     return data;
   }
 
