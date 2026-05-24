@@ -1,13 +1,20 @@
-<<<<<<< HEAD
 """
 Preprocessor Utility — CEAMIS AI Service
-Menangani transformasi data mentah transaksi frontend → fitur agregat model.
+
+Menangani:
+- Transformasi fitur untuk Model 1 (Health Score)
+- Load artifacts & preprocessing untuk Model 3 (Risk Profile)
 """
 
 import numpy as np
-import pandas as pd
-from typing import List, Dict, Any
+import joblib
+import tensorflow as tf
+from typing import Dict, List, Any
 
+
+# ════════════════════════════════════════════════════════════════════════
+# MODEL 1 — Financial Health Score
+# ════════════════════════════════════════════════════════════════════════
 
 # Kategori yang dianggap berisiko (pengeluaran impulsif)
 RISKY_CATEGORIES = {"F&B", "hobi", "hiburan", "belanja", "fashion", "gaming"}
@@ -15,7 +22,7 @@ RISKY_CATEGORIES = {"F&B", "hobi", "hiburan", "belanja", "fashion", "gaming"}
 # Jam larut malam (>= 21:00 atau < 06:00)
 LATE_NIGHT_HOURS = set(range(21, 24)) | set(range(0, 6))
 
-# Urutan fitur yang harus sama persis dengan saat training
+# Urutan fitur — harus sama persis dengan saat training
 SAFE_FEATURES = [
     "pct_late_night",
     "pct_weekend",
@@ -50,10 +57,10 @@ def get_genz_message(score: float, label: str) -> str:
     """Generate pesan Gen-Z sarkas berdasarkan kondisi finansial."""
     messages = {
         "Excellent": "Bestie, kamu tuh kayak CFO-nya diri sendiri! Finansialmu literally goals banget. Keep it up! 🔥",
-        "Sehat": "Oke sip, finansialmu cukup sehat nih. Tapi jangan santai-santai dulu, tetap pantau pengeluaranmu ya!",
-        "Cukup": "Hmm, masih oke tapi ada ruang buat improve. Coba kurangin yang 'sekali-kali' itu — sekali-kali kamu tau sendiri berapa kali. 👀",
-        "Waspada": "Sis/bro, dompetmu mulai kirim sinyal SOS nih. Waktunya evaluasi dan cut pengeluaran yang nggak perlu! ⚠️",
-        "Kritis": "Bro/sis, ini darurat keuangan. Dompetmu udah nangis bombay. Warning System diaktifkan — tolong dengerin AI-nya kali ini! 🚨",
+        "Sehat":     "Oke sip, finansialmu cukup sehat nih. Tapi jangan santai-santai dulu, tetap pantau pengeluaranmu ya!",
+        "Cukup":     "Hmm, masih oke tapi ada ruang buat improve. Coba kurangin yang 'sekali-kali' itu — sekali-kali kamu tau sendiri berapa kali. 👀",
+        "Waspada":   "Sis/bro, dompetmu mulai kirim sinyal SOS nih. Waktunya evaluasi dan cut pengeluaran yang nggak perlu! ⚠️",
+        "Kritis":    "Bro/sis, ini darurat keuangan. Dompetmu udah nangis bombay. Warning System diaktifkan — tolong dengerin AI-nya kali ini! 🚨",
     }
     return messages.get(label, f"Skor finansialmu: {score:.1f}/100")
 
@@ -61,30 +68,29 @@ def get_genz_message(score: float, label: str) -> str:
 def compute_xai_factors(features: Dict[str, float]) -> Dict[str, Any]:
     """
     Hitung kontribusi relatif tiap fitur (rule-based XAI sederhana).
-    Ini adalah approximasi — untuk XAI berbasis SHAP, integrate library shap setelah model dioptimasi.
+    Approximasi berdasarkan bobot korelasi dari notebook training.
+    Untuk XAI berbasis SHAP, integrate library shap setelah model dioptimasi.
     """
-    # Bobot berdasarkan korelasi dengan health_score dari notebook
     weights = {
-        "saving_rate_raw": 0.177,
-        "pct_unbudgeted": 0.145,
-        "dti_ratio": 0.140,
-        "wants_ratio_raw": 0.120,
-        "pct_late_night": 0.098,
-        "segment_enc": 0.063,
-        "investment_rate_raw": 0.044,
-        "transaction_count": 0.021,
-        "pct_weekend": 0.018,
-        "pct_risky_category": 0.012,
+        "saving_rate_raw":      0.177,
+        "pct_unbudgeted":       0.145,
+        "dti_ratio":            0.140,
+        "wants_ratio_raw":      0.120,
+        "pct_late_night":       0.098,
+        "segment_enc":          0.063,
+        "investment_rate_raw":  0.044,
+        "transaction_count":    0.021,
+        "pct_weekend":          0.018,
+        "pct_risky_category":   0.012,
         "avg_hourly_txn_count": 0.004,
-        "pct_binge_spending": 0.001,
+        "pct_binge_spending":   0.001,
     }
 
-    # Identifikasi faktor positif dan negatif
     positives = []
     negatives = []
 
     if features.get("saving_rate_raw", 0) > 0.20:
-        positives.append({"faktor": "Tabungan sehat", "dampak": "positif", "nilai": f"{features['saving_rate_raw']*100:.0f}% income ditabung"})
+        positives.append({"faktor": "Tabungan sehat",  "dampak": "positif", "nilai": f"{features['saving_rate_raw']*100:.0f}% income ditabung"})
     else:
         negatives.append({"faktor": "Tabungan rendah", "dampak": "negatif", "nilai": f"Hanya {features['saving_rate_raw']*100:.0f}% income ditabung"})
 
@@ -104,33 +110,32 @@ def compute_xai_factors(features: Dict[str, float]) -> Dict[str, Any]:
         negatives.append({"faktor": "Sering belanja larut malam", "dampak": "negatif", "nilai": f"{features['pct_late_night']*100:.0f}% transaksi di jam larut"})
 
     return {
-        "positif": positives,
-        "negatif": negatives,
+        "positif":        positives,
+        "negatif":        negatives,
         "faktor_terbesar": max(weights, key=weights.get),
-        "penjelasan": "Skor dipengaruhi oleh pola tabungan, rasio utang, dan kebiasaan pengeluaran."
+        "penjelasan":     "Skor dipengaruhi oleh pola tabungan, rasio utang, dan kebiasaan pengeluaran.",
     }
 
 
 def features_to_numpy(features: Dict[str, float]) -> np.ndarray:
     """Konversi dict fitur ke numpy array dengan urutan yang benar."""
     return np.array([[features[f] for f in SAFE_FEATURES]], dtype=np.float32)
-=======
-# app/utils/preprocessor.py
-import pickle
-import numpy as np
-import tensorflow as tf
-import joblib
-import os
 
-# ── Path artefak ──────────────────────────────────────────
+
+# ════════════════════════════════════════════════════════════════════════
+# MODEL 3 — Risk Profile Classifier
+# ════════════════════════════════════════════════════════════════════════
+
 BASE = "app/models"
 
-# ── Custom components untuk load model ───────────────────
+
 class RiskProfileAttentionLayer(tf.keras.layers.Layer):
+    """Custom attention layer dari notebook training Model 3."""
+
     def __init__(self, units=32, **kwargs):
         super(RiskProfileAttentionLayer, self).__init__(**kwargs)
         self.units = units
-        self.dense = tf.keras.layers.Dense(units, activation='relu')
+        self.dense = tf.keras.layers.Dense(units, activation="relu")
 
     def call(self, inputs):
         attention_weights = tf.nn.softmax(inputs, axis=-1)
@@ -144,43 +149,38 @@ class RiskProfileAttentionLayer(tf.keras.layers.Layer):
 
 
 class WeightedCrossEntropyLoss(tf.keras.losses.Loss):
+    """Custom loss function dari notebook training Model 3."""
+
     def __init__(self, class_weights=None, **kwargs):
         super().__init__(**kwargs)
         if class_weights is None:
             class_weights = [1.0, 1.0, 2.0]
-        self.class_weights = tf.constant(
-            class_weights, dtype=tf.float32
-        )
+        self.class_weights = tf.constant(class_weights, dtype=tf.float32)
 
     def call(self, y_true, y_pred):
         y_true    = tf.cast(y_true, tf.int32)
         y_true_oh = tf.one_hot(y_true, depth=3)
         y_pred    = tf.clip_by_value(y_pred, 1e-7, 1.0 - 1e-7)
-        ce        = -tf.reduce_sum(
-            y_true_oh * tf.math.log(y_pred), axis=-1
-        )
-        weights   = tf.reduce_sum(
-            y_true_oh * self.class_weights, axis=-1
-        )
+        ce        = -tf.reduce_sum(y_true_oh * tf.math.log(y_pred), axis=-1)
+        weights   = tf.reduce_sum(y_true_oh * self.class_weights, axis=-1)
         return tf.reduce_mean(weights * ce)
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "class_weights": self.class_weights.numpy().tolist()
-        })
+        config.update({"class_weights": self.class_weights.numpy().tolist()})
         return config
 
 
-# ── Singleton loader — load model sekali saat startup ─────
-_risk_model   = None
-_risk_scaler  = None
-_risk_features= None
+# Singleton — load model sekali saat startup
+_risk_model    = None
+_risk_scaler   = None
+_risk_features = None
+
 
 def load_risk_artifacts():
     """
-    Load semua artefak Model 3.
-    Pakai singleton supaya tidak load ulang tiap request.
+    Load semua artefak Model 3 (Risk Profile).
+    Singleton — tidak load ulang tiap request.
     """
     global _risk_model, _risk_scaler, _risk_features
 
@@ -190,22 +190,21 @@ def load_risk_artifacts():
             _risk_model = tf.keras.models.load_model(
                 f"{BASE}/risk_profile_v1.keras",
                 custom_objects={
-                    'RiskProfileAttentionLayer': RiskProfileAttentionLayer,
-                    'WeightedCrossEntropyLoss' : WeightedCrossEntropyLoss
-                }
+                    "RiskProfileAttentionLayer": RiskProfileAttentionLayer,
+                    "WeightedCrossEntropyLoss":  WeightedCrossEntropyLoss,
+                },
             )
         except Exception:
+            # Fallback: load tanpa custom loss, lalu compile ulang
             _risk_model = tf.keras.models.load_model(
                 f"{BASE}/risk_profile_v1.keras",
-                custom_objects={
-                    'RiskProfileAttentionLayer': RiskProfileAttentionLayer
-                },
-                compile=False
+                custom_objects={"RiskProfileAttentionLayer": RiskProfileAttentionLayer},
+                compile=False,
             )
             _risk_model.compile(
-                optimizer = 'adam',
-                loss      = WeightedCrossEntropyLoss([1.0, 1.0, 2.0]),
-                metrics   = ['accuracy']
+                optimizer="adam",
+                loss=WeightedCrossEntropyLoss([1.0, 1.0, 2.0]),
+                metrics=["accuracy"],
             )
         print("✅ Risk profile model loaded")
 
@@ -214,16 +213,13 @@ def load_risk_artifacts():
         print("✅ Risk scaler loaded")
 
     if _risk_features is None:
-        _risk_features = joblib.load(
-            f"{BASE}/feature_columns_risk.pkl"
-        )
+        _risk_features = joblib.load(f"{BASE}/feature_columns_risk.pkl")
         print(f"✅ Risk features loaded: {len(_risk_features)} features")
 
     return _risk_model, _risk_scaler, _risk_features
 
 
-def preprocess_risk_input(data: dict,
-                           features: list) -> np.ndarray:
+def preprocess_risk_input(data: dict, features: list) -> np.ndarray:
     """
     Susun feature vector dari request data.
     Urutan kolom harus SAMA dengan saat training.
@@ -231,10 +227,7 @@ def preprocess_risk_input(data: dict,
     vector = []
     for f in features:
         val = data.get(f, 0.0)
-        # Konversi bool ke float
         if isinstance(val, bool):
             val = float(val)
         vector.append(float(val))
-
     return np.array([vector], dtype=np.float32)
->>>>>>> d52a41bd1303a70a9e533ff032112149fa6dfdee
