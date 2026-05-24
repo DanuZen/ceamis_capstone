@@ -141,7 +141,7 @@ export default function ModuleDetailPage() {
         >
           <div style={{ marginBottom: "2.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-navy)", marginBottom: "1rem" }}>
-              <BookOpen size={24} color={`var(--color-${module.color})`} />
+              <BookOpen size={24} color="var(--color-navy)" />
               <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>Modul {id}</span>
               <span style={{ color: "var(--color-navy)", opacity: 0.2 }}>•</span>
               <span style={{ color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
