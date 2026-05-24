@@ -13,8 +13,10 @@ import {
   User,
   HandCoins,
   FileText,
-  Target
+  Target,
+  Lock
 } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 // ── Grouped Navigation ──────────────────────
 interface NavItem {
@@ -58,12 +60,52 @@ const navGroups: NavGroup[] = [
 
 export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const pathname = usePathname();
+  const { userData } = useUser();
+  const warningTriggered = userData.warningTriggered;
+  const healthScore = userData.healthScore;
 
   const renderNavItem = (item: NavItem) => {
     const isActive =
       item.href === "/dashboard"
         ? pathname === "/dashboard"
         : pathname.startsWith(item.href);
+
+    // Warning System: hanya bisa diakses jika warningTriggered (score < 40)
+    const isWarningItem = item.href === "/dashboard/warnings";
+    const isLocked = isWarningItem && !warningTriggered;
+
+    if (isLocked) {
+      return (
+        <div
+          key={item.href}
+          title={`Warning System aktif saat Health Score < 40% (sekarang ${healthScore.toFixed(0)}%)`}
+          style={{
+            padding: "0.75rem 1.25rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.85rem",
+            borderRadius: "var(--radius-brutal-sm)",
+            opacity: 0.35,
+            cursor: "not-allowed",
+            border: "2px dashed rgba(255,255,255,0.2)",
+            userSelect: "none",
+          }}
+        >
+          <Lock 
+            size={18} 
+            color="rgba(255,255,255,0.5)"
+            strokeWidth={2.5}
+            style={{ minWidth: "18px" }}
+          />
+          <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap", color: "rgba(255,255,255,0.5)" }}>
+            Warning System
+          </span>
+          <span className="sidebar-text" style={{ fontSize: "0.6rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "100px", padding: "0.1rem 0.4rem", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", marginLeft: "auto" }}>
+            {healthScore.toFixed(0)}%
+          </span>
+        </div>
+      );
+    }
 
     return (
       <Link
@@ -86,11 +128,14 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       >
         <item.icon 
           size={18} 
-          color={isActive ? "var(--color-navy)" : "rgba(255,255,255,0.7)"}
+          color={isActive ? "var(--color-navy)" : isWarningItem ? "var(--color-pink)" : "rgba(255,255,255,0.7)"}
           strokeWidth={isActive ? 3 : 2.5}
           style={{ minWidth: "18px" }}
         />
         <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap" }}>{item.label}</span>
+        {isWarningItem && (
+          <span className="animate-pulse" style={{ marginLeft: "auto", width: "8px", height: "8px", borderRadius: "50%", background: "var(--color-pink)", border: "2px solid var(--color-navy)", flexShrink: 0 }} />
+        )}
       </Link>
     );
   };

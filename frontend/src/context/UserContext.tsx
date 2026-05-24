@@ -12,6 +12,10 @@ export interface UserData {
   streak: number;
   label: string;
   unlockedBadges: string[];
+  /** Skor kesehatan finansial dari Model 1 (0–100). Default 78 (dummy). */
+  healthScore: number;
+  /** True jika healthScore < 40 → Warning System diaktifkan */
+  warningTriggered: boolean;
 }
 
 interface UserContextType {
@@ -19,10 +23,12 @@ interface UserContextType {
   updateUserData: (data: Partial<UserData>) => void;
   addXp: (amount: number) => void;
   unlockBadge: (badgeId: string) => void;
+  /** Update health score dari respons AI service */
+  setHealthScore: (score: number, triggered: boolean) => void;
 }
 
 const defaultUser: UserData = {
-  name: "Danu Zen", // Default or you can leave blank
+  name: "Danu Zen",
   email: "danuzen@ceamis.id",
   phone: "081234567890",
   avatarUrl: "",
@@ -31,6 +37,8 @@ const defaultUser: UserData = {
   streak: 1,
   label: "Pemula",
   unlockedBadges: ["First Step", "On Fire!", "Konsisten", "AI Explorer"],
+  healthScore: 78,        // dummy default — akan diganti dari API
+  warningTriggered: false, // false jika score >= 40
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -86,8 +94,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const setHealthScore = (score: number, triggered: boolean) => {
+    setUserData(prev => ({
+      ...prev,
+      healthScore: Math.round(score * 10) / 10,
+      warningTriggered: triggered,
+    }));
+  };
+
   return (
-    <UserContext.Provider value={{ userData, updateUserData, addXp, unlockBadge }}>
+    <UserContext.Provider value={{ userData, updateUserData, addXp, unlockBadge, setHealthScore }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,6 +1,54 @@
-import { AlertTriangle, Flame, ShieldAlert, Zap, HeartPulse, Shield } from "lucide-react";
+"use client";
+
+import { AlertTriangle, Flame, ShieldAlert, Zap, HeartPulse, Shield, Lock, CheckCircle } from "lucide-react";
+import Link from "next/link";
+import { useUser } from "@/context/UserContext";
 
 export default function WarningsPage() {
+  const { userData } = useUser();
+
+  // ── Guard: hanya bisa diakses jika health score < 40 ──────────────────────
+  if (!userData.warningTriggered) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center", padding: "2rem" }}>
+        <div style={{
+          width: "100px", height: "100px",
+          background: "var(--color-lime)",
+          borderRadius: "var(--radius-brutal)",
+          border: "4px solid var(--color-navy)",
+          boxShadow: "8px 8px 0px var(--color-navy)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          marginBottom: "2rem"
+        }}>
+          <CheckCircle size={52} color="var(--color-navy)" strokeWidth={2.5} />
+        </div>
+
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 900, color: "var(--color-navy)", marginBottom: "1rem" }}>
+          Finansialmu Aman! 🎉
+        </h1>
+
+        <p style={{ fontSize: "1.125rem", color: "var(--color-text-muted)", maxWidth: "480px", lineHeight: 1.6, marginBottom: "0.75rem" }}>
+          Warning System hanya aktif ketika <strong>Skor Kesehatan &lt; 40%</strong>.
+          Skor kamu sekarang <strong style={{ color: "var(--color-navy)" }}>{userData.healthScore.toFixed(0)}/100</strong> — masih oke!
+        </p>
+        <p style={{ fontSize: "0.9375rem", color: "var(--color-text-muted)", maxWidth: "440px", lineHeight: 1.6, marginBottom: "2.5rem" }}>
+          Terus jaga pola keuanganmu supaya warning ini nggak pernah aktif ya bestie! 💪
+        </p>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", padding: "0.75rem 1.25rem", marginBottom: "2rem", boxShadow: "3px 3px 0px var(--color-navy)" }}>
+          <Lock size={16} color="var(--color-navy)" strokeWidth={2.5} />
+          <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--color-navy)" }}>
+            Terkunci sampai Health Score &lt; 40%
+          </span>
+        </div>
+
+        <Link href="/dashboard" className="btn-brutal" style={{ background: "var(--color-navy)", color: "var(--color-white)", padding: "0.875rem 2rem", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+          Kembali ke Dashboard
+        </Link>
+      </div>
+    );
+  }
+
   const warnings = [
     {
       id: 1,

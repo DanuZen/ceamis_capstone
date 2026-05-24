@@ -135,12 +135,22 @@ export default function DashboardPage() {
         </div>
 
         <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div className="landing-feature-card__icon-box" style={{ background: "var(--color-orange)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+          <div className="landing-feature-card__icon-box" style={{ 
+            background: userData.warningTriggered ? "var(--color-pink)" : userData.healthScore < 65 ? "var(--color-orange)" : "var(--color-orange)", 
+            width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" 
+          }}>
             <Target size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>78/100</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Skor Kesehatan</div>
+            <div style={{ 
+              fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem",
+              color: userData.warningTriggered ? "var(--color-danger)" : "var(--color-navy)"
+            }}>
+              {userData.healthScore.toFixed(0)}/100
+            </div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>
+              Skor Kesehatan {userData.warningTriggered && <span style={{ color: "var(--color-danger)", fontWeight: 700 }}>⚠ Kritis</span>}
+            </div>
           </div>
         </div>
 
