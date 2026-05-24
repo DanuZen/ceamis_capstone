@@ -132,22 +132,25 @@ export default function WarningsPage() {
 
       {/* Top Row: 4 Stats Cards */}
       <div className="stagger-children" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2.5rem" }}>
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+        {/* Health Score — dinamis dari Model 1 */}
+        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem", border: "3px solid var(--color-pink)", boxShadow: "4px 4px 0px var(--color-pink)" }}>
           <div style={{ background: "var(--color-pink)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <HeartPulse size={24} color="var(--color-navy)" strokeWidth={2.5} />
+            <HeartPulse size={24} color="var(--color-navy)" strokeWidth={2.5} className="animate-pulse" />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>15%</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem", color: "var(--color-danger)" }}>
+              {userData.healthScore.toFixed(0)}/100
+            </div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Health Score</div>
           </div>
         </div>
-        
+
         <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
           <div style={{ background: "var(--color-orange)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <AlertTriangle size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>3 Aktif</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{warnings.length} Aktif</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Total Warning</div>
           </div>
         </div>
@@ -157,7 +160,7 @@ export default function WarningsPage() {
             <Shield size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>1 Solusi</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{warnings.length} Solusi</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Tips Tersedia</div>
           </div>
         </div>
@@ -167,7 +170,7 @@ export default function WarningsPage() {
             <Zap size={24} color="var(--color-white)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>LVL 12</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>LVL {userData.level}</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Status Akun</div>
           </div>
         </div>

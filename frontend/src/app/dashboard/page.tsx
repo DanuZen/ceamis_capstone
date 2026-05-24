@@ -12,12 +12,22 @@ import {
   ShieldAlert,
   TrendingUp,
   Target,
-  BarChart3
+  BarChart3,
+  Lock
 } from "lucide-react";
 import { useTransactions } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
 
-const featureCards = [
+interface FeatureCard {
+  href: string;
+  title: string;
+  desc: string;
+  color: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>;
+  warningOnly?: boolean; // hanya muncul/aktif jika warningTriggered
+}
+
+const featureCards: FeatureCard[] = [
   {
     href: "/dashboard/transactions",
     title: "Pencatatan Transaksi",
@@ -35,9 +45,10 @@ const featureCards = [
   {
     href: "/dashboard/warnings",
     title: "Warning System",
-    desc: "Notifikasi sarkas kalau kebanyakan impulsif. Dijamin mikir dua kali!",
+    desc: "Aktif otomatis saat Health Score < 40. Kamu aman — tetap jaga kondisimu!",
     color: "orange",
-    icon: Flame
+    icon: Flame,
+    warningOnly: true,
   },
   {
     href: "/dashboard/chatbot",
@@ -134,10 +145,24 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+        <div 
+          className="card-brutal" 
+          style={{ 
+            display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem",
+            border: userData.warningTriggered ? "3px solid var(--color-pink)" : undefined,
+            boxShadow: userData.warningTriggered ? "4px 4px 0px var(--color-pink)" : undefined,
+            animation: userData.warningTriggered ? "pulse-border 1.5s ease-in-out infinite" : undefined,
+          }}
+        >
           <div className="landing-feature-card__icon-box" style={{ 
-            background: userData.warningTriggered ? "var(--color-pink)" : userData.healthScore < 65 ? "var(--color-orange)" : "var(--color-orange)", 
-            width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" 
+            background: userData.warningTriggered 
+              ? "var(--color-pink)" 
+              : userData.healthScore < 65 
+                ? "var(--color-orange)" 
+                : "var(--color-lime)",
+            width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", 
+            justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", 
+            border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" 
           }}>
             <Target size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
@@ -149,7 +174,12 @@ export default function DashboardPage() {
               {userData.healthScore.toFixed(0)}/100
             </div>
             <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>
-              Skor Kesehatan {userData.warningTriggered && <span style={{ color: "var(--color-danger)", fontWeight: 700 }}>⚠ Kritis</span>}
+              Skor Kesehatan {userData.warningTriggered 
+                ? <span style={{ color: "var(--color-danger)", fontWeight: 700 }}>⚠ Kritis</span>
+                : userData.healthScore < 65
+                  ? <span style={{ color: "var(--color-orange)", fontWeight: 700 }}>Waspada</span>
+                  : <span style={{ color: "green", fontWeight: 700 }}>Aman ✓</span>
+              }
             </div>
           </div>
         </div>
@@ -216,28 +246,110 @@ export default function DashboardPage() {
               gap: "1.25rem",
             }}
           >
-            {featureCards.map((card) => (
-              <Link key={card.href} href={card.href} style={{ textDecoration: "none" }}>
-                <div className={`landing-feature-card card-brutal landing-feature-card--${card.color}`} style={{ height: "100%", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  <div className="landing-feature-card__icon-box" style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", background: `var(--color-${card.color})` }}>
-                    <card.icon size={28} strokeWidth={2.5} color="var(--color-navy)" />
-                  </div>
-                  <div>
-                    <h3
+            {featureCards.map((card) => {
+              const isWarning   = card.warningOnly;
+              const isTriggered = userData.warningTriggered;
+              const isLocked    = isWarning && !isTriggered;
+
+              // Warning card — locked state (score >= 40)
+              if (isLocked) {
+                return (
+                  <div
+                    key={card.href}
+                    title={`Warning System aktif saat Health Score < 40 (sekarang ${userData.healthScore.toFixed(0)}/100)`}
+                    style={{
+                      textDecoration: "none",
+                      cursor: "not-allowed",
+                      opacity: 0.45,
+                      userSelect: "none",
+                    }}
+                  >
+                    <div
+                      className="card-brutal"
                       style={{
-                        fontFamily: "var(--font-heading)",
-                        fontSize: "1.25rem",
-                        marginBottom: "0.5rem",
-                        color: "var(--color-navy)"
+                        height: "100%", padding: "1.5rem", display: "flex",
+                        flexDirection: "column", gap: "1.25rem",
+                        border: "3px dashed rgba(10,25,47,0.3)",
+                        boxShadow: "none",
+                        background: "rgba(10,25,47,0.04)",
                       }}
                     >
-                      {card.title}
-                    </h3>
-                    <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", margin: 0 }}>{card.desc}</p>
+                      <div style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px dashed rgba(10,25,47,0.3)", background: "rgba(10,25,47,0.06)" }}>
+                        <Lock size={28} strokeWidth={2.5} color="rgba(10,25,47,0.4)" />
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, color: "rgba(10,25,47,0.5)" }}>
+                            {card.title}
+                          </h3>
+                          <span style={{ fontSize: "0.65rem", fontWeight: 800, background: "rgba(10,25,47,0.08)", border: "1px solid rgba(10,25,47,0.2)", borderRadius: "100px", padding: "0.1rem 0.5rem", color: "rgba(10,25,47,0.4)" }}>
+                            TERKUNCI
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "rgba(10,25,47,0.4)", margin: 0 }}>
+                          Aktif otomatis saat Health Score &lt; 40. Sekarang: {userData.healthScore.toFixed(0)}/100 ✓
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                );
+              }
+
+              // Warning card — active state (score < 40, warning triggered)
+              if (isWarning && isTriggered) {
+                return (
+                  <Link key={card.href} href={card.href} style={{ textDecoration: "none" }}>
+                    <div
+                      className="card-brutal animate-shake"
+                      style={{
+                        height: "100%", padding: "1.5rem", display: "flex",
+                        flexDirection: "column", gap: "1.25rem",
+                        background: "var(--color-pink)",
+                        border: "4px solid var(--color-navy)",
+                        boxShadow: "6px 6px 0px var(--color-navy)",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", background: "var(--color-white)" }}>
+                          <card.icon size={28} strokeWidth={2.5} color="var(--color-pink)" />
+                        </div>
+                        <span className="animate-pulse" style={{ width: "12px", height: "12px", borderRadius: "50%", background: "var(--color-navy)" }} />
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, color: "var(--color-navy)" }}>
+                            {card.title}
+                          </h3>
+                          <span style={{ fontSize: "0.65rem", fontWeight: 900, background: "var(--color-navy)", borderRadius: "100px", padding: "0.1rem 0.5rem", color: "var(--color-pink)" }}>
+                            AKTIF!
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-navy)", margin: 0, fontWeight: 600 }}>
+                          Notifikasi sarkas & roasting dari AI buat kontrol impuls belanja kamu!
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              }
+
+              // Normal cards
+              return (
+                <Link key={card.href} href={card.href} style={{ textDecoration: "none" }}>
+                  <div className={`landing-feature-card card-brutal landing-feature-card--${card.color}`} style={{ height: "100%", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                    <div className="landing-feature-card__icon-box" style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", background: `var(--color-${card.color})` }}>
+                      <card.icon size={28} strokeWidth={2.5} color="var(--color-navy)" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
+                        {card.title}
+                      </h3>
+                      <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", margin: 0 }}>{card.desc}</p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
 

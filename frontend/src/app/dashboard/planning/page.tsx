@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Target, Wallet, ShieldCheck, PiggyBank,
   TrendingUp, ArrowRight, Plus, CheckCircle2,
   Edit3, Trash2, Sparkles, AlertTriangle,
   Home, Gamepad2, Banknote, Utensils, Car,
   Smartphone, Tv, ShoppingCart, Coffee, Candy,
-  Shield, Laptop, Plane, GraduationCap
+  Shield, Laptop, Plane, GraduationCap,
+  Brain, ChevronDown, Loader
 } from "lucide-react";
 import React from "react";
 import { useTransactions } from "@/context/TransactionContext";
@@ -84,6 +85,45 @@ const ICON_OPTIONS = [
   { key: "graduation", label: "Pendidikan" },
 ];
 
+// ── Model 3: Risk Profile ─────────────────────────────────────────────────────
+const PROFILE_INFO: Record<string, { description: string; suggestion: string; color: string; accentColor: string }> = {
+  "Konservatif": {
+    description: "Kamu lebih nyaman dengan pendekatan keuangan yang aman dan stabil. Fokus utamamu saat ini adalah memastikan kebutuhan dasar terpenuhi dan mulai membangun kebiasaan menabung.",
+    suggestion: "Mulai dengan menetapkan target tabungan kecil yang realistis. Prioritaskan dana darurat minimal 1 bulan pengeluaran sebelum memikirkan hal lain.",
+    color: "var(--color-lime)",
+    accentColor: "var(--color-navy)",
+  },
+  "Moderat": {
+    description: "Kamu sudah cukup sadar finansial dan mulai berani mengelola keuangan lebih aktif. Kamu punya keseimbangan antara keamanan dan keinginan berkembang.",
+    suggestion: "Tetapkan target tabungan yang lebih ambisius dan mulai pisahkan pos pengeluaran dengan lebih terstruktur. Dana darurat 3 bulan adalah target berikutnya.",
+    color: "var(--color-purple)",
+    accentColor: "var(--color-white)",
+  },
+  "Agresif": {
+    description: "Kamu sangat goal-oriented dan punya disiplin finansial yang tinggi. Kamu siap untuk mengoptimalkan keuangan secara penuh dan mengejar target tabungan yang ambisius.",
+    suggestion: "Maksimalkan saving rate kamu dan buat target tabungan yang spesifik dengan deadline jelas. Kamu sudah siap untuk strategi keuangan yang lebih advanced.",
+    color: "var(--color-orange)",
+    accentColor: "var(--color-navy)",
+  },
+};
+
+const RISK_QUIZ = [
+  { id: "saving_rate",       label: "Berapa % income yang kamu tabung tiap bulan?",      options: [{label:"< 5%",v:0.03},{label:"5–15%",v:0.10},{label:"15–30%",v:0.22},{label:"> 30%",v:0.40}] },
+  { id: "emergency_fund",    label: "Punya dana darurat berapa bulan pengeluaran?",      options: [{label:"Belum ada",v:0},{label:"1–2 bulan",v:1.5},{label:"3–5 bulan",v:4},{label:"> 6 bulan",v:7}] },
+  { id: "investment_rate",   label: "Apakah kamu rutin investasi?",                     options: [{label:"Belum sama sekali",v:0},{label:"Sesekali",v:0.03},{label:"Rutin 5–10%",v:0.07},{label:"Rutin > 10%",v:0.15}] },
+  { id: "financial_goals",   label: "Seberapa jelas target keuangan kamu?",              options: [{label:"Belum punya",v:0},{label:"Ada tapi abstrak",v:1},{label:"Cukup jelas",v:2},{label:"Sangat spesifik",v:3}] },
+  { id: "budget_discipline", label: "Seberapa disiplin kamu mengikuti budget bulanan?", options: [{label:"Jarang",v:0.3},{label:"Kadang-kadang",v:0.55},{label:"Sering",v:0.75},{label:"Selalu",v:0.95}] },
+];
+
+interface RiskResult {
+  risk_profile: "Konservatif" | "Moderat" | "Agresif";
+  confidence: number;
+  probabilities: { Konservatif: number; Moderat: number; Agresif: number };
+  description: string;
+  suggestion: string;
+  is_mock: boolean;
+}
+
 export default function PlanningPage() {
   const { transactions } = useTransactions();
   const [budget, setBudget] = useState<BudgetCategory[]>([]);
@@ -92,6 +132,55 @@ export default function PlanningPage() {
   const [showAddTarget, setShowAddTarget] = useState(false);
   const [newTarget, setNewTarget] = useState({ name: "", target: "", icon: "target", deadline: "" });
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // ── Model 3 state ──────────────────────────────────────────────────────────
+  const [riskResult, setRiskResult] = useState<RiskResult | null>(null);
+  const [riskLoading, setRiskLoading] = useState(false);
+  const [showRiskQuiz, setShowRiskQuiz] = useState(false);
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
+
+  const fetchRiskProfile = useCallback(async (answers: Record<string, number>) => {
+    setRiskLoading(true);
+    setShowRiskQuiz(false);
+    try {
+      const payload = {
+        saving_rate:       answers["saving_rate"]       ?? 0.10,
+        emergency_fund:    answers["emergency_fund"]    ?? 0,
+        investment_rate:   answers["investment_rate"]   ?? 0,
+        financial_goals:   answers["financial_goals"]   ?? 0,
+        budget_discipline: answers["budget_discipline"] ?? 0.5,
+      };
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000"}/api/v1/predict/risk-profile`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
+      );
+      if (!res.ok) throw new Error("API error");
+      const data: RiskResult = await res.json();
+      setRiskResult(data);
+      localStorage.setItem("ceamis_risk_profile", JSON.stringify(data));
+    } catch {
+      // fallback: derive dari jawaban secara lokal
+      const score = Object.values(answers).reduce((a, b) => a + b, 0);
+      const profile = score < 1.5 ? "Konservatif" : score < 4 ? "Moderat" : "Agresif";
+      const info = PROFILE_INFO[profile];
+      setRiskResult({
+        risk_profile: profile as RiskResult["risk_profile"],
+        confidence: 0.75,
+        probabilities: { Konservatif: profile==="Konservatif"?0.75:0.15, Moderat: profile==="Moderat"?0.75:0.15, Agresif: profile==="Agresif"?0.75:0.10 },
+        description: info.description,
+        suggestion: info.suggestion,
+        is_mock: true,
+      });
+    } finally {
+      setRiskLoading(false);
+    }
+  }, []);
+
+  // Load cached risk result
+  useEffect(() => {
+    const cached = localStorage.getItem("ceamis_risk_profile");
+    if (cached) setRiskResult(JSON.parse(cached));
+  }, []);
 
   useEffect(() => {
     const savedBudget = localStorage.getItem("ceamis_budget");
@@ -234,6 +323,8 @@ export default function PlanningPage() {
     );
   };
 
+  const allAnswered = RISK_QUIZ.every(q => quizAnswers[q.id] !== undefined);
+
   return (
     <div style={{ paddingBottom: "3rem" }}>
       {/* Header */}
@@ -254,6 +345,149 @@ export default function PlanningPage() {
             Atur alokasi budget dan target tabunganmu. Keuangan terencana = hidup tenang!
           </p>
         </div>
+      </div>
+
+      {/* ── Model 3: Risk Profile Card ──────────────────────────────────────── */}
+      <div className="card-brutal animate-bounce-in" style={{ marginBottom: "2rem", overflow: "hidden",
+        border: riskResult ? `4px solid ${PROFILE_INFO[riskResult.risk_profile]?.color ?? "var(--color-navy)"}` : "4px solid var(--color-navy)",
+        boxShadow: riskResult ? `8px 8px 0px ${PROFILE_INFO[riskResult.risk_profile]?.color ?? "var(--color-navy)"}` : "8px 8px 0px var(--color-navy)",
+      }}>
+        {/* Card Header */}
+        <div style={{ padding: "1.25rem 1.5rem", background: "var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <Brain size={28} color="var(--color-lime)" strokeWidth={2.5} />
+            <div>
+              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.125rem", color: "var(--color-white)" }}>Profil Risiko Keuangan</div>
+              <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>Model 3 · Risk Profile Classifier · Akurasi 97.91%</div>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowRiskQuiz(v => !v)}
+            className="btn-brutal"
+            style={{ padding: "0.5rem 1rem", background: "var(--color-lime)", color: "var(--color-navy)", fontWeight: 800, fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.4rem", boxShadow: "3px 3px 0px rgba(255,255,255,0.3)" }}
+          >
+            {riskResult ? "Isi Ulang" : "Mulai Analisis"} <ChevronDown size={14} style={{ transform: showRiskQuiz ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+          </button>
+        </div>
+
+        {/* Quiz */}
+        {showRiskQuiz && (
+          <div style={{ padding: "1.5rem", background: "var(--color-bg)", borderTop: "3px solid var(--color-navy)" }}>
+            <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", marginBottom: "1.5rem", fontWeight: 600 }}>
+              Jawab 5 pertanyaan berikut untuk mendapatkan profil risiko keuanganmu dari AI.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {RISK_QUIZ.map((q) => (
+                <div key={q.id}>
+                  <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "var(--color-navy)", marginBottom: "0.6rem" }}>{q.label}</div>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    {q.options.map((opt) => (
+                      <button
+                        key={opt.label}
+                        type="button"
+                        onClick={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt.v }))}
+                        className="btn-brutal"
+                        style={{
+                          padding: "0.5rem 0.9rem", fontSize: "0.8rem", fontWeight: 700,
+                          background: quizAnswers[q.id] === opt.v ? "var(--color-navy)" : "var(--color-white)",
+                          color: quizAnswers[q.id] === opt.v ? "var(--color-white)" : "var(--color-navy)",
+                          boxShadow: quizAnswers[q.id] === opt.v ? "3px 3px 0px var(--color-lime)" : "2px 2px 0px var(--color-navy)",
+                          transform: quizAnswers[q.id] === opt.v ? "translate(-1px,-1px)" : "none",
+                        }}
+                      >{opt.label}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => fetchRiskProfile(quizAnswers)}
+              disabled={!allAnswered}
+              className="btn-brutal"
+              style={{
+                marginTop: "1.5rem", padding: "0.75rem 2rem", fontWeight: 900, fontSize: "1rem",
+                background: allAnswered ? "var(--color-navy)" : "rgba(10,25,47,0.15)",
+                color: allAnswered ? "var(--color-white)" : "rgba(10,25,47,0.35)",
+                boxShadow: allAnswered ? "4px 4px 0px var(--color-lime)" : "none",
+                cursor: allAnswered ? "pointer" : "not-allowed",
+                display: "flex", alignItems: "center", gap: "0.5rem",
+              }}
+            >
+              <Sparkles size={16} /> Analisis Profil Saya
+            </button>
+          </div>
+        )}
+
+        {/* Loading */}
+        {riskLoading && (
+          <div style={{ padding: "2rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", background: "var(--color-bg)" }}>
+            <Loader size={24} color="var(--color-navy)" style={{ animation: "spin 1s linear infinite" }} />
+            <span style={{ fontWeight: 700, color: "var(--color-navy)" }}>AI sedang menganalisis profil keuanganmu...</span>
+          </div>
+        )}
+
+        {/* Result */}
+        {riskResult && !riskLoading && !showRiskQuiz && (() => {
+          const info = PROFILE_INFO[riskResult.risk_profile];
+          return (
+            <div style={{ padding: "1.5rem", display: "grid", gridTemplateColumns: "auto 1fr", gap: "1.5rem", alignItems: "start" }}>
+              {/* Profile Badge */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
+                <div style={{
+                  width: "80px", height: "80px", background: info.color,
+                  borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
+                  boxShadow: "4px 4px 0px var(--color-navy)",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.2rem",
+                }}>
+                  <Shield size={28} color={info.accentColor} strokeWidth={2.5} />
+                </div>
+                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.9rem", color: "var(--color-navy)", textAlign: "center", lineHeight: 1.2 }}>
+                  {riskResult.risk_profile}
+                </div>
+                {riskResult.is_mock && (
+                  <span style={{ fontSize: "0.6rem", fontWeight: 800, background: "rgba(10,25,47,0.08)", border: "1px solid rgba(10,25,47,0.2)", borderRadius: "100px", padding: "0.1rem 0.4rem", color: "rgba(10,25,47,0.4)" }}>ESTIMASI</span>
+                )}
+              </div>
+
+              {/* Info */}
+              <div>
+                <p style={{ fontSize: "0.9375rem", lineHeight: 1.6, color: "var(--color-navy)", marginBottom: "0.75rem", fontWeight: 500 }}>
+                  {riskResult.description}
+                </p>
+                <div style={{ background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", padding: "1rem", marginBottom: "1rem", position: "relative" }}>
+                  <div style={{ position: "absolute", top: "-11px", left: "12px", background: info.color, border: "2px solid var(--color-navy)", borderRadius: "100px", padding: "0.1rem 0.5rem", fontSize: "0.65rem", fontWeight: 900, color: info.accentColor }}>SARAN AI</div>
+                  <p style={{ margin: 0, fontSize: "0.875rem", lineHeight: 1.5, color: "var(--color-navy)", fontWeight: 600 }}>{riskResult.suggestion}</p>
+                </div>
+
+                {/* Probability bars */}
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  {(["Konservatif","Moderat","Agresif"] as const).map(p => {
+                    const prob = Math.round((riskResult.probabilities[p] || 0) * 100);
+                    const isActive = riskResult.risk_profile === p;
+                    return (
+                      <div key={p} style={{ flex: "1 1 80px", minWidth: "80px" }}>
+                        <div style={{ fontSize: "0.65rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.3rem", display: "flex", justifyContent: "space-between" }}>
+                          <span>{p}</span><span>{prob}%</span>
+                        </div>
+                        <div style={{ height: "8px", background: "rgba(10,25,47,0.1)", border: "1.5px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
+                          <div style={{ width: `${prob}%`, height: "100%", background: isActive ? PROFILE_INFO[p].color : "rgba(10,25,47,0.2)", transition: "width 0.8s ease" }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Empty state */}
+        {!riskResult && !riskLoading && !showRiskQuiz && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+            <Brain size={40} color="rgba(10,25,47,0.2)" style={{ marginBottom: "0.75rem" }} />
+            <p style={{ margin: 0, fontWeight: 600, fontSize: "0.9375rem" }}>Klik <strong>&quot;Mulai Analisis&quot;</strong> untuk mengetahui profil risiko keuanganmu!</p>
+          </div>
+        )}
       </div>
 
       {/* Overview Cards — 50/30/20 Rule */}
