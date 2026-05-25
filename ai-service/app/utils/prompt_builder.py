@@ -5,7 +5,7 @@ def build_system_prompt(ctx: dict) -> str:
     """
 
     # ── Ambil semua data dari konteks ────────────────────
-    name          = ctx.get("username", "Bestie")
+    name = ctx.get("user_name") or "USER"
     segmen        = ctx.get("segmen", "A")
     health_score  = ctx.get("health_score")
     health_label  = ctx.get("health_label", "belum diketahui")
