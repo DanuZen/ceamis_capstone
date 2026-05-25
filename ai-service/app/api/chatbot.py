@@ -7,6 +7,7 @@ from app.utils.safety_filter import (
     check_message,
     SENSITIVE_DISCLAIMER
 )
+from app.utils.supabase_client import fetch_user_context
 
 router = APIRouter()
 
@@ -15,7 +16,10 @@ router = APIRouter()
 async def chat(request: ChatRequest):
     """
     CAMI — AI Financial Chatbot CEAMIS.
-    Powered by Gemini 1.5 Flash (primary) + Groq Llama 3 (fallback).
+    Powered by Gemini 2.5 Flash (primary) + Groq Llama 3 (fallback).
+
+    Fase 2: Auto-fetch data keuangan dari Supabase berdasarkan user_id.
+    Data Supabase di-merge dengan financial_context dari frontend (Supabase menang).
     """
 
     # ── Validasi request ──────────────────────────────────
@@ -50,8 +54,24 @@ async def chat(request: ChatRequest):
             triggered="off_topic_filter"
         )
 
+    # ── Fase 2: Fetch data real dari Supabase ─────────────
+    # Mulai dengan financial_context dari frontend (fallback)
+    ctx: dict = dict(request.financial_context or {})
+
+    # Fetch data dari Supabase berdasarkan user_id
+    db_ctx = await fetch_user_context(request.user_id)
+
+    if db_ctx:
+        # Merge: data Supabase menang atas data frontend
+        # (karena Supabase lebih akurat dan real-time)
+        ctx.update(db_ctx)
+        print(f"[CAMI] ✅ Supabase context loaded untuk user: {request.user_id[:8]}...")
+    else:
+        # Fallback: pakai financial_context dari frontend
+        # (guest, atau Supabase tidak tersedia)
+        print(f"[CAMI] ⚠️  Menggunakan fallback context untuk user: {request.user_id}")
+
     # ── Bangun system prompt ───────────────────────────────
-    ctx = request.financial_context or {}
     system_prompt = build_system_prompt(ctx)
 
     # Jika topik sensitif, tambahkan disclaimer ke system prompt

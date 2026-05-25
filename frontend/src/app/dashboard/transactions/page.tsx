@@ -4,6 +4,7 @@ import { Wallet, Plus, Coffee, Utensils, Car, ShoppingBag, Zap, Sparkles, Trendi
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTransactions, TransactionType } from "@/context/TransactionContext";
+import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
 
 // ── Tipe response Model 2 (Spending Pattern Clustering) ──────────────────────
@@ -38,6 +39,7 @@ const CLUSTER_COLORS: Record<string, string> = {
 
 export default function TransactionsPage() {
   const { addTransaction, transactions } = useTransactions();
+  const { userData } = useUser();
   const { t } = useLanguage();
 
   const [desc, setDesc]       = useState("");
@@ -91,7 +93,7 @@ export default function TransactionsPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            user_id:            "user_local",
+            user_id:            userData.id || "guest",
             category_breakdown: breakdown,
             total_transactions: transactions.filter(tx => tx.type === "pengeluaran").length,
           }),

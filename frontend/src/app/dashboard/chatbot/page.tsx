@@ -124,7 +124,7 @@ export default function ChatbotPage() {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: "user-123",
+          user_id: userData.id || "guest",
           messages:          history,
           financial_context: buildFinancialContext(),
         }),
