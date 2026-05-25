@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { 
   Search, Calendar, Star, Flame, Bell, ChevronDown, 
-  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus, Globe
+  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -32,6 +32,27 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setShowProfileMenu(false);
+
+    // Hapus semua data user-spesifik dari localStorage
+    const keysToRemove = [
+      "ceamis_role",
+      "ceamis_user",
+      "ceamis_transactions",
+      "ceamis_budget",
+      "ceamis_targets",
+      "ceamis_risk_profile",
+      "ceamis_debts",
+      "ceamis_chat_history_v2",
+      "ceamis_read_notifs",
+    ];
+    // Hapus juga progress modul edukasi (keys dinamis)
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith("ceamis_module_")) {
+        localStorage.removeItem(key);
+      }
+    });
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
     router.push("/");
   };
 
@@ -292,13 +313,14 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
             onClick={() => setLanguage(language === "id" ? "en" : "id")} 
             className="btn-brutal"
             style={{ 
-              padding: "0.3rem 0.6rem", fontSize: "0.85rem", fontWeight: 800, 
-              background: "var(--color-lime)", border: "2px solid var(--color-navy)",
-              boxShadow: "2px 2px 0px var(--color-navy)", display: "flex", alignItems: "center", gap: "0.3rem",
-              borderRadius: "var(--radius-brutal-sm)", cursor: "pointer"
+              padding: "0.4rem 0.75rem", fontSize: "0.85rem", fontWeight: 800, 
+              background: "var(--color-white)", border: "2px solid var(--color-navy)",
+              boxShadow: "2px 2px 0px var(--color-navy)", display: "flex", alignItems: "center", gap: "0.4rem",
+              borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", minWidth: "72px", justifyContent: "center"
             }}
           >
-            <Globe size={14} strokeWidth={2.5} /> {language === "id" ? "EN" : "ID"}
+            <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{language === "id" ? "🇮🇩" : "🇬🇧"}</span>
+            <span>{language === "id" ? "ID" : "EN"}</span>
           </button>
 
           {/* User Stats Group */}
@@ -441,7 +463,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                       <User size={18} /> {t("navbar.fullProfile")}
                     </div>
                   </Link>
-                  <Link href="/auth" onClick={() => setShowProfileMenu(false)} style={{ textDecoration: "none" }}>
+                  <button onClick={handleLogout} style={{ all: "unset", width: "100%", cursor: "pointer" }}>
                     <div className="btn-brutal" style={{ 
                       padding: "0.75rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", 
                       borderRadius: "var(--radius-brutal-sm)", display: "flex", alignItems: "center", gap: "0.6rem",
@@ -449,7 +471,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                     }}>
                       <Users size={18} /> {t("navbar.switchAccount")}
                     </div>
-                  </Link>
+                  </button>
                   <div onClick={handleLogout} style={{ textDecoration: "none" }}>
                     <div className="btn-brutal" style={{ 
                       padding: "0.75rem", background: "var(--color-orange)", border: "2px solid var(--color-navy)", 

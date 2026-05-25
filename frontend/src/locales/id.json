@@ -1,9 +1,9 @@
 {
   "navbar": {
     "login": "Login",
-    "register": "Daftar Gratis",
+    "register": "Daftar",
     "guestMode": "Lagi mode Guest nih — beberapa fitur masih kekunci, bro.",
-    "registerNow": "Daftar Sekarang — Gratis tis tis!",
+    "registerNow": "Daftar Sekarang",
     "notifications": "Notifikasi",
     "new": "Baru",
     "notif1Title": "Awas Boncos! ⚠️",
@@ -512,7 +512,7 @@
     "heroHighlight": "Level Up",
     "heroTitle3": "Tiap Hari",
     "heroSubtitle": "CEAMIS bantu Gen-Z Indonesia catat cuan pakai cara yang fun — AI insight, gamifikasi seru, dan notif sarkas yang bikin lo mikir dua kali sebelum checkout barang ga penting!",
-    "ctaStart": "Gass Mulai — Gratis!",
+    "ctaStart": "Gass Mulai",
     "ctaFeatures": "Kepoin Fitur",
     "statsUsers": "User Aktif",
     "statsTransactions": "Transaksi Tercatat",

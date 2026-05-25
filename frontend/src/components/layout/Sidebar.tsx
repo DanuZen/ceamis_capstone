@@ -72,6 +72,26 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+
+    // Hapus semua data user-spesifik dari localStorage
+    const keysToRemove = [
+      "ceamis_role",
+      "ceamis_user",
+      "ceamis_transactions",
+      "ceamis_budget",
+      "ceamis_targets",
+      "ceamis_risk_profile",
+      "ceamis_debts",
+      "ceamis_chat_history_v2",
+      "ceamis_read_notifs",
+    ];
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith("ceamis_module_")) {
+        localStorage.removeItem(key);
+      }
+    });
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
     router.push("/");
   };
   const warningTriggered = userData.warningTriggered;

@@ -714,12 +714,12 @@ export default function PlanningPage() {
                   <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ALOKASI (RP)</label>
                   <input value={newCategory.allocated} onChange={e => setNewCategory({ ...newCategory, allocated: e.target.value })} className="input-brutal" type="number" placeholder="0" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", width: "100%", fontWeight: 900, boxShadow: "3px 3px 0px var(--color-navy)" }} />
                 </div>
-                <button onClick={handleAddCategory} className="btn-brutal" style={{
-                  padding: "0.8rem 1.5rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900,
-                  display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)"
-                }}>
-                  <Plus size={18} /> Simpan
-                </button>
+                  <button onClick={handleAddCategory} className="btn-brutal" style={{
+                    padding: "0.8rem 1.5rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900,
+                    display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)"
+                  }}>
+                    Simpan
+                  </button>
               </div>
             </div>
           )}
@@ -838,7 +838,7 @@ export default function PlanningPage() {
                   padding: "0.8rem 1.5rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900,
                   display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)"
                 }}>
-                  <Plus size={18} /> Simpan
+                  Simpan
                 </button>
               </div>
             </div>

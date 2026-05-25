@@ -21,8 +21,7 @@ import {
   UserPlus,
   PenLine,
   BrainCircuit,
-  Rocket,
-  Globe
+  Rocket
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -210,10 +209,16 @@ export default function LandingPage() {
         <div className="landing-nav__links">
           <button 
             onClick={() => setLanguage(language === "id" ? "en" : "id")} 
-            className="btn-brutal btn-brutal--ghost btn-brutal--sm"
-            style={{ padding: "0.5rem 1rem" }}
+            className="btn-brutal btn-brutal--sm"
+            style={{ 
+              padding: "0.4rem 0.75rem", fontSize: "0.85rem", fontWeight: 800,
+              background: "var(--color-white)", border: "2px solid var(--color-navy)",
+              boxShadow: "2px 2px 0px var(--color-navy)", display: "flex", alignItems: "center", gap: "0.4rem",
+              minWidth: "72px", justifyContent: "center"
+            }}
           >
-            <Globe size={18} /> {language === "id" ? "EN" : "ID"}
+            <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{language === "id" ? "🇮🇩" : "🇬🇧"}</span>
+            <span>{language === "id" ? "ID" : "EN"}</span>
           </button>
           <Link href="/auth" className="btn-brutal btn-brutal--secondary btn-brutal--sm">
             {t("navbar.login")}

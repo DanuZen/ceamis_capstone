@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ShieldCheck, User, Eye, Zap, LogIn, ArrowLeft } from "lucide-react";
+import { ShieldCheck, User, Eye, Zap, LogIn, ArrowLeft, Mail, X, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -22,6 +22,8 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +112,8 @@ export default function AuthPage() {
     }
 
     setError(null);
-    alert(t("auth.regSuccessMsg"));
+    setRegisteredEmail(email);
+    setShowVerifyModal(true);
     setIsLoading(false);
   };
 
@@ -122,6 +125,122 @@ export default function AuthPage() {
         display: "flex",
       }}
     >
+      {/* ── Email Verification Modal ── */}
+      {showVerifyModal && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 1000,
+          background: "rgba(10, 25, 47, 0.6)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "1.5rem", backdropFilter: "blur(4px)"
+        }}>
+          <div style={{
+            width: "100%", maxWidth: "460px",
+            background: "var(--color-white)",
+            border: "4px solid var(--color-navy)",
+            borderRadius: "var(--radius-brutal-lg)",
+            boxShadow: "10px 10px 0px var(--color-navy)",
+            padding: "2.5rem",
+            position: "relative",
+            animation: "bounceIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+          }}>
+            {/* Close button */}
+            <button
+              onClick={() => { setShowVerifyModal(false); router.push("/auth"); }}
+              style={{
+                position: "absolute", top: "1rem", right: "1rem",
+                background: "var(--color-bg)", border: "2px solid var(--color-navy)",
+                borderRadius: "var(--radius-brutal-sm)", cursor: "pointer",
+                width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "2px 2px 0px var(--color-navy)"
+              }}
+            >
+              <X size={18} color="var(--color-navy)" strokeWidth={2.5} />
+            </button>
+
+            {/* Email icon */}
+            <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
+              <div style={{
+                width: "88px", height: "88px",
+                background: "var(--color-lime)",
+                border: "3px solid var(--color-navy)",
+                borderRadius: "var(--radius-brutal)",
+                boxShadow: "6px 6px 0px var(--color-navy)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 1.25rem"
+              }}>
+                <Mail size={48} color="var(--color-navy)" strokeWidth={2.5} />
+              </div>
+              <h2 style={{
+                fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900,
+                color: "var(--color-navy)", margin: "0 0 0.5rem 0"
+              }}>
+                Cek Inbox Email Kamu!
+              </h2>
+              <p style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", fontWeight: 600, lineHeight: 1.5, margin: 0 }}>
+                Kami sudah kirim link verifikasi ke
+              </p>
+              <div style={{
+                marginTop: "0.75rem",
+                padding: "0.6rem 1rem",
+                background: "var(--color-bg)",
+                border: "2.5px solid var(--color-navy)",
+                borderRadius: "var(--radius-brutal-sm)",
+                fontWeight: 800, fontSize: "0.9rem",
+                color: "var(--color-navy)",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem"
+              }}>
+                <Mail size={14} strokeWidth={2.5} />
+                {registeredEmail || email}
+              </div>
+            </div>
+
+            {/* Info */}
+            <div style={{
+              background: "rgba(88, 51, 238, 0.07)",
+              border: "2px solid var(--color-purple)",
+              borderRadius: "var(--radius-brutal-sm)",
+              padding: "1rem",
+              marginBottom: "1.5rem"
+            }}>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-navy)", fontWeight: 700, lineHeight: 1.5 }}>
+                📌 Klik link verifikasi di email untuk mengaktifkan akun kamu, lalu login seperti biasa.
+              </p>
+              <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.8rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                Tidak ada email? Cek folder <strong>Spam</strong> atau tunggu beberapa menit.
+              </p>
+            </div>
+
+            {/* CTA Buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <a
+                href="https://mail.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-brutal"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                  padding: "0.85rem", fontWeight: 900, fontSize: "1rem", textDecoration: "none",
+                  background: "var(--color-purple)", color: "var(--color-white)",
+                  border: "3px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)"
+                }}
+              >
+                <ExternalLink size={18} /> Buka Gmail
+              </a>
+              <button
+                onClick={() => { setShowVerifyModal(false); router.push("/auth"); }}
+                className="btn-brutal"
+                style={{
+                  width: "100%", padding: "0.75rem", fontWeight: 800, fontSize: "0.9rem",
+                  background: "var(--color-bg)", color: "var(--color-navy)",
+                  border: "2px solid var(--color-navy)", boxShadow: "3px 3px 0px var(--color-navy)"
+                }}
+              >
+                Saya Sudah Verifikasi — Masuk Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ── LEFT PANEL: CEAMIS Info (Hidden on Mobile) ── */}
       <div 
         className="hidden md:flex"
