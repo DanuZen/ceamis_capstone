@@ -8,6 +8,7 @@ import { useGuest } from "@/context/GuestContext";
 import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 import { useLanguage } from "@/context/LanguageContext";
 
+
 // ── Tipe ─────────────────────────────────────────────────────────────────────
 type Role = "user" | "assistant";
 
@@ -123,6 +124,7 @@ export default function ChatbotPage() {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          user_id: "user-123",
           messages:          history,
           financial_context: buildFinancialContext(),
         }),
