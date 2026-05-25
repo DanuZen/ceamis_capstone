@@ -16,7 +16,6 @@ numpy==2.0.2
 pandas==2.2.2
 
 # ─── Generative AI ─────────────────────────────────────────────────────────────
-google-generativeai==0.8.6
 google-genai==1.68.0
-groq==0.9.0
+groq==0.13.0
 openai==2.32.0

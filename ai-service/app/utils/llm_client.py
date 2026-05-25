@@ -1,13 +1,14 @@
 # app/utils/llm_client.py
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # ── Setup clients ─────────────────────────────────────────
-genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
+gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY", ""))
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY", ""))
 
 # PERBAIKAN: Default token dinaikkan dari 600 menjadi 4096 agar JSON tidak terpotong di tengah jalan
@@ -17,42 +18,44 @@ MAX_HISTORY  = int(os.getenv("MAX_HISTORY_MESSAGES", 10))
 
 
 async def call_gemini(system_prompt: str, messages: list) -> str:
-    """Panggil Gemini 2.5 Flash API lewat rute Stable v1."""
-    
-    # PERBAIKAN: Hapus system_instruction dari sini agar SDK TIDAK memaksa rute v1beta
-    model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
-        generation_config=genai.GenerationConfig(
+    """Panggil Gemini 2.5 Flash API via google.genai SDK."""
+
+    # Build contents list from message history
+    contents = []
+
+    # Inject system prompt as the first user turn
+    if system_prompt:
+        contents.append(
+            types.Content(
+                role="user",
+                parts=[types.Part(text=f"CONTEXT & SYSTEM INSTRUCTION:\n{system_prompt}\n\nHarap patuhi instruksi di atas secara mutlak untuk seluruh percakapan kita ke depan.")]
+            )
+        )
+        contents.append(
+            types.Content(
+                role="model",
+                parts=[types.Part(text="Baik, saya mengerti instruksi sistem tersebut. Saya akan merespon dengan gaya Gen-Z dan mengembalikan format JSON sesuai ketentuan.")]
+            )
+        )
+
+    # Append the rest of the conversation history
+    for msg in messages:
+        role = "user" if msg["role"] == "user" else "model"
+        contents.append(
+            types.Content(
+                role=role,
+                parts=[types.Part(text=msg["content"])]
+            )
+        )
+
+    response = gemini_client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=contents,
+        config=types.GenerateContentConfig(
             max_output_tokens=MAX_TOKENS,
             temperature=TEMPERATURE,
-        )
+        ),
     )
-
-    # Inisialisasi history chat
-    history = []
-    
-    # PERBAIKAN: Suntikkan system prompt sebagai pesan pembuka di awal history
-    if system_prompt:
-        history.append({
-            "role": "user",
-            "parts": [f"CONTEXT & SYSTEM INSTRUCTION:\n{system_prompt}\n\nHarap patuhi instruksi di atas secara mutlak untuk seluruh percakapan kita ke depan."]
-        })
-        history.append({
-            "role": "model",
-            "parts": ["Baik, saya mengerti instruksi sistem tersebut. Saya akan merespon dengan gaya Gen-Z dan mengembalikan format JSON sesuai ketentuan."]
-        })
-
-    # Konversi sisa pesan dari frontend/internal ke format Gemini
-    for msg in messages[:-1]:
-        role = "user" if msg["role"] == "user" else "model"
-        history.append({
-            "role" : role,
-            "parts": [msg["content"]]
-        })
-
-    # Mulai sesi chat dengan history yang sudah mengikat system prompt di rute v1
-    chat     = model.start_chat(history=history)
-    response = chat.send_message(messages[-1]["content"])
 
     return response.text
 
