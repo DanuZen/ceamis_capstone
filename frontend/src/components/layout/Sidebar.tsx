@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useGuest } from "@/context/GuestContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 // ── Grouped Navigation ──────────────────────
 interface NavItem {
@@ -35,27 +36,27 @@ interface NavGroup {
 
 const navGroups: NavGroup[] = [
   {
-    title: "UTAMA",
+    title: "sidebar.groups.utama",
     items: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, color: "purple" },
+      { href: "/dashboard", label: "sidebar.dashboard", icon: LayoutDashboard, color: "purple" },
     ],
   },
   {
-    title: "KEUANGAN",
+    title: "sidebar.groups.keuangan",
     items: [
-      { href: "/dashboard/transactions", label: "Transaksi", icon: Wallet, color: "lime" },
-      { href: "/dashboard/history", label: "Riwayat", icon: History, color: "orange" },
-      { href: "/dashboard/planning", label: "Perencanaan", icon: Target, color: "purple", guestRestricted: true },
-      { href: "/dashboard/debt", label: "Utang & Piutang", icon: HandCoins, color: "orange" },
-      { href: "/dashboard/reports", label: "Laporan", icon: FileText, color: "lime" },
-      { href: "/dashboard/education", label: "Edukasi", icon: BookOpen, color: "orange", guestRestricted: true },
+      { href: "/dashboard/transactions", label: "sidebar.transactions", icon: Wallet, color: "lime" },
+      { href: "/dashboard/history", label: "sidebar.history", icon: History, color: "orange" },
+      { href: "/dashboard/planning", label: "sidebar.planning", icon: Target, color: "purple", guestRestricted: true },
+      { href: "/dashboard/debt", label: "sidebar.debt", icon: HandCoins, color: "orange" },
+      { href: "/dashboard/reports", label: "sidebar.reports", icon: FileText, color: "lime" },
+      { href: "/dashboard/education", label: "sidebar.education", icon: BookOpen, color: "orange", guestRestricted: true },
     ],
   },
   {
-    title: "AI & TOOLS",
+    title: "sidebar.groups.ai",
     items: [
-      { href: "/dashboard/warnings", label: "Warning System", icon: AlertTriangle, color: "pink", guestRestricted: true },
-      { href: "/dashboard/chatbot", label: "Chatbot AI", icon: Bot, color: "lime", guestRestricted: true },
+      { href: "/dashboard/warnings", label: "sidebar.warnings", icon: AlertTriangle, color: "pink", guestRestricted: true },
+      { href: "/dashboard/chatbot", label: "sidebar.chatbot", icon: Bot, color: "lime", guestRestricted: true },
     ],
   },
 ];
@@ -64,6 +65,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const pathname = usePathname();
   const { userData } = useUser();
   const { isGuest } = useGuest();
+  const { t } = useLanguage();
   const warningTriggered = userData.warningTriggered;
   const healthScore = userData.healthScore;
 
@@ -79,7 +81,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       return (
         <div
           key={item.href}
-          title={`Fitur ini memerlukan akun terdaftar`}
+          title={t("sidebar.guestLockedTitle")}
           style={{
             padding: "0.75rem 1.25rem",
             display: "flex",
@@ -99,10 +101,10 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
             style={{ minWidth: "18px" }}
           />
           <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap", color: "rgba(255,255,255,0.5)" }}>
-            {item.label}
+            {t(item.label)}
           </span>
           <span className="sidebar-text" style={{ fontSize: "0.6rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "100px", padding: "0.1rem 0.4rem", color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap", marginLeft: "auto" }}>
-            GUEST
+            {t("sidebar.guestTag")}
           </span>
         </div>
       );
@@ -116,7 +118,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       return (
         <div
           key={item.href}
-          title={`Warning System aktif saat Health Score < 40% (sekarang ${healthScore.toFixed(0)}%)`}
+          title={`${t("sidebar.warningTitle")} (${healthScore.toFixed(0)}%)`}
           style={{
             padding: "0.75rem 1.25rem",
             display: "flex",
@@ -136,7 +138,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
             style={{ minWidth: "18px" }}
           />
           <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap", color: "rgba(255,255,255,0.5)" }}>
-            Warning System
+            {t(item.label)}
           </span>
           <span className="sidebar-text" style={{ fontSize: "0.6rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "100px", padding: "0.1rem 0.4rem", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", marginLeft: "auto" }}>
             {healthScore.toFixed(0)}%
@@ -170,7 +172,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
           strokeWidth={isActive ? 3 : 2.5}
           style={{ minWidth: "18px" }}
         />
-        <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap" }}>{item.label}</span>
+        <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap" }}>{t(item.label)}</span>
         {isWarningItem && (
           <span className="animate-pulse" style={{ marginLeft: "auto", width: "8px", height: "8px", borderRadius: "50%", background: "var(--color-pink)", border: "2px solid var(--color-navy)", flexShrink: 0 }} />
         )}
@@ -211,7 +213,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
               textTransform: "uppercase",
               whiteSpace: "nowrap"
             }}>
-              {group.title}
+              {t(group.title)}
             </div>
 
             {/* Group Items */}
@@ -255,7 +257,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
             }}
           >
             <LogOut size={18} strokeWidth={2.5} style={{ minWidth: "18px" }} />
-            <span className="sidebar-text" style={{ whiteSpace: "nowrap" }}>Kembali</span>
+            <span className="sidebar-text" style={{ whiteSpace: "nowrap" }}>{t("sidebar.back")}</span>
           </button>
         </Link>
       </div>

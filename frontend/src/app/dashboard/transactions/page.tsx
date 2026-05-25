@@ -29,13 +29,11 @@ const MOCK_CLUSTER: SpendingClusterResult = {
   is_mock: true,
 };
 
-const CATEGORY_MAP: Record<string, "needs" | "wants"> = {
-  "Makanan & Minuman": "needs",
-  "Transportasi":      "needs",
-  "Kesehatan":         "needs",
-  "Belanja":           "wants",
-  "Hiburan":           "wants",
-  "Gaji / Bonus":      "needs",
+const CATEGORY_OPTIONS = {
+  pemasukan: ["Gaji", "Bonus", "Hasil Usaha", "Lainnya"],
+  needs: ["Makanan & Minuman", "Transportasi", "Kesehatan", "Tagihan & Cicilan", "Kebutuhan Rumah"],
+  wants: ["Belanja Pribadi", "Hiburan", "Hobi", "Jajan", "Liburan"],
+  save: ["Dana Darurat", "Investasi Reksadana", "Investasi Saham", "Tabungan Impian", "Tabungan Kendaraan"]
 };
 
 const CLUSTER_COLORS: Record<string, string> = {
@@ -51,11 +49,20 @@ export default function TransactionsPage() {
   const [amount, setAmount]   = useState("");
   const [type, setType]       = useState<TransactionType>("pengeluaran");
   const [category, setCategory] = useState("Makanan & Minuman");
-  const [tag, setTag]         = useState<"needs" | "wants">("needs");
+  const [tag, setTag]         = useState<"needs" | "wants" | "save">("needs");
 
   // ── Model 2 state ──────────────────────────────────────────────────────────
   const [cluster, setCluster]     = useState<SpendingClusterResult>(MOCK_CLUSTER);
   const [loadingCluster, setLoadingCluster] = useState(false);
+
+  // Auto-update category when type or tag changes
+  useEffect(() => {
+    if (type === "pemasukan") {
+      setCategory(CATEGORY_OPTIONS.pemasukan[0]);
+    } else {
+      setCategory(CATEGORY_OPTIONS[tag][0]);
+    }
+  }, [type, tag]);
 
   // ── Hitung category_breakdown dari transaksi yang ada ─────────────────────
   const buildCategoryBreakdown = useCallback(() => {
@@ -122,7 +129,6 @@ export default function TransactionsPage() {
 
   const handleCategoryChange = (cat: string) => {
     setCategory(cat);
-    setTag(CATEGORY_MAP[cat] || "wants");
   };
 
   const trendLabel = cluster.trend === "improving"
@@ -346,13 +352,17 @@ export default function TransactionsPage() {
             >
               <div>
                 <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                  APA YANG KAMU BELI?
+                  {type === "pemasukan" ? "SUMBER PEMASUKAN?" : tag === "save" ? "UNTUK TABUNGAN APA?" : "APA YANG KAMU BELI?"}
                 </label>
                 <input
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
                   className="input-brutal"
-                  placeholder='Misal: "Kopi Susu Gula Aren"'
+                  placeholder={
+                    type === "pemasukan" ? 'Misal: "Gaji Bulanan" atau "Bonus Proyek"' :
+                    tag === "save" ? 'Misal: "Dana Darurat" atau "Investasi"' :
+                    'Misal: "Kopi Susu Gula Aren"'
+                  }
                   style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
                 />
               </div>
@@ -369,6 +379,7 @@ export default function TransactionsPage() {
                       onChange={(e) => setAmount(e.target.value)}
                       className="input-brutal"
                       type="number"
+                      min="0"
                       placeholder="0"
                       style={{ border: "3px solid var(--color-navy)", padding: "1rem 1rem 1rem 3rem", fontSize: "1.125rem", width: "100%", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
                     />
@@ -401,12 +412,9 @@ export default function TransactionsPage() {
                     className="input-brutal"
                     style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", height: "auto", boxShadow: "4px 4px 0px var(--color-navy)", fontWeight: 700, background: "var(--color-bg)" }}
                   >
-                    <option>Makanan &amp; Minuman</option>
-                    <option>Transportasi</option>
-                    <option>Belanja</option>
-                    <option>Hiburan</option>
-                    <option>Kesehatan</option>
-                    <option>Gaji / Bonus</option>
+                    {(type === "pemasukan" ? CATEGORY_OPTIONS.pemasukan : CATEGORY_OPTIONS[tag]).map((catOption) => (
+                      <option key={catOption} value={catOption}>{catOption}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -414,25 +422,35 @@ export default function TransactionsPage() {
                   <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
                     <Tag size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />PRIORITAS
                   </label>
-                  <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
                     <button type="button" onClick={() => setTag("needs")} className="btn-brutal" style={{
-                      flex: 1, padding: "0.85rem", fontWeight: 800, fontSize: "0.9rem",
+                      flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
                       background: tag === "needs" ? "var(--color-lime)" : "var(--color-white)",
                       transform: tag === "needs" ? "translate(-2px, -2px)" : "none",
                       boxShadow: tag === "needs" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
                     }}>
-                      <Home size={12} style={{ marginRight: "0.25rem" }} /> Need
+                      <Home size={12} /> Need
                     </button>
                     <button type="button" onClick={() => setTag("wants")} className="btn-brutal" style={{
-                      flex: 1, padding: "0.85rem", fontWeight: 800, fontSize: "0.9rem",
+                      flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
                       background: tag === "wants" ? "var(--color-orange)" : "var(--color-white)",
                       color: tag === "wants" ? "var(--color-white)" : "var(--color-navy)",
                       transform: tag === "wants" ? "translate(-2px, -2px)" : "none",
                       boxShadow: tag === "wants" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
                     }}>
-                      <Gamepad2 size={12} style={{ marginRight: "0.25rem" }} /> Want
+                      <Gamepad2 size={12} /> Want
+                    </button>
+                    <button type="button" onClick={() => setTag("save")} className="btn-brutal" style={{
+                      flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
+                      background: tag === "save" ? "var(--color-purple)" : "var(--color-white)",
+                      color: tag === "save" ? "var(--color-white)" : "var(--color-navy)",
+                      transform: tag === "save" ? "translate(-2px, -2px)" : "none",
+                      boxShadow: tag === "save" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
+                    }}>
+                      <Banknote size={12} /> Save
                     </button>
                   </div>
                 </div>

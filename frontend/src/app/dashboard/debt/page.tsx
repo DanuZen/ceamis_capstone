@@ -6,6 +6,8 @@ import {
   Calendar, User, AlertTriangle, CheckCircle2,
   X, Clock, Filter
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
 type DebtType = "utang" | "piutang";
 type DebtStatus = "belum_lunas" | "lunas" | "jatuh_tempo";
@@ -24,6 +26,9 @@ interface DebtEntry {
 const DEFAULT_DATA: DebtEntry[] = [];
 
 export default function DebtPage() {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
+  const { t } = useLanguage();
   const [entries, setEntries] = useState<DebtEntry[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "utang" | "piutang">("all");
@@ -52,13 +57,38 @@ export default function DebtPage() {
     }
   }, [entries, isLoaded]);
 
-  const filteredEntries = entries.filter(e =>
-    activeTab === "all" ? true : e.type === activeTab
-  );
+  const filteredEntries = entries.filter(e => {
+    if (activeTab !== "all" && e.type !== activeTab) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return e.person.toLowerCase().includes(q) || e.description.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   const totalUtang = entries.filter(e => e.type === "utang" && e.status !== "lunas").reduce((sum, e) => sum + e.amount, 0);
   const totalPiutang = entries.filter(e => e.type === "piutang" && e.status !== "lunas").reduce((sum, e) => sum + e.amount, 0);
-  const jatuhTempo = entries.filter(e => e.status === "jatuh_tempo").length;
+  
+  // Use local date for comparison instead of UTC string
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const parseDateLocal = (dateStr: string) => {
+    // Expected format: YYYY-MM-DD
+    if (!dateStr) return new Date(NaN);
+    const parts = dateStr.split("-");
+    if (parts.length !== 3) return new Date(dateStr);
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  };
+
+  const isJatuhTempo = (dueDate: string, status: DebtStatus) => {
+    if (status === "lunas") return false;
+    const due = parseDateLocal(dueDate);
+    if (isNaN(due.getTime())) return false;
+    return due <= today;
+  };
+  
+  const jatuhTempo = entries.filter(e => isJatuhTempo(e.dueDate, e.status)).length;
 
   const formatRupiah = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
 
@@ -91,12 +121,16 @@ export default function DebtPage() {
     setEntries(entries.filter(e => e.id !== id));
   };
 
-  const getStatusBadge = (status: DebtStatus) => {
-    switch (status) {
-      case "lunas": return { label: "Lunas", color: "lime", icon: CheckCircle2 };
-      case "jatuh_tempo": return { label: "Jatuh Tempo", color: "orange", icon: AlertTriangle };
-      default: return { label: "Belum Lunas", color: "purple", icon: Clock };
-    }
+  const getStatusBadge = (status: DebtStatus, dueDate: string) => {
+    if (status === "lunas") return { label: "Lunas", color: "lime", icon: CheckCircle2 };
+    if (isJatuhTempo(dueDate, status)) return { label: "Jatuh Tempo", color: "orange", icon: AlertTriangle };
+    return { label: "Belum Lunas", color: "purple", icon: Clock };
+  };
+
+  const displayDate = (dateStr: string) => {
+    const d = parseDateLocal(dateStr);
+    if (isNaN(d.getTime())) return "Format Error";
+    return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   };
 
   return (
@@ -114,10 +148,10 @@ export default function DebtPage() {
           </div>
           <div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-              Utang & Piutang
+              {t("dashboard.debt.title")}
             </h1>
             <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-              Catat dan kelola utang-piutangmu dengan rapi. Jangan sampai lupa!
+              {t("dashboard.debt.desc")}
             </p>
           </div>
         </div>
@@ -300,13 +334,15 @@ export default function DebtPage() {
         {filteredEntries.length === 0 && (
           <div className="card-brutal" style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
             <HandCoins size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
-            <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>Belum ada data</p>
-            <p style={{ fontSize: "0.9rem" }}>Klik &quot;Tambah Baru&quot; untuk menambahkan entri utang/piutang.</p>
+            <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
+              {searchQuery ? `Pencarian untuk "${searchQuery}" tidak ditemukan.` : "Belum ada data"}
+            </p>
+            {!searchQuery && <p style={{ fontSize: "0.9rem" }}>Klik &quot;Tambah Baru&quot; untuk menambahkan entri utang/piutang.</p>}
           </div>
         )}
 
         {filteredEntries.map((entry) => {
-          const statusInfo = getStatusBadge(entry.status);
+          const statusInfo = getStatusBadge(entry.status, entry.dueDate);
           const StatusIcon = statusInfo.icon;
           return (
             <div key={entry.id} className="card-brutal" style={{
@@ -343,7 +379,7 @@ export default function DebtPage() {
                 <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
                   <span>{entry.description}</span>
                   <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                    <Calendar size={12} /> Tenggat: {new Date(entry.dueDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    <Calendar size={12} /> Tenggat: {displayDate(entry.dueDate)}
                   </span>
                 </div>
               </div>

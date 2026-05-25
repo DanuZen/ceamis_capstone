@@ -21,9 +21,11 @@ import {
   UserPlus,
   PenLine,
   BrainCircuit,
-  Rocket
+  Rocket,
+  Globe
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 const FEATURES = [
   {
@@ -174,6 +176,8 @@ export default function LandingPage() {
   const faq = useInView();
   const cta = useInView();
 
+  const { t, language, setLanguage } = useLanguage();
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -204,11 +208,18 @@ export default function LandingPage() {
           <span className="landing-nav__name">CEAMIS</span>
         </div>
         <div className="landing-nav__links">
+          <button 
+            onClick={() => setLanguage(language === "id" ? "en" : "id")} 
+            className="btn-brutal btn-brutal--ghost btn-brutal--sm"
+            style={{ padding: "0.5rem 1rem" }}
+          >
+            <Globe size={18} /> {language === "id" ? "EN" : "ID"}
+          </button>
           <Link href="/auth" className="btn-brutal btn-brutal--secondary btn-brutal--sm">
-            Login
+            {t("navbar.login")}
           </Link>
-          <Link href="/auth" className="btn-brutal btn-brutal--primary btn-brutal--sm">
-            Daftar Gratis
+          <Link href="/auth/register" className="btn-brutal btn-brutal--primary btn-brutal--sm">
+            {t("navbar.register")}
           </Link>
         </div>
       </nav>
@@ -220,23 +231,23 @@ export default function LandingPage() {
         <div className="landing-container landing-hero__wrapper">
           <div className="landing-hero__content">
             <div className="badge-brutal badge-brutal--purple" style={{ marginBottom: '1.5rem', display: 'inline-flex' }}>
-              Baru — Fitur Chatbot AI sudah tersedia!
+              {t("landing.heroBadge")}
             </div>
             <h1 className="landing-hero__title">
-              Kontrol Impuls<br />
-              Keuanganmu,{" "}
-              <span className="landing-hero__highlight">Level Up</span>{" "}
-              Tiap Hari
+              {t("landing.heroTitle1")}<br />
+              {t("landing.heroTitle2")}{" "}
+              <span className="landing-hero__highlight">{t("landing.heroHighlight")}</span>{" "}
+              {t("landing.heroTitle3")}
             </h1>
             <p className="landing-hero__subtitle">
-              CEAMIS bantu Gen-Z Indonesia catat keuangan dengan cara yang fun — AI insight, gamifikasi seru, dan notifikasi sarkas yang bikin kamu mikir dua kali sebelum checkout!
+              {t("landing.heroSubtitle")}
             </p>
             <div className="landing-hero__actions">
-              <Link href="/auth" className="btn-brutal btn-brutal--primary btn-brutal--lg">
-                Mulai Sekarang — Gratis!
+              <Link href="/auth/register" className="btn-brutal btn-brutal--primary btn-brutal--lg">
+                {t("landing.ctaStart")}
               </Link>
               <Link href="#fitur" className="btn-brutal btn-brutal--secondary btn-brutal--lg">
-                Lihat Fitur
+                {t("landing.ctaFeatures")}
               </Link>
             </div>
           </div>
@@ -528,7 +539,7 @@ export default function LandingPage() {
           <p className="landing-cta__desc">
             Bergabung dengan ribuan Gen-Z Indonesia yang sudah mulai kontrol keuangan mereka. Gratis, tanpa ribet!
           </p>
-          <Link href="/auth" className="btn-brutal btn-brutal--primary btn-brutal--lg">
+          <Link href="/auth/register" className="btn-brutal btn-brutal--primary btn-brutal--lg">
             Gabung Sekarang — Gratis!
           </Link>
         </div>

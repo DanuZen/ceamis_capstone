@@ -2,15 +2,24 @@
 
 import { useState } from "react";
 import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function HistoryPage() {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
   const [filter, setFilter] = useState<"semua" | "pemasukan" | "pengeluaran">("semua");
   const { transactions } = useTransactions();
+  const { t } = useLanguage();
 
   const filteredTransactions = transactions.filter(tx => {
-    if (filter === "semua") return true;
-    return tx.type === filter;
+    if (filter !== "semua" && tx.type !== filter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return tx.desc.toLowerCase().includes(q) || tx.category.toLowerCase().includes(q);
+    }
+    return true;
   });
 
   const totalPemasukan = transactions
@@ -43,10 +52,10 @@ export default function HistoryPage() {
         </div>
         <div>
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            Riwayat Transaksi
+            {t("dashboard.history.title")}
           </h1>
           <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-            Pantau semua pergerakan uangmu di sini. Jangan kaget kalau banyakan merahnya!
+            {t("dashboard.history.desc")}
           </p>
         </div>
       </div>
@@ -103,7 +112,7 @@ export default function HistoryPage() {
             {/* Header List & Filters */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
               <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 900 }}>
-                <Filter size={24} /> DAFTAR TRANSAKSI
+                <Filter size={24} /> {searchQuery ? `Pencarian: "${searchQuery}"` : "DAFTAR TRANSAKSI"}
               </h2>
               
               <div style={{ display: "flex", gap: "0.25rem", background: "var(--color-bg)", padding: "0.4rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
@@ -188,7 +197,7 @@ export default function HistoryPage() {
                 ))
               ) : (
                 <div style={{ padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", color: "var(--color-text-muted)", fontWeight: 700 }}>
-                  Tidak ada data transaksi.
+                  {searchQuery ? `Pencarian untuk "${searchQuery}" tidak ditemukan.` : "Tidak ada data transaksi."}
                 </div>
               )}
             </div>

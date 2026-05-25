@@ -1,0 +1,117 @@
+{
+  "navbar": {
+    "login": "Login",
+    "register": "Sign Up",
+    "guestMode": "You are in Guest Mode — some features are locked.",
+    "registerNow": "Register Now — It's Free!",
+    "notifications": "Notifications",
+    "new": "New",
+    "notif1Title": "Spending Alert ⚠️",
+    "notif1Desc": "Your snack expenses exceeded the weekly limit!",
+    "notif1Time": "Just now",
+    "notif2Title": "Target Achieved! 🎉",
+    "notif2Desc": "Your holiday savings have reached the target.",
+    "notif2Time": "2 hours ago",
+    "notif3Title": "Money Saving Tips 💡",
+    "notif3Desc": "Try bringing lunch tomorrow to save $5.",
+    "notif3Time": "Yesterday",
+    "markRead": "Mark as read",
+    "allRead": "All caught up",
+    "searchEducation": "Search educational materials...",
+    "searchPlanning": "Search budget allocations...",
+    "searchDebt": "Search debts & loans...",
+    "searchTransaction": "Search transactions...",
+    "expProgress": "EXP Progress",
+    "badgeCollection": "Badge Collection",
+    "viewAll": "View All",
+    "fullProfile": "Full Profile",
+    "switchAccount": "Switch Account",
+    "logout": "Logout"
+  },
+  "auth": {
+    "title": "Sign In to Your Account",
+    "email": "Email Address",
+    "password": "Password",
+    "loginBtn": "Sign In Now",
+    "registerLabel": "Don't have an account?",
+    "registerLink": "Sign up here",
+    "leftDesc": "Gen-Z brutalist financial management platform equipped with smart AI to track, plan, and educate your finances in real-time.",
+    "feat1": "AI Spending Pattern & Risk Profile",
+    "feat2": "Early Warning System (Warning Gate)",
+    "feat3": "CAMI Chatbot & Financial Education",
+    "adminLogin": "Admin Panel Login",
+    "userLogin": "Sign In to CEAMIS"
+  },
+  "sidebar": {
+    "groups": {
+      "utama": "MAIN",
+      "keuangan": "FINANCE",
+      "ai": "AI & TOOLS"
+    },
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "history": "History",
+    "planning": "Planning",
+    "debt": "Debts & Loans",
+    "reports": "Reports",
+    "education": "Education",
+    "warnings": "Warning System",
+    "chatbot": "AI Chatbot",
+    "guestLockedTitle": "This feature requires a registered account",
+    "guestTag": "GUEST",
+    "warningTitle": "Warning System is active when Health Score < 40%",
+    "back": "Back to Home"
+  },
+  "dashboard": {
+    "greeting": "Hello",
+    "ready": "Ready to control your finances today?",
+    "streakDays": "Days",
+    "streakActive": "Active Streak",
+    "balance": "Balance This Month",
+    "healthScore": "Health Score",
+    "healthCritical": "⚠ Critical",
+    "healthWarning": "Warning",
+    "healthSafe": "Safe ✓",
+    "transactionsMonth": "Transactions This Month",
+    "insightTitle": "AI Insight Today",
+    "insightDesc": "“Your F&B expenses are up 23% this week. Those trendy coffees might need a review, bestie! Try bringing a tumbler from home, you can save $15/week.”",
+    "viewDetails": "View Details",
+    "exploreFeatures": "Explore Features",
+    "locked": "LOCKED",
+    "lockedDesc": "Auto-activates when Health Score < 40. Now: ",
+    "active": "ACTIVE!",
+    "activeDesc": "Sarcastic notifications & roasting from AI to control your impulse shopping!",
+    "recentActivity": "Recent Activity",
+    "noActivity": "No activity yet.",
+    "viewAllTrx": "View All Transactions",
+    "planning": {
+      "title": "Financial Planning",
+      "desc": "Manage budget allocations and savings targets. Planned finances = peaceful life!"
+    },
+    "history": {
+      "title": "Transaction History",
+      "desc": "Monitor all your money movements here. Don't be shocked if it's mostly red!"
+    },
+    "debt": {
+      "title": "Debts & Loans",
+      "desc": "Record and manage your debts and loans neatly. Don't forget them!"
+    },
+    "education": {
+      "title": "Financial Education",
+      "desc": "Learn to manage finances the fun way. Read articles, collect EXP, and level up!"
+    }
+  },
+  "landing": {
+    "heroBadge": "New — AI Chatbot feature is now available!",
+    "heroTitle1": "Control Your Financial",
+    "heroTitle2": "Impulses,",
+    "heroHighlight": "Level Up",
+    "heroTitle3": "Every Day",
+    "heroSubtitle": "CEAMIS helps Gen-Z track finances the fun way — AI insights, exciting gamification, and sarcastic notifications that make you think twice before checking out!",
+    "ctaStart": "Start Now — It's Free!",
+    "ctaFeatures": "View Features",
+    "statsUsers": "Active Users",
+    "statsTransactions": "Recorded Transactions",
+    "statsImpulse": "Impulses Prevented"
+  }
+}

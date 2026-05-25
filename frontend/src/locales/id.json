@@ -1,0 +1,117 @@
+{
+  "navbar": {
+    "login": "Login",
+    "register": "Daftar Gratis",
+    "guestMode": "Kamu sedang dalam Mode Guest — beberapa fitur terkunci.",
+    "registerNow": "Daftar Sekarang — Gratis!",
+    "notifications": "Notifikasi",
+    "new": "Baru",
+    "notif1Title": "Peringatan Pengeluaran ⚠️",
+    "notif1Desc": "Pengeluaran jajan kamu melebihi batas mingguan!",
+    "notif1Time": "Barusan",
+    "notif2Title": "Target Tercapai! 🎉",
+    "notif2Desc": "Tabungan liburan kamu sudah mencapai target.",
+    "notif2Time": "2 jam lalu",
+    "notif3Title": "Tips Hemat 💡",
+    "notif3Desc": "Coba bawa bekal besok untuk menghemat Rp 50.000.",
+    "notif3Time": "Kemarin",
+    "markRead": "Tandai sudah dibaca",
+    "allRead": "Semua sudah dibaca",
+    "searchEducation": "Cari materi edukasi...",
+    "searchPlanning": "Cari alokasi budget...",
+    "searchDebt": "Cari utang piutang...",
+    "searchTransaction": "Cari transaksi...",
+    "expProgress": "Progres EXP",
+    "badgeCollection": "Koleksi Badge",
+    "viewAll": "Lihat Semua",
+    "fullProfile": "Profil Lengkap",
+    "switchAccount": "Ganti Akun",
+    "logout": "Keluar Akun"
+  },
+  "auth": {
+    "title": "Masuk ke Akun",
+    "email": "Alamat Email",
+    "password": "Kata Sandi",
+    "loginBtn": "Masuk Sekarang",
+    "registerLabel": "Belum punya akun?",
+    "registerLink": "Daftar di sini",
+    "leftDesc": "Platform manajemen keuangan brutalist Gen-Z yang dilengkapi AI cerdas untuk melacak, merencanakan, dan mengedukasi finansialmu secara real-time.",
+    "feat1": "AI Spending Pattern & Risk Profile",
+    "feat2": "Sistem Peringatan Dini (Warning Gate)",
+    "feat3": "Chatbot CAMI & Edukasi Finansial",
+    "adminLogin": "Admin Panel Login",
+    "userLogin": "Masuk ke CEAMIS"
+  },
+  "sidebar": {
+    "groups": {
+      "utama": "UTAMA",
+      "keuangan": "KEUANGAN",
+      "ai": "AI & TOOLS"
+    },
+    "dashboard": "Dashboard",
+    "transactions": "Transaksi",
+    "history": "Riwayat",
+    "planning": "Perencanaan",
+    "debt": "Utang & Piutang",
+    "reports": "Laporan",
+    "education": "Edukasi",
+    "warnings": "Warning System",
+    "chatbot": "Chatbot AI",
+    "guestLockedTitle": "Fitur ini memerlukan akun terdaftar",
+    "guestTag": "GUEST",
+    "warningTitle": "Warning System aktif saat Health Score < 40%",
+    "back": "Kembali"
+  },
+  "dashboard": {
+    "greeting": "Halo",
+    "ready": "Siap untuk mengontrol keuanganmu hari ini?",
+    "streakDays": "Hari",
+    "streakActive": "Streak Aktif",
+    "balance": "Saldo Bulan Ini",
+    "healthScore": "Skor Kesehatan",
+    "healthCritical": "⚠ Kritis",
+    "healthWarning": "Waspada",
+    "healthSafe": "Aman ✓",
+    "transactionsMonth": "Transaksi Bulan Ini",
+    "insightTitle": "AI Insight Hari Ini",
+    "insightDesc": "“Pengeluaran F&B kamu naik 23% minggu ini. Kayaknya kopi-kopi hits itu perlu di-review, bestie! Coba bawa tumbler dari rumah, bisa hemat Rp 150rb/minggu.”",
+    "viewDetails": "Lihat Detail",
+    "exploreFeatures": "Jelajahi Fitur",
+    "locked": "TERKUNCI",
+    "lockedDesc": "Aktif otomatis saat Health Score < 40. Sekarang: ",
+    "active": "AKTIF!",
+    "activeDesc": "Notifikasi sarkas & roasting dari AI buat kontrol impuls belanja kamu!",
+    "recentActivity": "Aktivitas Terakhir",
+    "noActivity": "Belum ada aktivitas.",
+    "viewAllTrx": "Lihat Semua Transaksi",
+    "planning": {
+      "title": "Perencanaan Keuangan",
+      "desc": "Atur alokasi budget dan target tabunganmu. Keuangan terencana = hidup tenang!"
+    },
+    "history": {
+      "title": "Riwayat Transaksi",
+      "desc": "Pantau semua pergerakan uangmu di sini. Jangan kaget kalau banyakan merahnya!"
+    },
+    "debt": {
+      "title": "Utang & Piutang",
+      "desc": "Catat dan kelola utang-piutangmu dengan rapi. Jangan sampai lupa!"
+    },
+    "education": {
+      "title": "Edukasi Finansial",
+      "desc": "Belajar mengatur keuangan dengan cara yang asyik. Baca artikel, kumpulkan EXP, dan level up!"
+    }
+  },
+  "landing": {
+    "heroBadge": "Baru — Fitur Chatbot AI sudah tersedia!",
+    "heroTitle1": "Kontrol Impuls",
+    "heroTitle2": "Keuanganmu,",
+    "heroHighlight": "Level Up",
+    "heroTitle3": "Tiap Hari",
+    "heroSubtitle": "CEAMIS bantu Gen-Z Indonesia catat keuangan dengan cara yang fun — AI insight, gamifikasi seru, dan notifikasi sarkas yang bikin kamu mikir dua kali sebelum checkout!",
+    "ctaStart": "Mulai Sekarang — Gratis!",
+    "ctaFeatures": "Lihat Fitur",
+    "statsUsers": "Pengguna Aktif",
+    "statsTransactions": "Transaksi Dicatat",
+    "statsImpulse": "Impuls Tertahan"
+  }
+}

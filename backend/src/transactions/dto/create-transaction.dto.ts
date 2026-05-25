@@ -21,6 +21,6 @@ export class CreateTransactionDto {
   category: string;
 
   @IsOptional()
-  @IsEnum(['needs', 'wants'])
-  tag?: 'needs' | 'wants';
+  @IsEnum(['needs', 'wants', 'save'])
+  tag?: 'needs' | 'wants' | 'save';
 }

@@ -151,7 +151,7 @@ export interface Transaction {
   amount: number;
   type: 'pemasukan' | 'pengeluaran';
   category: string;
-  tag?: 'needs' | 'wants';
+  tag?: 'needs' | 'wants' | 'save';
   created_at: string;
 }
 
@@ -177,7 +177,7 @@ export interface CreateTransactionPayload {
   amount: number;
   type: 'pemasukan' | 'pengeluaran';
   category: string;
-  tag?: 'needs' | 'wants';
+  tag?: 'needs' | 'wants' | 'save';
 }
 
 export interface OnboardingPayload {

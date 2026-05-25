@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { BookOpen, Award, PlayCircle, Clock } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const initialModules = [
   {
@@ -64,7 +66,10 @@ const initialModules = [
 
 export default function EducationPage() {
   const { unlockBadge } = useUser();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
   const [modules, setModules] = useState(initialModules);
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Load progress from localStorage
@@ -96,6 +101,12 @@ export default function EducationPage() {
     }
   };
 
+  const filteredModules = modules.filter(mod => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return mod.title.toLowerCase().includes(q) || mod.desc.toLowerCase().includes(q);
+  });
+
   return (
     <div style={{ paddingBottom: "2rem" }}>
       {/* Header Area */}
@@ -116,10 +127,10 @@ export default function EducationPage() {
         </div>
         <div>
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            Edukasi Finansial
+            {t("dashboard.education.title")}
           </h1>
           <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-            Materi finansial yang disesuaikan dengan kebutuhan dan level kamu. Belajar sambil main!
+            {t("dashboard.education.desc")}
           </p>
         </div>
       </div>
@@ -158,7 +169,12 @@ export default function EducationPage() {
           gap: "1.5rem",
         }}
       >
-        {modules.map((mod, index) => {
+        {filteredModules.length === 0 && (
+          <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+            <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>Pencarian untuk "{searchQuery}" tidak ditemukan.</p>
+          </div>
+        )}
+        {filteredModules.map((mod, index) => {
           const accentColor = `var(--color-${mod.color})`;
           return (
             <Link 

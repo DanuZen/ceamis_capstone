@@ -6,8 +6,10 @@ import {
   User, LogOut, Target, Users, Zap, PanelLeft, UserPlus
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { useGuest } from "@/context/GuestContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface NavbarProps {
   toggleSidebar?: () => void;
@@ -17,9 +19,17 @@ interface NavbarProps {
 export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [hasNewNotifications, setHasNewNotifications] = useState(true);
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+  }, [searchParams]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -34,6 +44,18 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const hasRead = localStorage.getItem("ceamis_read_notifs");
+    if (!hasRead) {
+      setHasNewNotifications(true);
+    }
+  }, []);
+
+  const markNotifsRead = () => {
+    setHasNewNotifications(false);
+    localStorage.setItem("ceamis_read_notifs", "true");
+  };
+
   const today = new Date().toLocaleDateString("id-ID", { 
     weekday: 'long', 
     year: 'numeric', 
@@ -43,6 +65,17 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
 
   const { userData } = useUser();
   const { isGuest } = useGuest();
+  const { t } = useLanguage();
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      if (searchQuery.trim()) {
+        router.push(`${pathname}?search=${encodeURIComponent(searchQuery)}`);
+      } else {
+        router.push(`${pathname}`);
+      }
+    }
+  };
 
   return (
     <>
@@ -59,7 +92,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
           flexWrap: "wrap",
         }}>
           <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>
-            Kamu sedang dalam <strong style={{ color: "var(--color-lime)" }}>Mode Guest</strong> — beberapa fitur terkunci.
+            {t("navbar.guestMode")}
           </span>
           <Link href="/auth" style={{ textDecoration: "none" }}>
             <button
@@ -77,7 +110,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                 boxShadow: "2px 2px 0px rgba(255,255,255,0.3)",
               }}
             >
-              <UserPlus size={13} /> Daftar Sekarang — Gratis!
+              <UserPlus size={13} /> {t("navbar.registerNow")}
             </button>
           </Link>
         </div>
@@ -143,46 +176,52 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                 zIndex: 50, padding: "0", overflow: "hidden", transformOrigin: "top left"
               }}>
                 <div style={{ padding: "1rem", borderBottom: "2px solid var(--color-navy)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-lime)" }}>
-                  <span style={{ fontWeight: 900, fontSize: "0.9rem", color: "var(--color-navy)" }}>Notifikasi</span>
+                  <span style={{ fontWeight: 900, fontSize: "0.9rem", color: "var(--color-navy)" }}>{t("navbar.notifications")}</span>
                   {hasNewNotifications && (
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-navy)", background: "rgba(255,255,255,0.5)", padding: "0.1rem 0.4rem", borderRadius: "100px" }}>2 Baru</span>
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-navy)", background: "rgba(255,255,255,0.5)", padding: "0.1rem 0.4rem", borderRadius: "100px" }}>2 {t("navbar.new")}</span>
                   )}
                 </div>
                 
                 <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
                   {/* Item 1 */}
-                  <div style={{ padding: "1rem", borderBottom: "1px solid rgba(0,0,0,0.1)", display: "flex", gap: "0.75rem", background: hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent" }}>
-                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: hasNewNotifications ? "var(--color-purple)" : "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
-                    <div>
-                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>Peringatan Pengeluaran ⚠️</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>Pengeluaran jajan kamu melebihi batas mingguan!</div>
-                      <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>Barusan</div>
+                  <Link href="/dashboard/history" onClick={() => setShowNotifications(false)} style={{ textDecoration: "none", display: "block" }}>
+                    <div style={{ padding: "1rem", borderBottom: "1px solid rgba(0,0,0,0.1)", display: "flex", gap: "0.75rem", background: hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.03)"} onMouseLeave={(e) => e.currentTarget.style.background = hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent"}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: hasNewNotifications ? "var(--color-purple)" : "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
+                      <div>
+                        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>{t("navbar.notif1Title")}</div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>{t("navbar.notif1Desc")}</div>
+                        <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>{t("navbar.notif1Time")}</div>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Item 2 */}
-                  <div style={{ padding: "1rem", borderBottom: "1px solid rgba(0,0,0,0.1)", display: "flex", gap: "0.75rem", background: hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent" }}>
-                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: hasNewNotifications ? "var(--color-purple)" : "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
-                    <div>
-                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>Target Tercapai! 🎉</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>Tabungan liburan kamu sudah mencapai target.</div>
-                      <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>2 jam lalu</div>
+                  <Link href="/dashboard/planning" onClick={() => setShowNotifications(false)} style={{ textDecoration: "none", display: "block" }}>
+                    <div style={{ padding: "1rem", borderBottom: "1px solid rgba(0,0,0,0.1)", display: "flex", gap: "0.75rem", background: hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.03)"} onMouseLeave={(e) => e.currentTarget.style.background = hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent"}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: hasNewNotifications ? "var(--color-purple)" : "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
+                      <div>
+                        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>{t("navbar.notif2Title")}</div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>{t("navbar.notif2Desc")}</div>
+                        <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>{t("navbar.notif2Time")}</div>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Item 3 */}
-                  <div style={{ padding: "1rem", display: "flex", gap: "0.75rem" }}>
-                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
-                    <div>
-                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>Tips Hemat 💡</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>Coba bawa bekal besok untuk menghemat Rp 50.000.</div>
-                      <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>Kemarin</div>
+                  <Link href="/dashboard/education" onClick={markNotifsRead} style={{ textDecoration: "none", display: "block" }}>
+                    <div style={{ padding: "1rem", display: "flex", gap: "0.75rem", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.03)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
+                      <div>
+                        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>{t("navbar.notif3Title")}</div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>{t("navbar.notif3Desc")}</div>
+                        <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>{t("navbar.notif3Time")}</div>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
 
                 <button 
-                  onClick={() => setHasNewNotifications(false)} 
+                  onClick={markNotifsRead} 
                   disabled={!hasNewNotifications}
                   style={{ 
                     display: "block", width: "100%", textAlign: "center", padding: "0.75rem", 
@@ -191,7 +230,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                     background: "rgba(0,0,0,0.02)", cursor: hasNewNotifications ? "pointer" : "default", fontFamily: "inherit"
                   }}
                 >
-                  {hasNewNotifications ? "Tandai sudah dibaca" : "Semua sudah dibaca"}
+                  {hasNewNotifications ? t("navbar.markRead") : t("navbar.allRead")}
                 </button>
               </div>
             )}
@@ -203,7 +242,15 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
           <Search size={18} color="var(--color-text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
           <input 
             type="text" 
-            placeholder="Cari transaksi..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
+            placeholder={
+              pathname.includes("education") ? t("navbar.searchEducation") :
+              pathname.includes("planning") ? t("navbar.searchPlanning") :
+              pathname.includes("debt") ? t("navbar.searchDebt") :
+              t("navbar.searchTransaction")
+            }
             className="input-brutal"
             style={{ 
               width: "100%", 
@@ -319,7 +366,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                 {/* Mini Stats inside Dropdown */}
                 <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem" }}>
                   <div style={{ flex: 1, padding: "0.75rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
-                    <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--color-text-muted)", marginBottom: "0.2rem" }}>EXP Progress</div>
+                    <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--color-text-muted)", marginBottom: "0.2rem" }}>{t("navbar.expProgress")}</div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.3rem" }}>
                       <span style={{ fontSize: "0.8rem", fontWeight: 900, color: "var(--color-navy)" }}>LVL {userData.level}</span>
                       <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-purple)" }}>{userData.xp}/{userData.level * 1000} XP</span>
@@ -333,8 +380,8 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                 {/* Badges Summary */}
                 <div style={{ marginBottom: "1.25rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-                    <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>Koleksi Badge ({userData.unlockedBadges?.length || 0})</span>
-                    <Link href="/dashboard/profile" onClick={() => setShowProfileMenu(false)} style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-purple)", textDecoration: "none" }}>Lihat Semua</Link>
+                    <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>{t("navbar.badgeCollection")} ({userData.unlockedBadges?.length || 0})</span>
+                    <Link href="/dashboard/profile" onClick={() => setShowProfileMenu(false)} style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-purple)", textDecoration: "none" }}>{t("navbar.viewAll")}</Link>
                   </div>
                   <div style={{ display: "flex", gap: "0.6rem" }}>
                     {[
@@ -369,7 +416,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                       borderRadius: "var(--radius-brutal-sm)", display: "flex", alignItems: "center", gap: "0.6rem",
                       color: "var(--color-navy)", fontWeight: 800, fontSize: "0.9rem", boxShadow: "none"
                     }}>
-                      <User size={18} /> Profil Lengkap
+                      <User size={18} /> {t("navbar.fullProfile")}
                     </div>
                   </Link>
                   <Link href="/auth" onClick={() => setShowProfileMenu(false)} style={{ textDecoration: "none" }}>
@@ -378,17 +425,17 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                       borderRadius: "var(--radius-brutal-sm)", display: "flex", alignItems: "center", gap: "0.6rem",
                       color: "var(--color-navy)", fontWeight: 800, fontSize: "0.9rem", boxShadow: "none", cursor: "pointer"
                     }}>
-                      <Users size={18} /> Ganti Akun
+                      <Users size={18} /> {t("navbar.switchAccount")}
                     </div>
                   </Link>
-                  <Link href="/auth" onClick={() => setShowProfileMenu(false)} style={{ textDecoration: "none" }}>
+                  <Link href="/" onClick={() => setShowProfileMenu(false)} style={{ textDecoration: "none" }}>
                     <div className="btn-brutal" style={{ 
                       padding: "0.75rem", background: "var(--color-orange)", border: "2px solid var(--color-navy)", 
                       borderRadius: "var(--radius-brutal-sm)", display: "flex", alignItems: "center", gap: "0.6rem",
                       color: "var(--color-white)", fontWeight: 800, fontSize: "0.9rem", boxShadow: "none", cursor: "pointer",
                       marginTop: "0.5rem"
                     }}>
-                      <LogOut size={18} /> Keluar Akun
+                      <LogOut size={18} /> {t("navbar.logout")}
                     </div>
                   </Link>
                 </div>

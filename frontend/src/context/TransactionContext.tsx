@@ -14,7 +14,7 @@ export interface Transaction {
   type: TransactionType;
   category: string;
   date: string;
-  tag?: "needs" | "wants";
+  tag?: "needs" | "wants" | "save";
 }
 
 interface TransactionContextType {

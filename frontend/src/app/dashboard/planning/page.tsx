@@ -8,12 +8,14 @@ import {
   Home, Gamepad2, Banknote, Utensils, Car,
   Smartphone, Tv, ShoppingCart, Coffee, Candy,
   Shield, Laptop, Plane, GraduationCap,
-  Brain, ChevronDown, Loader
+  Brain, ChevronDown, Loader, SearchX
 } from "lucide-react";
 import React from "react";
+import { useSearchParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionContext";
 import { useGuest } from "@/context/GuestContext";
 import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
+import { useLanguage } from "@/context/LanguageContext";
 
 // ── Icon Mapping (replaces emojis) ──────────────
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
@@ -32,6 +34,61 @@ const IconBox = ({ iconKey, size = 20, bg }: { iconKey: string; size?: number; b
       background: bg || "var(--color-bg)", boxShadow: "2px 2px 0px var(--color-navy)",
     }}>
       <Icon size={size} color="var(--color-navy)" strokeWidth={2.5} />
+    </div>
+  );
+};
+
+const IconPicker = ({ value, onChange, options }: { value: string, onChange: (val: string) => void, options: {key:string, label:string}[] }) => {
+  const [open, setOpen] = useState(false);
+  const selectedOpt = options.find(o => o.key === value) || options[0];
+  const SelectedIcon = ICON_MAP[selectedOpt.key] || Target;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button 
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="input-brutal"
+        style={{ 
+          border: "3px solid var(--color-navy)", padding: "0.75rem", fontSize: "0.9rem", fontWeight: 800, 
+          width: "100%", minWidth: "120px", boxShadow: "3px 3px 0px var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: "var(--color-white)", cursor: "pointer"
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <SelectedIcon size={16} color="var(--color-navy)" strokeWidth={2.5} /> {selectedOpt.label}
+        </span>
+        <ChevronDown size={16} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+      </button>
+      
+      {open && (
+        <div style={{
+          position: "absolute", top: "100%", left: 0, width: "100%", marginTop: "0.5rem",
+          background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+          boxShadow: "4px 4px 0px var(--color-navy)", zIndex: 10, maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column"
+        }}>
+          {options.map(opt => {
+            const Icon = ICON_MAP[opt.key] || Target;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => { onChange(opt.key); setOpen(false); }}
+                style={{
+                  padding: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", border: "none",
+                  background: value === opt.key ? "var(--color-purple)" : "transparent",
+                  color: value === opt.key ? "var(--color-white)" : "var(--color-navy)",
+                  fontWeight: 800, textAlign: "left", cursor: "pointer", borderBottom: "2px solid rgba(10,25,47,0.05)"
+                }}
+                onMouseEnter={(e) => { if(value !== opt.key) e.currentTarget.style.background = "var(--color-bg)" }}
+                onMouseLeave={(e) => { if(value !== opt.key) e.currentTarget.style.background = "transparent" }}
+              >
+                <Icon size={16} color={value === opt.key ? "var(--color-white)" : "var(--color-navy)"} strokeWidth={2.5} /> {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -125,12 +182,17 @@ interface RiskResult {
 
 export default function PlanningPage() {
   const { transactions } = useTransactions();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
   const { isGuest } = useGuest();
+  const { t } = useLanguage();
   const [budget, setBudget] = useState<BudgetCategory[]>([]);
   const [targets, setTargets] = useState<SavingsTarget[]>([]);
   const [activeView, setActiveView] = useState<"budget" | "targets">("budget");
   const [showAddTarget, setShowAddTarget] = useState(false);
   const [newTarget, setNewTarget] = useState({ name: "", target: "", icon: "target", deadline: "" });
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState<{name: string; type: "needs"|"wants"|"savings"; allocated: string; icon: string}>({ name: "", type: "needs", allocated: "", icon: "home" });
   const [isLoaded, setIsLoaded] = useState(false);
 
   // ── Model 3 state ──────────────────────────────────────────────────────────
@@ -224,17 +286,20 @@ export default function PlanningPage() {
     return { ...b, spent };
   });
 
-  const needsItems = budgetWithSpent.filter(b => b.type === "needs");
-  const wantsItems = budgetWithSpent.filter(b => b.type === "wants");
-  const savingsItems = budgetWithSpent.filter(b => b.type === "savings");
+  const filteredBudget = budgetWithSpent.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const needsBudget = filteredBudget.filter(b => b.type === "needs");
+  const wantsBudget = filteredBudget.filter(b => b.type === "wants");
+  const savingsBudget = filteredBudget.filter(b => b.type === "savings");
   
-  const totalNeeds = needsItems.reduce((s, b) => s + b.allocated, 0);
-  const totalWants = wantsItems.reduce((s, b) => s + b.allocated, 0);
-  const totalSavings = savingsItems.reduce((s, b) => s + b.allocated, 0);
+  const filteredTargets = targets.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
   
-  const totalSpentNeeds = needsItems.reduce((s, b) => s + b.spent, 0);
-  const totalSpentWants = wantsItems.reduce((s, b) => s + b.spent, 0);
-  const totalSpentSavings = savingsItems.reduce((s, b) => s + b.spent, 0);
+  const totalNeeds = budgetWithSpent.filter(b => b.type === "needs").reduce((s, b) => s + b.allocated, 0);
+  const totalWants = budgetWithSpent.filter(b => b.type === "wants").reduce((s, b) => s + b.allocated, 0);
+  const totalSavings = budgetWithSpent.filter(b => b.type === "savings").reduce((s, b) => s + b.allocated, 0);
+  
+  const totalSpentNeeds = budgetWithSpent.filter(b => b.type === "needs").reduce((s, b) => s + b.spent, 0);
+  const totalSpentWants = budgetWithSpent.filter(b => b.type === "wants").reduce((s, b) => s + b.spent, 0);
+  const totalSpentSavings = budgetWithSpent.filter(b => b.type === "savings").reduce((s, b) => s + b.spent, 0);
   
   const totalAllocated = totalNeeds + totalWants + totalSavings;
   
@@ -256,6 +321,20 @@ export default function PlanningPage() {
     }]);
     setNewTarget({ name: "", target: "", icon: "target", deadline: "" });
     setShowAddTarget(false);
+  };
+
+  const handleAddCategory = () => {
+    if (!newCategory.name) return;
+    setBudget([...budget, {
+      id: Date.now().toString(),
+      name: newCategory.name,
+      type: newCategory.type,
+      allocated: parseInt(newCategory.allocated) || 0,
+      spent: 0,
+      icon: newCategory.icon
+    }]);
+    setNewCategory({ name: "", type: "needs", allocated: "", icon: "home" });
+    setShowAddCategory(false);
   };
 
   const deleteTarget = (id: number) => setTargets(targets.filter(t => t.id !== id));
@@ -300,13 +379,22 @@ export default function PlanningPage() {
                 <button onClick={handleSave} className="btn-brutal" style={{ padding: "0.2rem 0.5rem", background: "var(--color-lime)" }}>OK</button>
               </div>
             ) : (
-              <span 
-                onClick={() => setIsEditing(true)}
-                style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem", color: isOverBudget ? "var(--color-danger, #e74c3c)" : "var(--color-navy)", cursor: "pointer", borderBottom: "1.5px dashed var(--color-navy)" }}
-                title="Klik untuk ubah budget"
-              >
-                {formatRp(item.spent)} / {formatRp(item.allocated)}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span 
+                  style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem", color: isOverBudget ? "var(--color-danger, #e74c3c)" : "var(--color-navy)" }}
+                >
+                  {formatRp(item.spent)} / {formatRp(item.allocated)}
+                </span>
+                <button 
+                  onClick={() => setIsEditing(true)}
+                  style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", color: "var(--color-navy)", padding: "0.2rem", opacity: 0.6, transition: "opacity 0.2s" }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = "0.6"}
+                  title="Ubah Alokasi Budget"
+                >
+                  <Edit3 size={16} />
+                </button>
+              </div>
             )}
           </div>
           <div style={{ width: "100%", height: "12px", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
@@ -345,10 +433,10 @@ export default function PlanningPage() {
         </div>
         <div>
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            Perencanaan Keuangan
+            {t("dashboard.planning.title")}
           </h1>
           <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 600 }}>
-            Atur alokasi budget dan target tabunganmu. Keuangan terencana = hidup tenang!
+            {t("dashboard.planning.desc")}
           </p>
         </div>
       </div>
@@ -583,41 +671,97 @@ export default function PlanningPage() {
 
       {/* ── BUDGET VIEW ────────────────────── */}
       {activeView === "budget" && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2.5rem" }} className="animate-slide-up">
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
-              <div style={{ width: "16px", height: "16px", background: "var(--color-lime)", border: "2.5px solid var(--color-navy)", borderRadius: "4px" }} />
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.35rem", margin: 0, color: "var(--color-navy)" }}>
-                Kebutuhan (Needs) — {formatRp(totalNeeds)}
-              </h3>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {needsItems.map(item => <BudgetRow key={item.id} item={item} />)}
-            </div>
+        <div className="animate-slide-up">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)" }}>
+              Kategori Budget
+            </h3>
+            <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
+              padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
+              background: showAddCategory ? "var(--color-orange)" : "var(--color-navy)",
+              color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.5rem",
+              boxShadow: "4px 4px 0px var(--color-navy)",
+            }}>
+              <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
+              {showAddCategory ? "Batal" : "Tambah Kategori"}
+            </button>
           </div>
 
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
-              <div style={{ width: "16px", height: "16px", background: "var(--color-orange)", border: "2.5px solid var(--color-navy)", borderRadius: "4px" }} />
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.35rem", margin: 0, color: "var(--color-navy)" }}>
-                Keinginan (Wants) — {formatRp(totalWants)}
-              </h3>
+          {showAddCategory && (
+            <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2.5rem", background: "var(--color-white)", boxShadow: "6px 6px 0px var(--color-purple)", overflow: "visible" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", alignItems: "flex-end" }}>
+                <div>
+                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>TIPE</label>
+                  <select value={newCategory.type} onChange={e => setNewCategory({ ...newCategory, type: e.target.value as any })} className="input-brutal" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", fontSize: "0.9rem", fontWeight: 800, minWidth: "120px", boxShadow: "3px 3px 0px var(--color-navy)" }}>
+                    <option value="needs">Needs</option>
+                    <option value="wants">Wants</option>
+                    <option value="savings">Savings</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ICON</label>
+                  <IconPicker 
+                    value={newCategory.icon} 
+                    onChange={v => setNewCategory({ ...newCategory, icon: v })} 
+                    options={ICON_OPTIONS} 
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: "200px" }}>
+                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>NAMA KATEGORI</label>
+                  <input value={newCategory.name} onChange={e => setNewCategory({ ...newCategory, name: e.target.value })} className="input-brutal" placeholder="Contoh: Belanja Online" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)" }} />
+                </div>
+                <div style={{ flex: 1, minWidth: "150px" }}>
+                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ALOKASI (RP)</label>
+                  <input value={newCategory.allocated} onChange={e => setNewCategory({ ...newCategory, allocated: e.target.value })} className="input-brutal" type="number" placeholder="0" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", width: "100%", fontWeight: 900, boxShadow: "3px 3px 0px var(--color-navy)" }} />
+                </div>
+                <button onClick={handleAddCategory} className="btn-brutal" style={{
+                  padding: "0.8rem 1.5rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900,
+                  display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)"
+                }}>
+                  <Plus size={18} /> Simpan
+                </button>
+              </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {wantsItems.map(item => <BudgetRow key={item.id} item={item} />)}
-            </div>
-          </div>
+          )}
 
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
-              <div style={{ width: "16px", height: "16px", background: "var(--color-purple)", border: "2.5px solid var(--color-navy)", borderRadius: "4px" }} />
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.35rem", margin: 0, color: "var(--color-navy)" }}>
-                Tabungan (Savings) — {formatRp(totalSavings)}
-              </h3>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {savingsItems.map(item => <BudgetRow key={item.id} item={item} />)}
-            </div>
+          <div style={{ padding: "1.5rem" }}>
+            {searchQuery && filteredBudget.length === 0 ? (
+              <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                <SearchX size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
+                <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
+                  Pencarian untuk "{searchQuery}" tidak ditemukan.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: "2.5rem" }}>
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
+                    <AlertTriangle size={20} color="var(--color-danger, #e74c3c)" /> Kebutuhan (Needs) 50%
+                  </h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {needsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: "2.5rem" }}>
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
+                    <Sparkles size={20} color="var(--color-purple)" /> Keinginan (Wants) 30%
+                  </h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {wantsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
+                    <ShieldCheck size={20} color="var(--color-lime)" /> Tabungan (Savings) 20%
+                  </h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {savingsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -672,13 +816,15 @@ export default function PlanningPage() {
 
           {/* Add Target Form */}
           {showAddTarget && (
-            <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2.5rem", background: "var(--color-white)", boxShadow: "6px 6px 0px var(--color-purple)" }}>
+            <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2.5rem", background: "var(--color-white)", boxShadow: "6px 6px 0px var(--color-purple)", overflow: "visible" }}>
               <div style={{ display: "grid", gridTemplateColumns: "auto 1fr 1fr auto", gap: "1.5rem", alignItems: "end" }}>
                 <div>
                   <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ICON</label>
-                  <select value={newTarget.icon} onChange={e => setNewTarget({ ...newTarget, icon: e.target.value })} className="input-brutal" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", fontSize: "0.9rem", fontWeight: 800, width: "130px", boxShadow: "3px 3px 0px var(--color-navy)" }}>
-                    {ICON_OPTIONS.map(opt => <option key={opt.key} value={opt.key}>{opt.label}</option>)}
-                  </select>
+                  <IconPicker 
+                    value={newTarget.icon} 
+                    onChange={v => setNewTarget({ ...newTarget, icon: v })} 
+                    options={ICON_OPTIONS} 
+                  />
                 </div>
                 <div>
                   <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>NAMA TARGET</label>
@@ -698,17 +844,22 @@ export default function PlanningPage() {
             </div>
           )}
 
-          {/* Target Cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem" }}>
-            {targets.map(t => {
-              const pct = t.target > 0 ? Math.round((t.current / t.target) * 100) : 0;
-              const remaining = t.target - t.current;
-              return (
-                <div key={t.id} className="card-brutal" style={{ padding: "2rem", position: "relative", background: "var(--color-white)", boxShadow: `6px 6px 0px var(--color-${t.color})` }}>
-                  <button onClick={() => deleteTarget(t.id)} style={{
-                    position: "absolute", top: "1rem", right: "1rem", background: "var(--color-bg)",
-                    border: "2px solid var(--color-navy)", borderRadius: "6px", cursor: "pointer", padding: "0.4rem", transition: "transform 0.2s"
-                  }} className="hover:scale-110">
+            {searchQuery && filteredTargets.length === 0 ? (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+                <SearchX size={48} color="var(--color-text-muted)" style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>Pencarian untuk "{searchQuery}" tidak ditemukan.</p>
+              </div>
+            ) : (
+              filteredTargets.map(t => {
+                const pct = t.target > 0 ? Math.round((t.current / t.target) * 100) : 0;
+                const remaining = t.target - t.current;
+                return (
+                  <div key={t.id} className="card-brutal" style={{ padding: "2rem", position: "relative", background: "var(--color-white)", boxShadow: `6px 6px 0px var(--color-${t.color})` }}>
+                    <button onClick={() => deleteTarget(t.id)} style={{
+                      position: "absolute", top: "1rem", right: "1rem", background: "var(--color-bg)",
+                      border: "2px solid var(--color-navy)", borderRadius: "6px", cursor: "pointer", padding: "0.4rem", transition: "transform 0.2s"
+                    }} className="hover:scale-110">
                     <Trash2 size={16} color="var(--color-navy)" />
                   </button>
 
@@ -736,8 +887,9 @@ export default function PlanningPage() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            })
+          )}
+        </div>
         </div>
       )}
     </div>
