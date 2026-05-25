@@ -3,13 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import { 
   Search, Calendar, Star, Flame, Bell, ChevronDown, 
-  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus
+  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus, Globe
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { useGuest } from "@/context/GuestContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { createClient } from "@/lib/supabase/client";
 
 interface NavbarProps {
   toggleSidebar?: () => void;
@@ -26,6 +27,13 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setShowProfileMenu(false);
+    router.push("/");
+  };
 
   useEffect(() => {
     setSearchQuery(searchParams.get("search") || "");
@@ -56,16 +64,16 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
     localStorage.setItem("ceamis_read_notifs", "true");
   };
 
-  const today = new Date().toLocaleDateString("id-ID", { 
+  const { t, language, setLanguage } = useLanguage();
+  const { userData } = useUser();
+  const { isGuest } = useGuest();
+
+  const today = new Date().toLocaleDateString(language === "id" ? "id-ID" : "en-US", { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
     day: 'numeric' 
   });
-
-  const { userData } = useUser();
-  const { isGuest } = useGuest();
-  const { t } = useLanguage();
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -279,6 +287,20 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
         </div>
 
         <div className="navbar__actions" style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+          {/* Language Switcher */}
+          <button 
+            onClick={() => setLanguage(language === "id" ? "en" : "id")} 
+            className="btn-brutal"
+            style={{ 
+              padding: "0.3rem 0.6rem", fontSize: "0.85rem", fontWeight: 800, 
+              background: "var(--color-lime)", border: "2px solid var(--color-navy)",
+              boxShadow: "2px 2px 0px var(--color-navy)", display: "flex", alignItems: "center", gap: "0.3rem",
+              borderRadius: "var(--radius-brutal-sm)", cursor: "pointer"
+            }}
+          >
+            <Globe size={14} strokeWidth={2.5} /> {language === "id" ? "EN" : "ID"}
+          </button>
+
           {/* User Stats Group */}
           <div style={{ 
             display: "flex", alignItems: "center", gap: "0.75rem", padding: "0 0.85rem", height: "48px", boxSizing: "border-box",
@@ -297,12 +319,12 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
             </div>
 
             {/* Badge Count */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--color-navy)", paddingRight: "0.75rem", borderRight: "2px dashed rgba(0,0,0,0.15)" }} title={`${userData.unlockedBadges?.length || 0} Badge Diraih`}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--color-navy)", paddingRight: "0.75rem", borderRight: "2px dashed rgba(0,0,0,0.15)" }} title={`${userData.unlockedBadges?.length || 0} ${t("navbar.badgesTooltip")}`}>
               <Star size={14} color="var(--color-orange)" strokeWidth={2.5} fill="var(--color-orange)" /> {userData.unlockedBadges?.length || 0}
             </div>
 
             {/* Streak Indicator */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--color-navy)" }} title={`${userData.streak} Hari Streak`}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--color-navy)" }} title={`${userData.streak} ${t("navbar.streakTooltip")}`}>
               <Flame size={14} color="var(--color-danger, #e74c3c)" strokeWidth={2.5} fill="var(--color-danger, #e74c3c)" /> {userData.streak}
             </div>
           </div>
@@ -428,7 +450,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                       <Users size={18} /> {t("navbar.switchAccount")}
                     </div>
                   </Link>
-                  <Link href="/" onClick={() => setShowProfileMenu(false)} style={{ textDecoration: "none" }}>
+                  <div onClick={handleLogout} style={{ textDecoration: "none" }}>
                     <div className="btn-brutal" style={{ 
                       padding: "0.75rem", background: "var(--color-orange)", border: "2px solid var(--color-navy)", 
                       borderRadius: "var(--radius-brutal-sm)", display: "flex", alignItems: "center", gap: "0.6rem",
@@ -437,7 +459,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                     }}>
                       <LogOut size={18} /> {t("navbar.logout")}
                     </div>
-                  </Link>
+                  </div>
                 </div>
               </div>
             )}

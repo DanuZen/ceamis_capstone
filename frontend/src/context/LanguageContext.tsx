@@ -11,7 +11,7 @@ type Language = "id" | "en";
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, options?: { returnObjects?: boolean }) => any;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -33,7 +33,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     localStorage.setItem("ceamis_lang", lang);
   };
 
-  const t = (key: string): string => {
+  const t = (key: string, options?: { returnObjects?: boolean }): any => {
     const keys = key.split(".");
     let val: any = dictionaries[language];
     for (const k of keys) {
@@ -42,6 +42,9 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
       } else {
         return key; // Fallback to key if not found
       }
+    }
+    if (options?.returnObjects) {
+      return val;
     }
     return typeof val === "string" ? val : key;
   };

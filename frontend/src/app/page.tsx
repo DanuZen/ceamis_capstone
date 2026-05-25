@@ -27,53 +27,53 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
-const FEATURES = [
+const getFeatures = (t: any) => [
   {
-    title: "Pencatatan Keuangan",
-    desc: "Catat pemasukan, pengeluaran, dan utang-piutang dengan cepat. Digital Ledger yang rapi dan gampang dipahami.",
+    title: t("landing.feature1Title"),
+    desc: t("landing.feature1Desc"),
     icon: Wallet,
     color: "purple"
   },
   {
-    title: "AI Insight & XAI",
-    desc: "Insight keuangan otomatis dari AI, plus penjelasan transparan (Explainable AI) yang mudah dipahami Gen-Z.",
+    title: t("landing.feature2Title"),
+    desc: t("landing.feature2Desc"),
     icon: Sparkles,
     color: "lime"
   },
   {
-    title: "Gamifikasi Seru",
-    desc: "Daily Streak, Badge Achievement, dan Leaderboard. Makin rajin catat, makin banyak reward!",
+    title: t("landing.feature3Title"),
+    desc: t("landing.feature3Desc"),
     icon: Trophy,
     color: "orange"
   },
   {
-    title: "Gen-Z Warning System",
-    desc: "Notifikasi sarkas & roasting kalau kamu kebanyakan impulsif. Dijamin bikin mikir sebelum checkout!",
+    title: t("landing.feature4Title"),
+    desc: t("landing.feature4Desc"),
     icon: Flame,
     color: "purple"
   },
   {
-    title: "Chatbot Finansial AI",
-    desc: "Tanya apa aja soal keuangan! Chatbot AI yang paham bahasa Gen-Z dan kasih solusi praktis.",
+    title: t("landing.feature5Title"),
+    desc: t("landing.feature5Desc"),
     icon: Bot,
     color: "lime"
   },
   {
-    title: "Edukasi Adaptif",
-    desc: "Materi edukasi finansial yang menyesuaikan level dan kebutuhan kamu. Belajar sambil main!",
+    title: t("landing.feature6Title"),
+    desc: t("landing.feature6Desc"),
     icon: BookOpen,
     color: "orange"
   },
 ];
 
-const STEPS = [
-  { num: "01", title: "Daftar Akun", desc: "Buat akun gratis dalam 30 detik. Tanpa ribet, tanpa kartu kredit.", icon: UserPlus, color: "purple" },
-  { num: "02", title: "Catat Keuanganmu", desc: "Mulai catat pemasukan & pengeluaran harianmu dengan mudah.", icon: PenLine, color: "lime" },
-  { num: "03", title: "Dapatkan Insight AI", desc: "AI kami analisis pola keuanganmu dan kasih rekomendasi cerdas.", icon: BrainCircuit, color: "orange" },
-  { num: "04", title: "Level Up!", desc: "Kumpulkan streak, badge, dan naik peringkat di leaderboard!", icon: Rocket, color: "purple" },
+const getSteps = (t: any) => [
+  { num: "01", title: t("landing.step1Title"), desc: t("landing.step1Desc"), icon: UserPlus, color: "purple" },
+  { num: "02", title: t("landing.step2Title"), desc: t("landing.step2Desc"), icon: PenLine, color: "lime" },
+  { num: "03", title: t("landing.step3Title"), desc: t("landing.step3Desc"), icon: BrainCircuit, color: "orange" },
+  { num: "04", title: t("landing.step4Title"), desc: t("landing.step4Desc"), icon: Rocket, color: "purple" },
 ];
 
-const LEADERBOARD_DATA = [
+const getLeaderboardData = () => [
   { rank: 1, name: "Rina S.", streak: 45, badge: 12, score: 9800, medal: "gold" },
   { rank: 2, name: "Budi P.", streak: 38, badge: 10, score: 8650, medal: "silver" },
   { rank: 3, name: "Sari M.", streak: 32, badge: 9, score: 7920, medal: "bronze" },
@@ -81,74 +81,74 @@ const LEADERBOARD_DATA = [
   { rank: 5, name: "Dina W.", streak: 25, badge: 6, score: 5890, medal: "" },
 ];
 
-const EDUKASI_POINTS = [
+const getEdukasiPoints = (t: any) => [
   {
-    title: "Kenali Pola Pengeluaranmu",
-    desc: "Riset menunjukkan 68% Gen-Z tidak melacak pengeluaran harian mereka. Dengan memahami ke mana uang pergi, kamu bisa mengidentifikasi kebocoran keuangan dan menghemat hingga 30% setiap bulannya.",
+    title: t("landing.eduPoint1Title"),
+    desc: t("landing.eduPoint1Desc"),
     icon: Eye,
     color: "purple",
     stat: "68%",
-    statLabel: "Gen-Z tidak tracking",
+    statLabel: t("landing.eduPoint1Stat"),
   },
   {
-    title: "Bangun Kebiasaan Menabung Sejak Dini",
-    desc: "Mulai menabung 10-20% dari penghasilan di usia muda memberi keuntungan besar berkat compound interest. Rp 500.000/bulan yang ditabung sejak usia 20 bisa menjadi ratusan juta di usia 30.",
+    title: t("landing.eduPoint2Title"),
+    desc: t("landing.eduPoint2Desc"),
     icon: PiggyBank,
     color: "lime",
     stat: "10-20%",
-    statLabel: "ideal untuk ditabung",
+    statLabel: t("landing.eduPoint2Stat"),
   },
   {
-    title: "Hindari Impulsive Spending",
-    desc: "Fenomena FOMO dan flash sale menyebabkan 73% anak muda melakukan pembelian impulsif. Dengan 'aturan 24 jam' — tunda pembelian 24 jam sebelum checkout — kamu bisa mengurangi pengeluaran tidak perlu secara signifikan.",
+    title: t("landing.eduPoint3Title"),
+    desc: t("landing.eduPoint3Desc"),
     icon: ShieldAlert,
     color: "orange",
     stat: "73%",
-    statLabel: "belanja impulsif",
+    statLabel: t("landing.eduPoint3Stat"),
   },
   {
-    title: "Literasi Keuangan = Masa Depan Cerah",
-    desc: "Menurut OJK, tingkat literasi keuangan Gen-Z Indonesia masih di bawah 50%. Memahami konsep dasar seperti budgeting, investasi, dan manajemen utang adalah fondasi untuk kemandirian finansial.",
+    title: t("landing.eduPoint4Title"),
+    desc: t("landing.eduPoint4Desc"),
     icon: GraduationCap,
     color: "purple",
     stat: "<50%",
-    statLabel: "literasi keuangan",
+    statLabel: t("landing.eduPoint4Stat"),
   },
 ];
 
-const TESTIMONIALS = [
+const getTestimonials = (t: any) => [
   { 
-    text: "Sumpah, AI-nya jujur banget pas ngeroasting pengeluaran kopi gue. Sekarang tabungan gue jadi lebih sehat!", 
+    text: t("landing.testi1"), 
     name: "Jessica A.", 
     handle: "@jess_finance", 
     color: "purple" 
   },
   { 
-    text: "Badge-nya bikin ketagihan nyatet. Berasa main game tapi dapet cuan karena pengeluaran jadi lebih terkontrol.", 
+    text: t("landing.testi2"), 
     name: "Kevin R.", 
     handle: "@kvn_mulyono", 
     color: "lime" 
   },
   { 
-    text: "Dulu sering kena FOMO flash sale, sekarang ada CEAMIS yang selalu ngingetin buat mikir 24 jam. Mantap!", 
+    text: t("landing.testi3"), 
     name: "Sari K.", 
     handle: "@sari_kurnia", 
     color: "navy" 
   },
 ];
 
-const FAQ_DATA = [
+const getFaqData = (t: any) => [
   { 
-    q: "Apakah data keuanganku aman?", 
-    a: "Sangat aman! Kami menggunakan enkripsi tingkat bank dan tidak pernah membagikan data pribadimu ke pihak ketiga tanpa izin." 
+    q: t("landing.faq1Q"), 
+    a: t("landing.faq1A") 
   },
   { 
-    q: "Berapa biaya langganannya?", 
-    a: "CEAMIS bisa digunakan 100% gratis untuk fitur dasar. Kami juga punya fitur Premium untuk kamu yang mau analisis AI lebih mendalam." 
+    q: t("landing.faq2Q"), 
+    a: t("landing.faq2A") 
   },
   { 
-    q: "Gimana cara AI-nya ngeroasting aku?", 
-    a: "AI kami menganalisis pola transaksi kamu. Kalau kamu beli barang impulsif yang nggak perlu, AI bakal kasih notifikasi 'pedes' biar kamu sadar!" 
+    q: t("landing.faq3Q"), 
+    a: t("landing.faq3A") 
   },
 ];
 
@@ -193,7 +193,7 @@ export default function LandingPage() {
           {[...Array(10)].map((_, i) => (
             <div key={i} className="landing-banner__item">
               <span className="landing-banner__dot" />
-              Platform keuangan Gen-Z paling fun se-Indonesia
+              {t("landing.banner")}
             </div>
           ))}
         </div>
@@ -280,15 +280,15 @@ export default function LandingPage() {
       >
         <div className="landing-stats__item card-brutal">
           <div className="landing-stats__value">10K+</div>
-          <div className="landing-stats__label">Impuls Terkontrol</div>
+          <div className="landing-stats__label">{t("landing.statsImpulse")}</div>
         </div>
         <div className="landing-stats__item card-brutal">
           <div className="landing-stats__value">Rp 1M+</div>
-          <div className="landing-stats__label">Tabungan Terselamatkan</div>
+          <div className="landing-stats__label">{t("landing.statsSaved")}</div>
         </div>
         <div className="landing-stats__item card-brutal">
           <div className="landing-stats__value">4.9/5</div>
-          <div className="landing-stats__label">Rating Gen-Z</div>
+          <div className="landing-stats__label">{t("landing.statsRating")}</div>
         </div>
       </section>
 
@@ -299,17 +299,14 @@ export default function LandingPage() {
         className={`landing-features ${features.visible ? "landing-features--visible" : ""}`}
       >
         <div className="landing-section-label">
-          <span className="badge-brutal badge-brutal--purple">Fitur Unggulan</span>
+          <span className="badge-brutal badge-brutal--purple">{t("landing.featuresTitle")}</span>
         </div>
         <h2 className="landing-section-title">
-          Semua yang kamu butuhkan untuk <span style={{ color: "var(--color-primary)" }}>cerdas finansial</span>
+          {t("landing.featuresSubtitle")}
         </h2>
-        <p className="landing-section-subtitle">
-          6 fitur canggih yang dirancang khusus buat Gen-Z Indonesia
-        </p>
 
         <div className="landing-features__grid">
-          {FEATURES.map((f, i) => (
+          {getFeatures(t).map((f, i) => (
             <div
               key={i}
               className={`landing-feature-card card-brutal landing-feature-card--${f.color}`}
@@ -337,23 +334,18 @@ export default function LandingPage() {
       >
         <div className="landing-container">
           <div className="landing-section-label">
-            <span className="badge-brutal badge-brutal--lime">Edukasi Finansial</span>
+            <span className="badge-brutal badge-brutal--lime">{t("landing.educationTitle")}</span>
           </div>
           <h2 className="landing-section-title">
-            Mengapa <span style={{ color: "var(--color-lime)" }}>pengelolaan keuangan</span> itu penting?
+            {t("landing.educationSubtitle")}
           </h2>
-          <p className="landing-section-subtitle">
-            Literasi keuangan adalah kunci menuju kemandirian finansial — terutama bagi generasi muda
-          </p>
 
           <div className="landing-edukasi__intro card-brutal">
-            <p>
-              Di era digital, godaan belanja online ada di ujung jari. <strong>Gen-Z Indonesia</strong> menghadapi tantangan unik: gaya hidup konsumtif, FOMO, dan kurangnya edukasi keuangan formal. CEAMIS hadir untuk mengubah cara pandang generasi muda terhadap uang — dari sekadar menghabiskan menjadi <strong>mengelola dengan cerdas</strong>.
-            </p>
+            <p dangerouslySetInnerHTML={{ __html: t("landing.educationIntro") }} />
           </div>
 
           <div className="landing-edukasi__grid">
-            {EDUKASI_POINTS.map((point, i) => (
+            {getEdukasiPoints(t).map((point, i) => (
               <div key={i} className={`landing-edukasi__card card-brutal landing-edukasi__card--${point.color}`}>
                 <div className="landing-edukasi__card-header">
                   <div className={`landing-edukasi__icon-box landing-edukasi__icon-box--${point.color}`}>
@@ -378,26 +370,23 @@ export default function LandingPage() {
         className={`landing-leaderboard ${leaderboard.visible ? "landing-leaderboard--visible" : ""}`}
       >
         <div className="landing-section-label">
-          <span className="badge-brutal badge-brutal--purple">Leaderboard</span>
+          <span className="badge-brutal badge-brutal--purple">{t("landing.leaderboardTitle")}</span>
         </div>
         <h2 className="landing-section-title">
-          Kompetisi sehat untuk <span style={{ color: "var(--color-primary)" }}>motivasi menabung</span>
+          {t("landing.leaderboardSubtitle")}
         </h2>
-        <p className="landing-section-subtitle">
-          Lihat siapa yang paling konsisten dalam mengelola keuangan mereka
-        </p>
 
         <div className="landing-leaderboard__table card-brutal">
           {/* Header */}
           <div className="landing-leaderboard__header">
-            <span className="landing-leaderboard__col landing-leaderboard__col--rank">Rank</span>
-            <span className="landing-leaderboard__col landing-leaderboard__col--name">Pengguna</span>
-            <span className="landing-leaderboard__col">Streak</span>
-            <span className="landing-leaderboard__col">Badge</span>
-            <span className="landing-leaderboard__col landing-leaderboard__col--score">Skor</span>
+            <span className="landing-leaderboard__col landing-leaderboard__col--rank">{t("landing.leaderboardRank")}</span>
+            <span className="landing-leaderboard__col landing-leaderboard__col--name">{t("landing.leaderboardUser")}</span>
+            <span className="landing-leaderboard__col">{t("landing.leaderboardStreak")}</span>
+            <span className="landing-leaderboard__col">{t("landing.leaderboardBadge")}</span>
+            <span className="landing-leaderboard__col landing-leaderboard__col--score">{t("landing.leaderboardScore")}</span>
           </div>
           {/* Rows */}
-          {LEADERBOARD_DATA.map((user) => (
+          {getLeaderboardData().map((user) => (
             <div
               key={user.rank}
               className={`landing-leaderboard__row ${user.medal ? `landing-leaderboard__row--${user.medal}` : ""}`}
@@ -412,19 +401,19 @@ export default function LandingPage() {
                 {user.name}
               </span>
               <span className="landing-leaderboard__col">
-                <strong>{user.streak}</strong> hari
+                <strong>{user.streak}</strong> {t("landing.leaderboardDays")}
               </span>
               <span className="landing-leaderboard__col">
-                <strong>{user.badge}</strong> badge
+                <strong>{user.badge}</strong> {t("landing.leaderboardBadgeLabel")}
               </span>
               <span className="landing-leaderboard__col landing-leaderboard__col--score">
-                <strong>{isMounted ? user.score.toLocaleString() : "..."}</strong> pts
+                <strong>{isMounted ? user.score.toLocaleString() : "..."}</strong> {t("landing.leaderboardPts")}
               </span>
             </div>
           ))}
         </div>
         <p style={{ textAlign: "center", fontFamily: "var(--font-body)", fontSize: "0.875rem", color: "var(--color-text-muted)", marginTop: "1.5rem" }}>
-          * Data di atas merupakan contoh simulasi leaderboard CEAMIS
+          {t("landing.leaderboardMock")}
         </p>
       </section>
 
@@ -435,17 +424,14 @@ export default function LandingPage() {
       >
         <div className="landing-container">
           <div className="landing-section-label">
-            <span className="badge-brutal badge-brutal--purple">Apa Kata Mereka?</span>
+            <span className="badge-brutal badge-brutal--purple">{t("landing.testiTitle")}</span>
           </div>
           <h2 className="landing-section-title" style={{ color: "var(--color-navy)" }}>
-            Ribuan Gen-Z sudah <span style={{ color: "var(--color-primary)" }}>level up</span> finansial
+            {t("landing.testiSubtitle")}
           </h2>
-          <p className="landing-section-subtitle" style={{ color: "var(--color-navy)" }}>
-            Bukan cuma teori, tapi aksi nyata buat dompet lebih sehat
-          </p>
 
           <div className="landing-testimonials__grid">
-            {TESTIMONIALS.map((t, i) => (
+            {getTestimonials(t).map((t, i) => (
               <div key={i} className={`testimonial-bubble testimonial-bubble--${t.color}`}>
                 <p className="testimonial-bubble__text">"{t.text}"</p>
                 <div className="testimonial-bubble__user">
@@ -469,30 +455,30 @@ export default function LandingPage() {
         className={`landing-steps ${steps.visible ? "landing-steps--visible" : ""}`}
       >
         <div className="landing-section-label">
-          <span className="badge-brutal badge-brutal--purple">Cara Kerja</span>
+          <span className="badge-brutal badge-brutal--purple">{t("landing.stepsTitle")}</span>
         </div>
-        <h2 className="landing-section-title">
-          Mulai dalam <span style={{ color: "var(--color-primary)" }}>4 langkah</span> mudah
-        </h2>
 
         <div className="landing-steps__grid">
-          {STEPS.map((s, i) => (
-            <div
-              key={i}
-              className={`landing-step-card card-brutal landing-step-card--${s.color}`}
-            >
-              {/* Connector line */}
-              {i < STEPS.length - 1 && <div className="landing-step-card__connector" />}
-              <div className={`landing-step-card__num-badge landing-step-card__num-badge--${s.color}`}>
-                {s.num}
+          {(() => {
+            const steps = getSteps(t);
+            return steps.map((s, i) => (
+              <div
+                key={i}
+                className={`landing-step-card card-brutal landing-step-card--${s.color}`}
+              >
+                {/* Connector line */}
+                {i < steps.length - 1 && <div className="landing-step-card__connector" />}
+                <div className={`landing-step-card__num-badge landing-step-card__num-badge--${s.color}`}>
+                  {s.num}
+                </div>
+                <div className={`landing-step-card__icon-circle landing-step-card__icon-circle--${s.color}`}>
+                  <s.icon size={28} strokeWidth={2.5} />
+                </div>
+                <h3 className="landing-step-card__title">{s.title}</h3>
+                <p className="landing-step-card__desc">{s.desc}</p>
               </div>
-              <div className={`landing-step-card__icon-circle landing-step-card__icon-circle--${s.color}`}>
-                <s.icon size={28} strokeWidth={2.5} />
-              </div>
-              <h3 className="landing-step-card__title">{s.title}</h3>
-              <p className="landing-step-card__desc">{s.desc}</p>
-            </div>
-          ))}
+            ));
+          })()}
         </div>
       </section>
 
@@ -503,13 +489,12 @@ export default function LandingPage() {
       >
         <div className="landing-container landing-container--narrow">
           <div className="landing-section-label">
-            <span className="badge-brutal badge-brutal--purple">FAQ</span>
+            <span className="badge-brutal badge-brutal--purple">{t("landing.faqTitle")}</span>
           </div>
-          <h2 className="landing-section-title" style={{ color: "var(--color-navy)" }}>Pertanyaan yang Sering Muncul</h2>
-          <p className="landing-section-subtitle" style={{ color: "var(--color-navy)" }}>Punya pertanyaan lain? Kami siap menjawab!</p>
+          <h2 className="landing-section-title" style={{ color: "var(--color-navy)" }}>{t("landing.faqSubtitle")}</h2>
 
           <div className="landing-faq__list">
-            {FAQ_DATA.map((item, i) => (
+            {getFaqData(t).map((item, i) => (
               <div
                 key={i}
                 className={`faq-item ${openFaq === i ? "faq-item--open" : ""}`}
@@ -535,12 +520,12 @@ export default function LandingPage() {
       >
         <div className="landing-cta__card">
           <div className="landing-cta__decoration" />
-          <h2 className="landing-cta__title">Siap Jadi Cerdas Finansial?</h2>
+          <h2 className="landing-cta__title">{t("landing.ctaFooterTitle")}</h2>
           <p className="landing-cta__desc">
-            Bergabung dengan ribuan Gen-Z Indonesia yang sudah mulai kontrol keuangan mereka. Gratis, tanpa ribet!
+            {t("landing.ctaFooterSubtitle")}
           </p>
           <Link href="/auth/register" className="btn-brutal btn-brutal--primary btn-brutal--lg">
-            Gabung Sekarang — Gratis!
+            {t("landing.ctaStart")}
           </Link>
         </div>
       </section>
@@ -558,8 +543,8 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="landing-footer__copy">
-            <p>&copy; 2026 CEAMIS — Dibuat oleh Tim CEAMIS</p>
-            <p>Cerdas Finansial, Kontrol Impuls, Raih Masa Depan</p>
+            <p>{t("landing.footerCopy")}</p>
+            <p>{t("landing.footerMotto")}</p>
           </div>
         </div>
       </footer>

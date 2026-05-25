@@ -1,15 +1,20 @@
+"use client";
+
 import { Trophy, Flame, Star, Medal, Zap, Target } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function GamificationPage() {
+  const { t } = useLanguage();
+
   const badges = [
-    { icon: Target, name: "First Step", desc: "Catat transaksi pertama", unlocked: true, color: "lime" },
-    { icon: Flame, name: "On Fire!", desc: "Streak 3 hari berturut", unlocked: true, color: "orange" },
-    { icon: Zap, name: "Konsisten", desc: "Streak 7 hari berturut", unlocked: true, color: "purple" },
-    { icon: Trophy, name: "Champion", desc: "Streak 30 hari berturut", unlocked: false, color: "orange" },
-    { icon: Star, name: "AI Explorer", desc: "Baca 5 AI Insight", unlocked: true, color: "lime" },
-    { icon: Medal, name: "Hemat Master", desc: "Kurangi pengeluaran 20%", unlocked: false, color: "purple" },
-    { icon: Star, name: "Bookworm", desc: "Selesaikan 3 modul edukasi", unlocked: false, color: "lime" },
-    { icon: Trophy, name: "Legendary", desc: "Raih semua badge", unlocked: false, color: "orange" },
+    { icon: Target, name: t("dashboard.gamification.badges.firstStep.name"), desc: t("dashboard.gamification.badges.firstStep.desc"), unlocked: true, color: "lime" },
+    { icon: Flame, name: t("dashboard.gamification.badges.onFire.name"), desc: t("dashboard.gamification.badges.onFire.desc"), unlocked: true, color: "orange" },
+    { icon: Zap, name: t("dashboard.gamification.badges.consistent.name"), desc: t("dashboard.gamification.badges.consistent.desc"), unlocked: true, color: "purple" },
+    { icon: Trophy, name: t("dashboard.gamification.badges.champion.name"), desc: t("dashboard.gamification.badges.champion.desc"), unlocked: false, color: "orange" },
+    { icon: Star, name: t("dashboard.gamification.badges.aiExplorer.name"), desc: t("dashboard.gamification.badges.aiExplorer.desc"), unlocked: true, color: "lime" },
+    { icon: Medal, name: t("dashboard.gamification.badges.hematMaster.name"), desc: t("dashboard.gamification.badges.hematMaster.desc"), unlocked: false, color: "purple" },
+    { icon: Star, name: t("dashboard.gamification.badges.bookworm.name"), desc: t("dashboard.gamification.badges.bookworm.desc"), unlocked: false, color: "lime" },
+    { icon: Trophy, name: t("dashboard.gamification.badges.legendary.name"), desc: t("dashboard.gamification.badges.legendary.desc"), unlocked: false, color: "orange" },
   ];
 
   return (
@@ -32,10 +37,10 @@ export default function GamificationPage() {
         </div>
         <div>
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            Gamifikasi
+            {t("dashboard.gamification.title")}
           </h1>
           <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-            Level up skill finansialmu! Kumpulkan badge dan selesaikan tantangan harian.
+            {t("dashboard.gamification.desc")}
           </p>
         </div>
       </div>
@@ -46,16 +51,16 @@ export default function GamificationPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
               <Flame size={24} color="var(--color-orange)" strokeWidth={2.5} />
-              Streak Aktif
+              {t("dashboard.gamification.activeStreak")}
             </h3>
-            <span className="badge-brutal badge-brutal--orange" style={{ padding: "0.3rem 0.75rem", fontSize: "0.875rem" }}>5 Hari</span>
+            <span className="badge-brutal badge-brutal--orange" style={{ padding: "0.3rem 0.75rem", fontSize: "0.875rem" }}>5 {t("dashboard.gamification.days")}</span>
           </div>
           <div className="progress-brutal" style={{ height: "28px", border: "3px solid var(--color-navy)" }}>
             <div className="progress-brutal__fill" style={{ width: "71%", background: "var(--color-orange)", borderRight: "3px solid var(--color-navy)" }} />
-            <div className="progress-brutal__label" style={{ fontSize: "0.9375rem", fontWeight: 700 }}>5 / 7 hari (target mingguan)</div>
+            <div className="progress-brutal__label" style={{ fontSize: "0.9375rem", fontWeight: 700 }}>5 / 7 {t("dashboard.gamification.weeklyTarget")}</div>
           </div>
           <p style={{ marginTop: "1rem", fontSize: "0.9375rem", color: "var(--color-navy)", fontWeight: 600, margin: "1rem 0 0 0" }}>
-            2 hari lagi untuk dapet badge <span style={{ color: "var(--color-purple)", fontWeight: 800 }}>"Konsisten"</span>! Semangat!
+            2 {t("dashboard.gamification.daysLeftToBadge")} <span style={{ color: "var(--color-purple)", fontWeight: 800 }}>"{t("dashboard.gamification.badges.consistent.name")}"</span>{t("dashboard.gamification.keepItUp")}
           </p>
         </div>
 
@@ -64,16 +69,16 @@ export default function GamificationPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
               <Zap size={24} color="var(--color-purple)" strokeWidth={2.5} />
-              Level & XP
+              {t("dashboard.gamification.levelAndXp")}
             </h3>
-            <span className="badge-brutal badge-brutal--purple" style={{ padding: "0.3rem 0.75rem", fontSize: "0.875rem" }}>Level 7</span>
+            <span className="badge-brutal badge-brutal--purple" style={{ padding: "0.3rem 0.75rem", fontSize: "0.875rem" }}>{t("dashboard.gamification.level")} 7</span>
           </div>
           <div className="progress-brutal" style={{ height: "28px", border: "3px solid var(--color-navy)" }}>
             <div className="progress-brutal__fill" style={{ width: "65%", background: "var(--color-purple)", borderRight: "3px solid var(--color-navy)" }} />
             <div className="progress-brutal__label" style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-white)" }}>1950 / 3000 XP</div>
           </div>
           <p style={{ marginTop: "1rem", fontSize: "0.9375rem", color: "var(--color-navy)", fontWeight: 600, margin: "1rem 0 0 0" }}>
-            Kumpulkan <span style={{ color: "var(--color-orange)", fontWeight: 800 }}>1050 XP</span> lagi untuk mencapai Level 8!
+            {t("dashboard.gamification.collectMoreXp")} <span style={{ color: "var(--color-orange)", fontWeight: 800 }}>1050 XP</span> {t("dashboard.gamification.moreXpToReach")} {t("dashboard.gamification.level")} 8!
           </p>
         </div>
       </div>
@@ -82,7 +87,7 @@ export default function GamificationPage() {
         {/* Badge Collection */}
         <div>
           <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)" }}>
-            Koleksi Badge
+            {t("dashboard.gamification.badgeCollection")}
           </h2>
           <div
             className="stagger-children"

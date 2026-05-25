@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   Wallet, 
@@ -19,6 +19,7 @@ import {
 import { useUser } from "@/context/UserContext";
 import { useGuest } from "@/context/GuestContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { createClient } from "@/lib/supabase/client";
 
 // ── Grouped Navigation ──────────────────────
 interface NavItem {
@@ -63,9 +64,16 @@ const navGroups: NavGroup[] = [
 
 export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { userData } = useUser();
   const { isGuest } = useGuest();
   const { t } = useLanguage();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
   const warningTriggered = userData.warningTriggered;
   const healthScore = userData.healthScore;
 
@@ -235,7 +243,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
 
       {/* Footer — Only back to landing page */}
       <div className="sidebar__footer" style={{ padding: "1rem 1rem 1.5rem 1rem", borderTop: "2px dashed rgba(255, 255, 255, 0.1)" }}>
-        <Link href="/" style={{ textDecoration: "none" }}>
+        <div onClick={handleLogout} style={{ textDecoration: "none" }}>
           <button 
             className="btn-brutal" 
             style={{ 
@@ -259,7 +267,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
             <LogOut size={18} strokeWidth={2.5} style={{ minWidth: "18px" }} />
             <span className="sidebar-text" style={{ whiteSpace: "nowrap" }}>{t("sidebar.back")}</span>
           </button>
-        </Link>
+        </div>
       </div>
     </aside>
   );

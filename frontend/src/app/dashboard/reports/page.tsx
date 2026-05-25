@@ -7,7 +7,9 @@ import {
   Filter, BarChart3, ArrowRight, FileSpreadsheet,
   Banknote, Target, Lightbulb
 } from "lucide-react";
+
 import { useTransactions } from "@/context/TransactionContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -26,6 +28,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function ReportsPage() {
   const { transactions } = useTransactions();
+  const { t, language } = useLanguage();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear] = useState(new Date().getFullYear());
 
@@ -63,7 +66,7 @@ export default function ReportsPage() {
     savings,
     savingsRate,
     transactions: filteredTransactions.length,
-    topCategory: CATEGORY_DATA.length > 0 ? CATEGORY_DATA[0].name : "Belum ada",
+    topCategory: CATEGORY_DATA.length > 0 ? CATEGORY_DATA[0].name : "None",
   };
 
   const handleExportExcel = () => {
@@ -115,10 +118,10 @@ export default function ReportsPage() {
           </div>
           <div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-              Laporan Keuangan
+              {t("dashboard.reports.title")}
             </h1>
             <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-              Rangkuman keuanganmu dalam satu tampilan. Export atau kirim via email!
+              {t("dashboard.reports.desc")}
             </p>
           </div>
         </div>
@@ -129,14 +132,14 @@ export default function ReportsPage() {
             display: "flex", alignItems: "center", gap: "0.5rem",
             boxShadow: "3px 3px 0px var(--color-navy)",
           }}>
-            <Download size={16} /> Export PDF
+            <Download size={16} /> {t("dashboard.reports.exportPdf")}
           </button>
           <button onClick={handleExportExcel} className="btn-brutal" style={{
             background: "var(--color-lime)", padding: "0.75rem 1.25rem", fontWeight: 800,
             display: "flex", alignItems: "center", gap: "0.5rem",
             boxShadow: "3px 3px 0px var(--color-navy)",
           }}>
-            <FileSpreadsheet size={16} /> Export Excel
+            <FileSpreadsheet size={16} /> {t("dashboard.reports.exportExcel")}
           </button>
           <button className="btn-brutal" style={{
             background: "var(--color-navy)", color: "var(--color-white)",
@@ -144,7 +147,7 @@ export default function ReportsPage() {
             display: "flex", alignItems: "center", gap: "0.5rem",
             boxShadow: "3px 3px 0px var(--color-purple)",
           }}>
-            <Mail size={16} /> Kirim via Email
+            <Mail size={16} /> {t("dashboard.reports.sendEmail")}
           </button>
         </div>
       </div>
@@ -176,12 +179,12 @@ export default function ReportsPage() {
               transition: "all 0.2s ease",
               flexShrink: 0,
             }}>
-              {month.slice(0, 3)}
+              {t(`dashboard.reports.months.${month}`).slice(0, 3)}
             </button>
           ))}
         </div>
         <div style={{ marginTop: "0.75rem", fontSize: "0.875rem", fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Calendar size={14} /> Periode: {MONTHS[selectedMonth]} {selectedYear}
+          <Calendar size={14} /> {t("dashboard.reports.period")}: {t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}
         </div>
       </div>
 
@@ -197,7 +200,7 @@ export default function ReportsPage() {
             }}>
               <TrendingUp size={20} color="var(--color-navy)" strokeWidth={2.5} />
             </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>PEMASUKAN</span>
+            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>{t("dashboard.reports.income")}</span>
           </div>
           <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)" }}>
             {formatRupiah(MONTHLY_SUMMARY.income)}
@@ -214,7 +217,7 @@ export default function ReportsPage() {
             }}>
               <TrendingDown size={20} color="var(--color-navy)" strokeWidth={2.5} />
             </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>PENGELUARAN</span>
+            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>{t("dashboard.reports.expense")}</span>
           </div>
           <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)" }}>
             {formatRupiah(MONTHLY_SUMMARY.expense)}
@@ -231,13 +234,13 @@ export default function ReportsPage() {
             }}>
               <Wallet size={20} color="var(--color-white)" strokeWidth={2.5} />
             </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>TABUNGAN</span>
+            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>{t("dashboard.reports.savings")}</span>
           </div>
           <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)" }}>
             {formatRupiah(MONTHLY_SUMMARY.savings)}
           </div>
           <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-purple)", marginTop: "0.25rem" }}>
-            {MONTHLY_SUMMARY.savingsRate}% dari pemasukan
+            {MONTHLY_SUMMARY.savingsRate}% {t("dashboard.reports.savingsRate")}
           </div>
         </div>
 
@@ -251,13 +254,13 @@ export default function ReportsPage() {
             }}>
               <BarChart3 size={20} color="var(--color-navy)" strokeWidth={2.5} />
             </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>TRANSAKSI</span>
+            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>{t("dashboard.reports.transactions")}</span>
           </div>
           <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)" }}>
             {MONTHLY_SUMMARY.transactions}
           </div>
           <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
-            total pencatatan
+            {t("dashboard.reports.totalRecords")}
           </div>
         </div>
       </div>
@@ -266,13 +269,13 @@ export default function ReportsPage() {
         {/* Category Breakdown */}
         <div className="card-brutal" style={{ padding: "2rem" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <PieChart size={22} color="var(--color-purple)" /> Pengeluaran per Kategori
+            <PieChart size={22} color="var(--color-purple)" /> {t("dashboard.reports.expenseByCategory")}
           </h3>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {CATEGORY_DATA.length === 0 && (
               <div style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
-                Belum ada pengeluaran di bulan ini.
+                {t("dashboard.reports.noExpense")}
               </div>
             )}
             {CATEGORY_DATA.map((cat) => (
@@ -301,10 +304,10 @@ export default function ReportsPage() {
         {/* Report Preview / Email Preview */}
         <div className="card-brutal" style={{ padding: "2rem", background: "var(--color-navy)", color: "var(--color-white)" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1rem 0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Mail size={22} color="var(--color-lime)" /> Preview Laporan Email
+            <Mail size={22} color="var(--color-lime)" /> {t("dashboard.reports.emailPreviewTitle")}
           </h3>
           <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.6)", marginBottom: "1.5rem" }}>
-            Laporan ini akan dikirim secara berkala ke email terdaftar kamu.
+            {t("dashboard.reports.emailPreviewDesc")}
           </p>
 
           {/* Email Preview Card */}
@@ -313,27 +316,27 @@ export default function ReportsPage() {
             border: "3px solid var(--color-white)", padding: "1.5rem",
           }}>
             <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.25rem" }}>From: noreply@ceamis.id</div>
-            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.75rem" }}>Subject: Laporan Keuangan {MONTHS[selectedMonth]} {selectedYear}</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.75rem" }}>Subject: {t("dashboard.reports.title")} {t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}</div>
             <div style={{ borderTop: "2px dashed var(--color-border-light)", paddingTop: "1rem" }}>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.125rem", fontWeight: 800, marginBottom: "1rem" }}>
-                Ringkasan Keuanganmu
+                {t("dashboard.reports.summaryTitle")}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.875rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><Banknote size={14} color="var(--color-navy)" /> Pemasukan</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><Banknote size={14} color="var(--color-navy)" /> {t("dashboard.reports.income")}</span>
                   <span style={{ fontWeight: 800 }}>{formatRupiah(MONTHLY_SUMMARY.income)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><TrendingDown size={14} color="var(--color-navy)" /> Pengeluaran</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><TrendingDown size={14} color="var(--color-navy)" /> {t("dashboard.reports.expense")}</span>
                   <span style={{ fontWeight: 800 }}>{formatRupiah(MONTHLY_SUMMARY.expense)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid var(--color-navy)", paddingTop: "0.5rem", marginTop: "0.25rem" }}>
-                  <span style={{ fontWeight: 800, display: "flex", alignItems: "center", gap: "0.35rem" }}><Target size={14} color="var(--color-navy)" /> Sisa</span>
+                  <span style={{ fontWeight: 800, display: "flex", alignItems: "center", gap: "0.35rem" }}><Target size={14} color="var(--color-navy)" /> {t("dashboard.reports.sisa")}</span>
                   <span style={{ fontWeight: 900, color: "var(--color-purple)", fontSize: "1rem" }}>{formatRupiah(MONTHLY_SUMMARY.savings)}</span>
                 </div>
               </div>
               <div style={{ marginTop: "1rem", padding: "0.75rem", background: "var(--color-bg)", borderRadius: "var(--radius-brutal-sm)", border: "2px dashed var(--color-navy)", fontSize: "0.8rem" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.35rem" }}><Lightbulb size={14} color="var(--color-navy)" style={{ flexShrink: 0, marginTop: "2px" }} /><span><strong>Insight:</strong> {CATEGORY_DATA.length > 0 ? `Pengeluaran ${MONTHLY_SUMMARY.topCategory} kamu yang terbesar (${CATEGORY_DATA[0]?.percentage}%). Coba dievaluasi lagi ya!` : `Catat transaksi pertamamu bulan ini!`}</span></div>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.35rem" }}><Lightbulb size={14} color="var(--color-navy)" style={{ flexShrink: 0, marginTop: "2px" }} /><span><strong>Insight:</strong> {CATEGORY_DATA.length > 0 ? `${t("dashboard.reports.insightMsgPrefix")} ${MONTHLY_SUMMARY.topCategory} ${t("dashboard.reports.insightMsgSuffix")} (${CATEGORY_DATA[0]?.percentage}%).` : t("dashboard.reports.insightMsgEmpty")}</span></div>
               </div>
             </div>
           </div>
@@ -344,7 +347,7 @@ export default function ReportsPage() {
             display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
             boxShadow: "4px 4px 0px var(--color-white)",
           }}>
-            <Mail size={16} /> Kirim ke Email Saya
+            <Mail size={16} /> {t("dashboard.reports.sendToMyEmail")}
           </button>
         </div>
       </div>

@@ -28,56 +28,56 @@ interface FeatureCard {
   warningOnly?: boolean; // hanya muncul/aktif jika warningTriggered
 }
 
-const featureCards: FeatureCard[] = [
-  {
-    href: "/dashboard/transactions",
-    title: "Pencatatan Transaksi",
-    desc: "Catat pemasukan & pengeluaran harian. Rapi, cepat, dan terorganisir.",
-    color: "purple",
-    icon: Wallet
-  },
-  {
-    href: "/dashboard",
-    title: "AI Insight & XAI",
-    desc: "Insight keuangan otomatis dari AI. Pahami kenapa AI merekomendasikan itu.",
-    color: "lime",
-    icon: Sparkles
-  },
-  {
-    href: "/dashboard/warnings",
-    title: "Warning System",
-    desc: "Aktif otomatis saat Health Score < 40. Kamu aman — tetap jaga kondisimu!",
-    color: "orange",
-    icon: Flame,
-    warningOnly: true,
-  },
-  {
-    href: "/dashboard/chatbot",
-    title: "Chatbot AI",
-    desc: "Konsultasi keuangan dengan chatbot yang paham bahasa Gen-Z.",
-    color: "purple",
-    icon: Bot
-  },
-  {
-    href: "/dashboard/education",
-    title: "Edukasi Adaptif",
-    desc: "Materi finansial yang menyesuaikan kebutuhan dan level kamu.",
-    color: "lime",
-    icon: BookOpen
-  },
-  {
-    href: "/dashboard/profile",
-    title: "Profil & Pencapaian",
-    desc: "Lihat badge, streak, dan statistik pencapaian finansialmu.",
-    color: "orange",
-    icon: User
-  },
-];
-
 export default function DashboardPage() {
   const { transactions } = useTransactions();
   const { userData } = useUser();
   const { t } = useLanguage();
+
+  const featureCards: FeatureCard[] = [
+    {
+      href: "/dashboard/transactions",
+      title: t("dashboard.transactions.title"),
+      desc: t("dashboard.transactions.desc"),
+      color: "purple",
+      icon: Wallet
+    },
+    {
+      href: "/dashboard",
+      title: t("landing.feature2Title"),
+      desc: t("landing.feature2Desc"),
+      color: "lime",
+      icon: Sparkles
+    },
+    {
+      href: "/dashboard/warnings",
+      title: t("dashboard.warnings.title"),
+      desc: t("dashboard.warnings.desc"),
+      color: "orange",
+      icon: Flame,
+      warningOnly: true,
+    },
+    {
+      href: "/dashboard/chatbot",
+      title: t("landing.feature5Title"),
+      desc: t("landing.feature5Desc"),
+      color: "purple",
+      icon: Bot
+    },
+    {
+      href: "/dashboard/education",
+      title: t("dashboard.education.title"),
+      desc: t("dashboard.education.desc"),
+      color: "lime",
+      icon: BookOpen
+    },
+    {
+      href: "/dashboard/profile",
+      title: t("landing.feature3Title"),
+      desc: t("landing.feature3Desc"),
+      color: "orange",
+      icon: User
+    },
+  ];
 
   const totalPemasukan = transactions
     .filter(tx => tx.type === "pemasukan")
@@ -257,7 +257,7 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={card.href}
-                    title={`Warning System aktif saat Health Score < 40 (sekarang ${userData.healthScore.toFixed(0)}/100)`}
+                    title={`${t("dashboard.warnings.lockedPrefix")} ${userData.healthScore.toFixed(0)}/100)`}
                     style={{
                       textDecoration: "none",
                       cursor: "not-allowed",

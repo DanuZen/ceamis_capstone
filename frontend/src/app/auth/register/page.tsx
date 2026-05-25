@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ShieldCheck, User, Zap, ArrowLeft, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function RegisterPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useLanguage();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +21,7 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !password) {
-      setError("Harap lengkapi semua data.");
+      setError(t("auth.emptyFieldsReg"));
       return;
     }
     
@@ -95,21 +97,21 @@ export default function RegisterPage() {
             Control Every<br/>Money-Issue<br/>Simply.
           </h2>
           <p style={{ fontSize: "1.125rem", fontWeight: 600, lineHeight: 1.6, maxWidth: "85%", marginBottom: "3rem", color: "var(--color-white)" }}>
-            Platform manajemen keuangan brutalist Gen-Z yang dilengkapi AI cerdas untuk melacak, merencanakan, dan mengedukasi finansialmu secara real-time.
+            {t("auth.leftDesc")}
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "90%" }}>
              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
                 <div style={{ background: "var(--color-lime)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><Zap size={20} /></div>
-                AI Spending Pattern & Risk Profile
+                {t("auth.feat1")}
              </div>
              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
                 <div style={{ background: "var(--color-orange)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><ShieldCheck size={20} /></div>
-                Sistem Peringatan Dini (Warning Gate)
+                {t("auth.feat2")}
              </div>
              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
                 <div style={{ background: "var(--color-white)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><User size={20} /></div>
-                Chatbot CAMI & Edukasi Finansial
+                {t("auth.feat3")}
              </div>
           </div>
         </div>
@@ -177,7 +179,7 @@ export default function RegisterPage() {
                 fontWeight: 900
               }}
             >
-              Daftar CEAMIS
+              {t("auth.registerTitle")}
             </h1>
             <p
               style={{
@@ -185,7 +187,7 @@ export default function RegisterPage() {
                 margin: 0, fontSize: "1rem", fontWeight: 500
               }}
             >
-              Mulai perjalanan finansial brutalist-mu hari ini.
+              {t("auth.registerDesc")}
             </p>
           </div>
 
@@ -210,7 +212,7 @@ export default function RegisterPage() {
                 borderRadius: "var(--radius-brutal-sm)", color: "var(--color-navy)",
                 fontSize: "0.9rem", fontWeight: 800, textAlign: "center"
               }}>
-                🎉 Pendaftaran berhasil! Mengarahkan ke tahap setup profil...
+                {t("auth.successRegister")}
               </div>
             )}
 
@@ -233,11 +235,11 @@ export default function RegisterPage() {
             >
               <div>
                 <label style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.5rem", display: "block", color: "var(--color-navy)" }}>
-                  Nama Lengkap
+                  {t("auth.fullName")}
                 </label>
                 <input
                   type="text" className="input-brutal"
-                  placeholder="Misal: Budi Santoso"
+                  placeholder={t("auth.fullNamePlaceholder")}
                   value={fullName} onChange={(e) => setFullName(e.target.value)}
                   disabled={isLoading || success}
                   style={{ width: "100%", padding: "0.85rem 1rem", fontSize: "0.95rem", background: "#F8FAFC" }}
@@ -250,7 +252,7 @@ export default function RegisterPage() {
                 </label>
                 <input
                   type="email" className="input-brutal"
-                  placeholder="nama@email.com"
+                  placeholder={t("auth.registerEmailPlaceholder")}
                   value={email} onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading || success}
                   style={{ width: "100%", padding: "0.85rem 1rem", fontSize: "0.95rem", background: "#F8FAFC" }}
@@ -263,7 +265,7 @@ export default function RegisterPage() {
                 </label>
                 <input
                   type="password" className="input-brutal"
-                  placeholder="Minimal 6 karakter"
+                  placeholder={t("auth.registerPasswordPlaceholder")}
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading || success}
                   style={{ width: "100%", padding: "0.85rem 1rem", fontSize: "0.95rem", background: "#F8FAFC" }}
@@ -285,13 +287,13 @@ export default function RegisterPage() {
                 }}
               >
                 <UserPlus size={20} strokeWidth={2.5} />
-                {isLoading ? "Memproses..." : "Buat Akun Sekarang"}
+                {isLoading ? t("auth.processing") : t("auth.registerBtn")}
               </button>
             </form>
 
             <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
               <span style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                Sudah punya akun?{" "}
+                {t("auth.alreadyHaveAccount")}{" "}
               </span>
               <Link 
                 href="/auth"
@@ -300,7 +302,7 @@ export default function RegisterPage() {
                   textDecoration: "underline" 
                 }}
               >
-                Masuk di sini
+                {t("auth.loginHere")}
               </Link>
             </div>
 
@@ -324,7 +326,7 @@ export default function RegisterPage() {
                 cursor: "pointer",
               }}
             >
-              <ArrowLeft size={16} strokeWidth={2.5} /> Kembali ke Beranda
+              <ArrowLeft size={16} strokeWidth={2.5} /> {t("auth.backHome")}
             </button>
           </div>
 

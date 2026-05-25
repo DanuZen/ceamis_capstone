@@ -603,7 +603,7 @@ export default function PlanningPage() {
           <div style={{ background: "var(--color-purple)", padding: "0.5rem", borderRadius: "8px", border: "2.5px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <Sparkles size={28} color="var(--color-white)" />
           </div>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>Ringkasan Alokasi</h2>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>{t("dashboard.planning.summary")}</h2>
         </div>
 
         <div style={{ display: "flex", height: "56px", borderRadius: "var(--radius-brutal)", border: "4px solid var(--color-navy)", overflow: "hidden", marginBottom: "2.5rem", boxShadow: "4px 4px 0px rgba(10,25,47,0.2)" }}>
@@ -620,9 +620,9 @@ export default function PlanningPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1.5rem" }}>
           {[
-            { label: "Kebutuhan (Needs)", amount: totalNeeds, spent: totalSpentNeeds, color: "lime", Icon: Home },
-            { label: "Keinginan (Wants)", amount: totalWants, spent: totalSpentWants, color: "orange", Icon: Gamepad2 },
-            { label: "Tabungan (Savings)", amount: totalSavings, spent: totalSpentSavings, color: "purple", Icon: Banknote },
+            { label: t("dashboard.planning.needs"), amount: totalNeeds, spent: totalSpentNeeds, color: "lime", Icon: Home },
+            { label: t("dashboard.planning.wants"), amount: totalWants, spent: totalSpentWants, color: "orange", Icon: Gamepad2 },
+            { label: t("dashboard.planning.savings"), amount: totalSavings, spent: totalSpentSavings, color: "purple", Icon: Banknote },
           ].map(s => (
             <div key={s.label} className="card-brutal" style={{
               background: "var(--color-white)", padding: "1.75rem", border: "3px solid var(--color-navy)",
@@ -636,8 +636,8 @@ export default function PlanningPage() {
               </div>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>{formatRp(s.amount)}</div>
               {s.spent > 0 && (
-                <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)", marginTop: "1rem", background: "var(--color-bg)", padding: "0.5rem 0.75rem", borderRadius: "8px", border: "2px dashed var(--color-navy)", display: "inline-block", alignSelf: "flex-start" }}>
-                  Terpakai: {formatRp(s.spent)}
+                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-muted)", marginTop: "0.35rem" }}>
+                  {t("dashboard.planning.used")}{formatRp(s.spent).replace('Rp ', '')}
                 </div>
               )}
             </div>
@@ -655,7 +655,7 @@ export default function PlanningPage() {
           boxShadow: activeView === "budget" ? "6px 6px 0px var(--color-lime)" : "4px 4px 0px var(--color-navy)",
           transform: activeView === "budget" ? "translate(-2px, -2px)" : "none",
         }}>
-          <Wallet size={20} /> Alokasi Budget
+          <Wallet size={20} /> {t("dashboard.planning.allocBudget")}
         </button>
         <button onClick={() => setActiveView("targets")} className="btn-brutal" style={{
           padding: "0.8rem 1.75rem", fontWeight: 900, fontSize: "1.05rem",
@@ -665,7 +665,7 @@ export default function PlanningPage() {
           boxShadow: activeView === "targets" ? "6px 6px 0px var(--color-purple)" : "4px 4px 0px var(--color-navy)",
           transform: activeView === "targets" ? "translate(-2px, -2px)" : "none",
         }}>
-          <PiggyBank size={20} /> Target Tabungan
+          <PiggyBank size={20} /> {t("dashboard.planning.targetSavings")}
         </button>
       </div>
 
@@ -674,7 +674,7 @@ export default function PlanningPage() {
         <div className="animate-slide-up">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)" }}>
-              Kategori Budget
+              {t("dashboard.planning.categoryBudget")}
             </h3>
             <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
               padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
@@ -683,7 +683,7 @@ export default function PlanningPage() {
               boxShadow: "4px 4px 0px var(--color-navy)",
             }}>
               <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
-              {showAddCategory ? "Batal" : "Tambah Kategori"}
+              {showAddCategory ? "Batal" : t("dashboard.planning.addCategory")}
             </button>
           </div>
 
@@ -735,8 +735,8 @@ export default function PlanningPage() {
             ) : (
               <>
                 <div style={{ marginBottom: "2.5rem" }}>
-                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-                    <AlertTriangle size={20} color="var(--color-danger, #e74c3c)" /> Kebutuhan (Needs) 50%
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: "0 0 1rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
+                    <AlertTriangle size={20} color="var(--color-danger, #e74c3c)" /> {t("dashboard.planning.needs")} 50%
                   </h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                     {needsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
@@ -744,8 +744,8 @@ export default function PlanningPage() {
                 </div>
 
                 <div style={{ marginBottom: "2.5rem" }}>
-                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-                    <Sparkles size={20} color="var(--color-purple)" /> Keinginan (Wants) 30%
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: "0 0 1rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
+                    <Sparkles size={20} color="var(--color-purple)" /> {t("dashboard.planning.wants")} 30%
                   </h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                     {wantsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
@@ -754,7 +754,7 @@ export default function PlanningPage() {
 
                 <div style={{ marginBottom: "1.5rem" }}>
                   <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-                    <ShieldCheck size={20} color="var(--color-lime)" /> Tabungan (Savings) 20%
+                    <ShieldCheck size={20} color="var(--color-lime)" /> {t("dashboard.planning.savings")} 20%
                   </h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                     {savingsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}

@@ -6,6 +6,7 @@ import { useUser } from "@/context/UserContext";
 import { useTransactions } from "@/context/TransactionContext";
 import { useGuest } from "@/context/GuestContext";
 import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
+import { useLanguage } from "@/context/LanguageContext";
 
 // ── Tipe ─────────────────────────────────────────────────────────────────────
 type Role = "user" | "assistant";
@@ -21,15 +22,10 @@ interface ChatMessage {
 const INITIAL_MESSAGE: ChatMessage = {
   id: 1,
   role: "assistant",
-  content: "Halo! Aku **CAMI** — AI Financial Assistant dari CEAMIS. Tanya apa aja soal keuangan kamu, aku siap bantu dengan bahasa yang santai tapi tetap akurat! 💚",
+  content: "", // Will be set via translation dynamically
 };
 
-const QUICK_QUESTIONS = [
-  "Gimana cara mulai nabung?",
-  "Apa itu emergency fund?",
-  "Tips kurangi pengeluaran impulsif",
-  "Berapa ideal rasio tabungan?",
-];
+// We will generate QUICK_QUESTIONS inside the component using t()
 
 const AI_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000";
 
@@ -47,6 +43,14 @@ export default function ChatbotPage() {
   const { userData } = useUser();
   const { transactions } = useTransactions();
   const { isGuest } = useGuest();
+  const { t } = useLanguage();
+
+  const QUICK_QUESTIONS = [
+    t("dashboard.chatbot.qq1"),
+    t("dashboard.chatbot.qq2"),
+    t("dashboard.chatbot.qq3"),
+    t("dashboard.chatbot.qq4")
+  ];
 
   const [messages, setMessages]     = useState<ChatMessage[]>([]);
   const [input, setInput]           = useState("");
@@ -58,8 +62,8 @@ export default function ChatbotPage() {
   // ── Load history ─────────────────────────────────────────────────────────
   useEffect(() => {
     const saved = localStorage.getItem("ceamis_chat_history_v2");
-    setMessages(saved ? JSON.parse(saved) : [INITIAL_MESSAGE]);
-  }, []);
+    setMessages(saved ? JSON.parse(saved) : [{ ...INITIAL_MESSAGE, content: t("dashboard.chatbot.initialMessage") }]);
+  }, [t]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -141,7 +145,7 @@ export default function ChatbotPage() {
       setMessages(prev => [...prev, {
         id:      Date.now() + 1,
         role:    "assistant",
-        content: "Waduh, koneksi ke AI service lagi bermasalah nih. Pastiin AI service udah jalan di `http://localhost:8000` ya!",
+        content: t("dashboard.chatbot.connErrorText"),
         isError: true,
       }]);
     } finally {
@@ -151,15 +155,15 @@ export default function ChatbotPage() {
   }, [input, isTyping, messages, buildFinancialContext]);
 
   const resetChat = () => {
-    setMessages([INITIAL_MESSAGE]);
+    setMessages([{ ...INITIAL_MESSAGE, content: t("dashboard.chatbot.initialMessage") }]);
     localStorage.removeItem("ceamis_chat_history_v2");
   };
 
   // ── Status badge ─────────────────────────────────────────────────────────
   const statusColor = isConnected === null ? "var(--color-purple)"
     : isConnected ? "#22c55e" : "var(--color-orange)";
-  const statusLabel = isConnected === null ? "Connecting..."
-    : isConnected ? "Gemini + Groq" : "Offline (fallback)";
+  const statusLabel = isConnected === null ? t("dashboard.chatbot.connecting")
+    : isConnected ? "Gemini + Groq" : t("dashboard.chatbot.offline");
 
   const pageContent = (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--navbar-height) - 4rem)" }}>
@@ -178,7 +182,7 @@ export default function ChatbotPage() {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.25rem" }}>
               <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", margin: 0, color: "var(--color-navy)", fontWeight: 800 }}>
-                CAMI
+                {t("dashboard.chatbot.title")}
               </h1>
               {/* Status indicator */}
               <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.2rem 0.6rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -187,7 +191,7 @@ export default function ChatbotPage() {
               </div>
             </div>
             <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", margin: 0, fontWeight: 500 }}>
-              AI Financial Assistant · Powered by Gemini 1.5 Flash
+              {t("dashboard.chatbot.subtitle")}
             </p>
           </div>
         </div>
@@ -197,7 +201,7 @@ export default function ChatbotPage() {
           className="btn-brutal"
           style={{ padding: "0.75rem 1.25rem", background: "var(--color-white)", color: "var(--color-navy)", border: "3px solid var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)" }}
         >
-          <RefreshCw size={16} /> Chat Baru
+          <RefreshCw size={16} /> {t("dashboard.chatbot.newChat")}
         </button>
       </div>
 
@@ -254,9 +258,9 @@ export default function ChatbotPage() {
             {/* Bot label */}
             {msg.role === "assistant" && (
               <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.7rem", marginBottom: "0.4rem", color: msg.isError ? "var(--color-orange)" : "var(--color-lime)", display: "flex", alignItems: "center", gap: "0.3rem", textTransform: "uppercase", letterSpacing: "1px" }}>
-                <Bot size={11} strokeWidth={3} /> {msg.isError ? "CONNECTION ERROR" : "CAMI"}
+                <Bot size={11} strokeWidth={3} /> {msg.isError ? t("dashboard.chatbot.connError") : t("dashboard.chatbot.title")}
                 {msg.triggered === "sensitive" && (
-                  <span style={{ marginLeft: "0.4rem", fontSize: "0.6rem", background: "var(--color-orange)", color: "var(--color-navy)", padding: "0.05rem 0.3rem", borderRadius: "100px", fontWeight: 900 }}>⚠ SENSITIF</span>
+                  <span style={{ marginLeft: "0.4rem", fontSize: "0.6rem", background: "var(--color-orange)", color: "var(--color-navy)", padding: "0.05rem 0.3rem", borderRadius: "100px", fontWeight: 900 }}>⚠ {t("dashboard.chatbot.sensitive")}</span>
                 )}
               </div>
             )}
@@ -280,7 +284,7 @@ export default function ChatbotPage() {
             <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "2px", background: "rgba(182,255,68,0.3)", boxShadow: "0 0 12px var(--color-lime)", animation: "scan 2s linear infinite" }} />
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.75rem", color: "var(--color-lime)", display: "flex", alignItems: "center", gap: "0.4rem", textTransform: "uppercase", letterSpacing: "2px" }}>
               <Bot size={14} strokeWidth={3} className="animate-pulse" />
-              <Zap size={12} fill="var(--color-lime)" /> CAMI MIKIR...
+              <Zap size={12} fill="var(--color-lime)" /> {t("dashboard.chatbot.camiThinking")}
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               {[0, 0.2, 0.4].map((delay, i) => (
@@ -304,7 +308,7 @@ export default function ChatbotPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
             disabled={isTyping}
-            placeholder={isTyping ? "CAMI sedang berpikir..." : "Tanya apa saja soal finansialmu..."}
+            placeholder={isTyping ? t("dashboard.chatbot.placeholderTyping") : t("dashboard.chatbot.placeholderReady")}
             style={{
               width: "100%", paddingLeft: "3rem", paddingTop: "1rem", paddingBottom: "1rem",
               fontSize: "1rem", border: "3px solid var(--color-navy)",
@@ -324,7 +328,7 @@ export default function ChatbotPage() {
             cursor: (isTyping || !input.trim()) ? "not-allowed" : "pointer",
           }}
         >
-          {isTyping ? "Mikir..." : "Kirim"} <Send size={16} />
+          {isTyping ? t("dashboard.chatbot.btnThinking") : t("dashboard.chatbot.btnSend")} <Send size={16} />
         </button>
       </div>
 

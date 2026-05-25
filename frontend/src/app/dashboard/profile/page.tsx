@@ -7,17 +7,18 @@ import {
   ChevronRight, CheckCircle2, X, Save, Upload
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Badge definitions (static metadata)
 const badgeDefinitions = [
-  { id: "First Step", icon: Target, name: "First Step", desc: "Catat transaksi pertama", color: "lime" },
-  { id: "On Fire!", icon: Flame, name: "On Fire!", desc: "Streak 3 hari berturut", color: "orange" },
-  { id: "Konsisten", icon: Zap, name: "Konsisten", desc: "Streak 7 hari berturut", color: "purple" },
-  { id: "Champion", icon: Trophy, name: "Champion", desc: "Streak 30 hari berturut", color: "orange" },
-  { id: "AI Explorer", icon: Star, name: "AI Explorer", desc: "Baca 5 AI Insight", color: "lime" },
-  { id: "Hemat Master", icon: Medal, name: "Hemat Master", desc: "Kurangi pengeluaran 20%", color: "purple" },
-  { id: "Bookworm", icon: Star, name: "Bookworm", desc: "Selesaikan 3 modul edukasi", color: "lime" },
-  { id: "Legendary", icon: Trophy, name: "Legendary", desc: "Raih semua badge", color: "orange" },
+  { id: "firstStep", icon: Target, color: "lime" },
+  { id: "onFire", icon: Flame, color: "orange" },
+  { id: "consistent", icon: Zap, color: "purple" },
+  { id: "champion", icon: Trophy, color: "orange" },
+  { id: "aiExplorer", icon: Star, color: "lime" },
+  { id: "hematMaster", icon: Medal, color: "purple" },
+  { id: "bookworm", icon: Star, color: "lime" },
+  { id: "legendary", icon: Trophy, color: "orange" },
 ];
 
 // Stats data
@@ -29,9 +30,16 @@ const stats = [
 
 export default function ProfilePage() {
   const { userData, updateUserData } = useUser();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"badges" | "stats">("badges");
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const stats = [
+    { label: t("dashboard.profile.totalTransactions"), value: "127", icon: TrendingUp, color: "purple" },
+    { label: t("dashboard.profile.activeDays"), value: "34", icon: Calendar, color: "lime" },
+    { label: t("dashboard.profile.badgesEarned"), value: "4/8", icon: Award, color: "orange" },
+  ];
 
   const [editForm, setEditForm] = useState({ ...userData });
 
@@ -157,10 +165,10 @@ export default function ProfilePage() {
               >
                 <Zap size={16} color="var(--color-purple)" strokeWidth={3} />
                 <span style={{ color: "var(--color-white)", fontWeight: 800, fontSize: "0.875rem" }}>
-                  Level {userData.level}
+                  {t("dashboard.profile.level")} {userData.level}
                 </span>
                 <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", fontWeight: 600 }}>
-                  • {userData.xp}/{userData.level * 1000} XP
+                  • {userData.xp}/{userData.level * 1000} {t("dashboard.profile.xp")}
                 </span>
               </div>
               <div
@@ -176,7 +184,7 @@ export default function ProfilePage() {
               >
                 <Flame size={16} color="var(--color-orange)" strokeWidth={3} />
                 <span style={{ color: "var(--color-white)", fontWeight: 800, fontSize: "0.875rem" }}>
-                  {userData.streak} Hari Streak
+                  {userData.streak} {t("dashboard.profile.daysStreak")}
                 </span>
               </div>
             </div>
@@ -200,7 +208,7 @@ export default function ProfilePage() {
               alignSelf: "flex-start",
             }}
           >
-            <Edit3 size={16} /> Edit Profil
+            <Edit3 size={16} /> {t("dashboard.profile.editProfile")}
           </button>
         </div>
       </div>
@@ -282,13 +290,13 @@ export default function ProfilePage() {
               }}
             >
               <Flame size={24} color="var(--color-orange)" strokeWidth={2.5} />
-              Streak Aktif
+              {t("dashboard.profile.activeStreak")}
             </h3>
             <span
               className="badge-brutal badge-brutal--orange"
               style={{ padding: "0.3rem 0.75rem", fontSize: "0.875rem" }}
             >
-              {userData.streak} Hari
+              {userData.streak} {t("dashboard.profile.days")}
             </span>
           </div>
           <div className="progress-brutal" style={{ height: "28px", border: "3px solid var(--color-navy)" }}>
@@ -297,7 +305,7 @@ export default function ProfilePage() {
               style={{ width: `${Math.min(100, (userData.streak / 7) * 100)}%`, background: "var(--color-orange)", borderRight: "3px solid var(--color-navy)" }}
             />
             <div className="progress-brutal__label" style={{ fontSize: "0.9375rem", fontWeight: 700 }}>
-              {userData.streak} / 7 hari (target mingguan)
+              {userData.streak} / 7 {t("dashboard.profile.weeklyTarget")}
             </div>
           </div>
           <p
@@ -309,8 +317,8 @@ export default function ProfilePage() {
               margin: "1rem 0 0 0",
             }}
           >
-            2 hari lagi untuk dapet badge{" "}
-            <span style={{ color: "var(--color-purple)", fontWeight: 800 }}>&quot;Konsisten&quot;</span>! Semangat!
+            {7 - userData.streak} {t("dashboard.profile.daysLeftToBadge1")}{" "}
+            <span style={{ color: "var(--color-purple)", fontWeight: 800 }}>&quot;{t("dashboard.gamification.badges.consistent.name")}&quot;</span> {t("dashboard.profile.daysLeftToBadge2")}
           </p>
         </div>
 
@@ -336,13 +344,13 @@ export default function ProfilePage() {
               }}
             >
               <Zap size={24} color="var(--color-purple)" strokeWidth={2.5} />
-              Level & XP
+              {t("dashboard.profile.level")} & {t("dashboard.profile.xp")}
             </h3>
             <span
               className="badge-brutal badge-brutal--purple"
               style={{ padding: "0.3rem 0.75rem", fontSize: "0.875rem" }}
             >
-              Level {userData.level}
+              {t("dashboard.profile.level")} {userData.level}
             </span>
           </div>
           <div className="progress-brutal" style={{ height: "28px", border: "3px solid var(--color-navy)" }}>
@@ -354,7 +362,7 @@ export default function ProfilePage() {
               className="progress-brutal__label"
               style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-white)" }}
             >
-              {userData.xp} / {userData.level * 1000} XP
+              {userData.xp} / {userData.level * 1000} {t("dashboard.profile.xp")}
             </div>
           </div>
           <p
@@ -366,8 +374,8 @@ export default function ProfilePage() {
               margin: "1rem 0 0 0",
             }}
           >
-            Kumpulkan <span style={{ color: "var(--color-orange)", fontWeight: 800 }}>{(userData.level * 1000) - userData.xp} XP</span> lagi untuk mencapai
-            Level {userData.level + 1}!
+            {t("dashboard.profile.collectMore1")} <span style={{ color: "var(--color-orange)", fontWeight: 800 }}>{(userData.level * 1000) - userData.xp} {t("dashboard.profile.xp")}</span> {t("dashboard.profile.collectMore2")}{" "}
+            {t("dashboard.profile.level")} {userData.level + 1}!
           </p>
         </div>
       </div>
@@ -389,7 +397,7 @@ export default function ProfilePage() {
             boxShadow: activeTab === "badges" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
           }}
         >
-          <Trophy size={18} /> Koleksi Badge
+          <Trophy size={18} /> {t("dashboard.profile.badgeCollectionTitle")}
         </button>
         <button
           className="btn-brutal"
@@ -406,7 +414,7 @@ export default function ProfilePage() {
             boxShadow: activeTab === "stats" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
           }}
         >
-          <TrendingUp size={18} /> Statistik Detail
+          <TrendingUp size={18} /> {t("dashboard.profile.activitySummary")}
         </button>
       </div>
 
@@ -416,16 +424,16 @@ export default function ProfilePage() {
           {/* Badges Info */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
             <div>
-              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", color: "var(--color-navy)", margin: "0 0 0.5rem 0" }}>Koleksi Badge</h2>
+              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", color: "var(--color-navy)", margin: "0 0 0.5rem 0" }}>{t("dashboard.profile.badgeCollectionTitle")}</h2>
               <p style={{ color: "var(--color-text-muted)", margin: 0, fontSize: "0.9375rem", fontWeight: 500 }}>
-                Kumpulkan semua badge dengan mencapai target keuanganmu!
+                {t("dashboard.profile.badgeCollectionDesc")}
               </p>
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 900, color: "var(--color-navy)", lineHeight: 1 }}>
                 {userData.unlockedBadges?.length || 0}<span style={{ fontSize: "1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>/{badgeDefinitions.length}</span>
               </div>
-              <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--color-purple)", marginTop: "0.25rem" }}>Badge Diraih</div>
+              <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--color-purple)", marginTop: "0.25rem" }}>{t("dashboard.profile.badgesEarnedLabel")}</div>
             </div>
           </div>
 
@@ -464,17 +472,17 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <h4 style={{ margin: "0 0 0.25rem 0", fontFamily: "var(--font-heading)", fontSize: "1.0625rem", color: "var(--color-navy)" }}>
-                      {badge.name}
+                      {t(`dashboard.gamification.badges.${badge.id}.name`)}
                     </h4>
                     <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--color-text-muted)", fontWeight: 600, lineHeight: 1.4 }}>
-                      {badge.desc}
+                      {t(`dashboard.gamification.badges.${badge.id}.desc`)}
                     </p>
                     {isUnlocked && (
                       <div
                         className="badge-brutal badge-brutal--lime"
                         style={{ display: "inline-block", marginTop: "0.5rem", padding: "0.2rem 0.6rem", fontSize: "0.7rem" }}
                       >
-                        <CheckCircle2 size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.2rem" }} /> Diraih
+                        <CheckCircle2 size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.2rem" }} /> {t("dashboard.profile.achieved")}
                       </div>
                     )}
                   </div>
@@ -496,14 +504,14 @@ export default function ProfilePage() {
               color: "var(--color-navy)",
             }}
           >
-            Ringkasan Aktivitas
+            {t("dashboard.profile.activitySummary")}
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {[
-              { label: "Transaksi Bulan Ini", value: "42 transaksi", icon: TrendingUp, color: "purple" },
-              { label: "Pengeluaran Terbesar", value: "F&B — Rp 850rb", icon: Target, color: "orange" },
-              { label: "Streak Terpanjang", value: "12 hari", icon: Flame, color: "lime" },
-              { label: "Modul Edukasi Selesai", value: "5 dari 12", icon: Star, color: "purple" },
+              { label: t("dashboard.profile.thisMonthTx"), value: `42 ${t("dashboard.profile.txLabel")}`, icon: TrendingUp, color: "purple" },
+              { label: t("dashboard.profile.biggestExpense"), value: "F&B — Rp 850rb", icon: Target, color: "orange" },
+              { label: t("dashboard.profile.longestStreak"), value: `12 ${t("dashboard.profile.daysLabel")}`, icon: Flame, color: "lime" },
+              { label: t("dashboard.profile.eduModulesDone"), value: `5 ${t("dashboard.profile.fromLabel")} 12`, icon: Star, color: "purple" },
             ].map((item) => (
               <div
                 key={item.label}
@@ -571,7 +579,7 @@ export default function ProfilePage() {
             </button>
             
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginTop: 0, marginBottom: "1.5rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Edit3 size={24} /> Edit Profil
+              <Edit3 size={24} /> {t("dashboard.profile.editProfile")}
             </h2>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "2rem" }}>
@@ -597,13 +605,13 @@ export default function ProfilePage() {
                     boxShadow: "2px 2px 0px var(--color-navy)", fontWeight: 800, color: "var(--color-navy)",
                     cursor: "pointer"
                   }}>
-                    <Upload size={16} /> Ganti Foto
+                    <Upload size={16} /> {t("dashboard.profile.changePhoto")}
                   </button>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)", marginTop: "0.5rem" }}>JPG, PNG, GIF Max 2MB</div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)", marginTop: "0.5rem" }}>{t("dashboard.profile.photoNote")}</div>
                 </div>
               </div>
               <div>
-                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>NAMA LENGKAP</label>
+                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.profile.fullName")}</label>
                 <input 
                   type="text" 
                   value={editForm.name} 
@@ -613,7 +621,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>EMAIL</label>
+                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.profile.email")}</label>
                 <input 
                   type="email" 
                   value={editForm.email} 
@@ -623,7 +631,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>NO. TELEPON</label>
+                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.profile.phone")}</label>
                 <input 
                   type="tel" 
                   value={editForm.phone} 
@@ -638,12 +646,12 @@ export default function ProfilePage() {
               <button onClick={() => setIsEditing(false)} className="btn-brutal" style={{
                 flex: 1, padding: "0.85rem", background: "var(--color-white)", color: "var(--color-navy)",
                 fontWeight: 800, textAlign: "center", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)"
-              }}>Batal</button>
+              }}>{t("dashboard.profile.cancel")}</button>
               <button onClick={handleSaveProfile} className="btn-brutal" style={{
                 flex: 2, padding: "0.85rem", background: "var(--color-lime)", color: "var(--color-navy)",
                 fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
                 border: "2px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)"
-              }}><Save size={18} /> Simpan Perubahan</button>
+              }}><Save size={18} /> {t("dashboard.profile.saveChanges")}</button>
             </div>
           </div>
         </div>

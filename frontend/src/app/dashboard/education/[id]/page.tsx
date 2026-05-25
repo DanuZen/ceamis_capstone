@@ -5,41 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Clock, ChevronRight, CheckCircle } from "lucide-react";
 import { useUser } from "@/context/UserContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const moduleData = {
   "1": {
-    title: "Dasar-Dasar Budgeting",
-    duration: "5 menit",
-    color: "lime",
-    content: [
-      {
-        subtitle: "Apa itu Budgeting?",
-        text: "Budgeting adalah proses membuat rencana untuk membelanjakan uang kamu. Rencana belanja ini disebut anggaran. Membuat anggaran memungkinkan kamu menentukan sebelumnya apakah kamu akan memiliki cukup uang untuk hal-hal yang kamu butuhkan atau hal-hal yang penting bagi kamu."
-      },
-      {
-        subtitle: "Metode 50/30/20",
-        text: "Salah satu metode paling populer adalah 50/30/20. Alokasikan 50% pendapatan untuk kebutuhan (Needs), 30% untuk keinginan (Wants), dan 20% untuk tabungan atau membayar utang (Savings/Debt)."
-      },
-      {
-        subtitle: "Cara Memulai",
-        text: "1. Catat semua pemasukan. 2. List semua pengeluaran tetap. 3. Evaluasi pengeluaran variabel. 4. Sesuaikan alokasi agar sesuai target finansial kamu."
-      }
-    ]
-  },
-  "2": {
-    title: "Emergency Fund 101",
-    duration: "7 menit",
-    color: "purple",
-    content: [
-      {
-        subtitle: "Kenapa Harus Dana Darurat?",
-        text: "Dana darurat adalah uang yang disisihkan khusus untuk menutupi biaya hidup saat terjadi hal yang tidak terduga, seperti kehilangan pekerjaan atau biaya medis mendadak."
-      },
-      {
-        subtitle: "Berapa Banyak yang Dibutuhkan?",
-        text: "Idealnya, miliki 3-6 bulan biaya hidup. Jika pengeluaran bulanan kamu Rp 5 juta, maka target dana darurat adalah Rp 15-30 juta."
-      }
-    ]
   }
 };
 
@@ -48,7 +17,18 @@ export default function ModuleDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  const module = moduleData[id as keyof typeof moduleData] || moduleData["1"];
+  const { t } = useLanguage();
+  const moduleConfig = moduleData[id as keyof typeof moduleData] || moduleData["1"];
+  const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true }) || t(`dashboard.education.detail.moduleData.1`, { returnObjects: true });
+  
+  // @ts-ignore
+  const contentArray = Array.isArray(translatedContent) ? translatedContent : [];
+  
+  const module = {
+    ...moduleConfig,
+    title: t(`dashboard.education.modules.${parseInt(id) - 1}.title`),
+    content: contentArray,
+  };
   
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -83,12 +63,12 @@ export default function ModuleDetailPage() {
       <div style={{ marginBottom: "2rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link href="/dashboard/education" style={{ textDecoration: "none" }}>
           <button className="btn-brutal" style={{ padding: "0.5rem 1rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-            <ArrowLeft size={18} /> Kembali
+            <ArrowLeft size={18} /> {t("dashboard.education.detail.back")}
           </button>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <div className="badge-brutal" style={{ background: "var(--color-white)", border: "2px solid var(--color-navy)", fontSize: "0.875rem" }}>
-             {currentProgress}% Selesai
+             {currentProgress}% {t("dashboard.education.detail.donePct")}
           </div>
         </div>
       </div>
@@ -96,7 +76,7 @@ export default function ModuleDetailPage() {
       <div style={{ display: "flex", flexDirection: "row-reverse", gap: "2rem", flex: 1, overflow: "hidden" }}>
         {/* Sidebar Nav */}
         <div style={{ width: "280px", background: "var(--color-white)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem", height: "fit-content", border: "2.5px solid var(--color-navy)", borderRadius: "12px" }}>
-          <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>Isi Materi</h4>
+          <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>{t("dashboard.education.detail.tableOfContents")}</h4>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {module.content.map((item, index) => (
               <button 
@@ -142,10 +122,10 @@ export default function ModuleDetailPage() {
           <div style={{ marginBottom: "2.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-navy)", marginBottom: "1rem" }}>
               <BookOpen size={24} color="var(--color-navy)" />
-              <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>Modul {id}</span>
+              <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>{t("dashboard.education.detail.moduleLabel")} {id}</span>
               <span style={{ color: "var(--color-navy)", opacity: 0.2 }}>•</span>
               <span style={{ color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                Halaman {currentPage + 1} dari {module.content.length}
+                {t("dashboard.education.detail.pageLabel")} {currentPage + 1} {t("dashboard.education.detail.fromLabel")} {module.content.length}
               </span>
             </div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "3rem", margin: 0, lineHeight: 1.1, fontWeight: 900 }}>{module.title}</h1>
@@ -177,7 +157,7 @@ export default function ModuleDetailPage() {
               className="btn-brutal"
               style={{ padding: "0.75rem 1.5rem", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "0.5rem", background: currentPage === 0 ? "var(--color-bg)" : "var(--color-white)", opacity: currentPage === 0 ? 0.5 : 1, cursor: currentPage === 0 ? "not-allowed" : "pointer" }}
             >
-              <ArrowLeft size={20} /> Sebelumnya
+              <ArrowLeft size={20} /> {t("dashboard.education.detail.prev")}
             </button>
 
             {currentPage === module.content.length - 1 ? (
@@ -186,7 +166,7 @@ export default function ModuleDetailPage() {
                 className="btn-brutal btn-brutal--primary" 
                 style={{ padding: "1rem 2rem", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "0.75rem" }}
               >
-                Selesai & Dapatkan XP <CheckCircle size={24} />
+                {t("dashboard.education.detail.finishXp")} <CheckCircle size={24} />
               </button>
             ) : (
               <button 
@@ -194,7 +174,7 @@ export default function ModuleDetailPage() {
                 className="btn-brutal"
                 style={{ padding: "0.75rem 1.5rem", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--color-lime)" }}
               >
-                Selanjutnya <ChevronRight size={20} />
+                {t("dashboard.education.detail.next")} <ChevronRight size={20} />
               </button>
             )}
           </div>
