@@ -28,9 +28,16 @@ export class OnboardingService {
           top_expenses: dto.top_expenses,
           monthly_expense: dto.monthly_expense,
           goals: dto.goals,
-          risk_profile: dto.risk_profile,
+          risk_profile: dto.risk_profile || 'moderat',
           savings_ratio: savingsRatio,
           completed_at: new Date().toISOString(),
+          // Model 3 Features
+          tanggungan_keluarga: dto.tanggungan_keluarga ?? 0,
+          city_tier_enc: dto.city_tier_enc ?? 1,
+          toleransi_rugi_enc: dto.toleransi_rugi_enc ?? 1,
+          save_habit: dto.save_habit ?? 3,
+          punya_tabungan: dto.punya_tabungan ?? false,
+          jumlah_tabungan_bulan: dto.jumlah_tabungan_bulan ?? 0,
         },
         { onConflict: 'user_id' },
       )
@@ -45,7 +52,7 @@ export class OnboardingService {
       {
         id: dto.user_id,
         name: dto.name,
-        risk_profile: dto.risk_profile,
+        risk_profile: dto.risk_profile || 'moderat',
         onboarding_completed: true,
         updated_at: new Date().toISOString(),
       },

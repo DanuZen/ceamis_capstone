@@ -25,6 +25,23 @@ export default function RegisterPage() {
       return;
     }
     
+    // Validasi domain email yang diizinkan (@gmail.com atau sejenisnya)
+    const validDomains = [
+      "gmail.com", "yahoo.com", "yahoo.co.id", 
+      "outlook.com", "hotmail.com", "icloud.com"
+    ];
+    const emailDomain = email.split("@")[1];
+    if (!emailDomain || !validDomains.includes(emailDomain.toLowerCase())) {
+      setError("Harap gunakan email yang valid (seperti @gmail.com, @yahoo.com, dll).");
+      return;
+    }
+
+    // Validasi panjang password
+    if (password.length < 6) {
+      setError("Password minimal harus 6 karakter.");
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
 
@@ -48,10 +65,10 @@ export default function RegisterPage() {
     setSuccess(true);
     setIsLoading(false);
     
-    // Redirect after 2 seconds
+    // Redirect to onboarding first
     setTimeout(() => {
       router.push("/onboarding");
-    }, 2000);
+    }, 1000);
   };
 
   return (
@@ -199,7 +216,7 @@ export default function RegisterPage() {
               border: "3px solid var(--color-navy)",
               borderTop: "8px solid var(--color-navy)",
               borderRadius: "var(--radius-brutal-lg)",
-              boxShadow: "8px 8px 0px #D1D5DB",
+              boxShadow: "8px 8px 0px var(--color-navy)",
               position: "relative",
             }}
           >

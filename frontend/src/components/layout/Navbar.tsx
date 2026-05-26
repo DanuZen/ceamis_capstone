@@ -313,13 +313,17 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
             onClick={() => setLanguage(language === "id" ? "en" : "id")} 
             className="btn-brutal"
             style={{ 
-              padding: "0.4rem 0.75rem", fontSize: "0.85rem", fontWeight: 800, 
+              height: "48px", padding: "0 0.85rem", fontSize: "0.85rem", fontWeight: 800, 
               background: "var(--color-white)", border: "2px solid var(--color-navy)",
-              boxShadow: "2px 2px 0px var(--color-navy)", display: "flex", alignItems: "center", gap: "0.4rem",
-              borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", minWidth: "72px", justifyContent: "center"
+              boxShadow: "3px 3px 0px var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem",
+              borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", justifyContent: "center", boxSizing: "border-box"
             }}
           >
-            <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{language === "id" ? "🇮🇩" : "🇬🇧"}</span>
+            <img 
+              src={language === "id" ? "https://flagcdn.com/w20/id.png" : "https://flagcdn.com/w20/gb.png"} 
+              alt={language === "id" ? "Indonesian Flag" : "British Flag"} 
+              style={{ width: "20px", height: "auto", borderRadius: "2px", border: "1px solid rgba(0,0,0,0.1)" }} 
+            />
             <span>{language === "id" ? "ID" : "EN"}</span>
           </button>
 

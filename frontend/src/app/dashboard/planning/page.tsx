@@ -14,8 +14,10 @@ import React from "react";
 import { useSearchParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionContext";
 import { useGuest } from "@/context/GuestContext";
+import { useUser } from "@/context/UserContext";
 import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 import { useLanguage } from "@/context/LanguageContext";
+import { onboardingApi } from "@/lib/api";
 
 // ── Icon Mapping (replaces emojis) ──────────────
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
@@ -62,10 +64,10 @@ const IconPicker = ({ value, onChange, options }: { value: string, onChange: (va
       </button>
       
       {open && (
-        <div style={{
+        <div className="no-scrollbar" style={{
           position: "absolute", top: "100%", left: 0, width: "100%", marginTop: "0.5rem",
           background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
-          boxShadow: "4px 4px 0px var(--color-navy)", zIndex: 10, maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column"
+          boxShadow: "4px 4px 0px var(--color-navy)", zIndex: 10, maxHeight: "250px", overflowY: "auto", display: "flex", flexDirection: "column"
         }}>
           {options.map(opt => {
             const Icon = ICON_MAP[opt.key] || Target;
@@ -93,6 +95,59 @@ const IconPicker = ({ value, onChange, options }: { value: string, onChange: (va
   );
 };
 
+const TypePicker = ({ value, onChange, options }: { value: string, onChange: (val: string) => void, options: {key:string, label:string}[] }) => {
+  const [open, setOpen] = useState(false);
+  const selectedOpt = options.find(o => o.key === value) || options[0];
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button 
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="input-brutal"
+        style={{ 
+          border: "3px solid var(--color-navy)", padding: "0.75rem", fontSize: "0.9rem", fontWeight: 800, 
+          width: "100%", minWidth: "120px", boxShadow: "3px 3px 0px var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: "var(--color-white)", cursor: "pointer"
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          {selectedOpt.label}
+        </span>
+        <ChevronDown size={16} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+      </button>
+      
+      {open && (
+        <div className="no-scrollbar" style={{
+          position: "absolute", top: "100%", left: 0, width: "100%", marginTop: "0.5rem",
+          background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+          boxShadow: "4px 4px 0px var(--color-navy)", zIndex: 10, maxHeight: "250px", overflowY: "auto", display: "flex", flexDirection: "column"
+        }}>
+          {options.map(opt => {
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => { onChange(opt.key); setOpen(false); }}
+                style={{
+                  padding: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", border: "none",
+                  background: value === opt.key ? "var(--color-purple)" : "transparent",
+                  color: value === opt.key ? "var(--color-white)" : "var(--color-navy)",
+                  fontWeight: 800, textAlign: "left", cursor: "pointer", borderBottom: "2px solid rgba(10,25,47,0.05)"
+                }}
+                onMouseEnter={(e) => { if(value !== opt.key) e.currentTarget.style.background = "var(--color-bg)" }}
+                onMouseLeave={(e) => { if(value !== opt.key) e.currentTarget.style.background = "transparent" }}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Budget Allocation Data ──────────────────────────
 interface BudgetCategory {
   id: string;
@@ -103,16 +158,75 @@ interface BudgetCategory {
   icon: string;
 }
 
+// ── Per-Profile Budget Presets ──────────────────────
+const RISK_BUDGET_CONFIG: Record<string, {
+  ratios: { needs: number; wants: number; savings: number };
+  needsCategories: { id: string; name: string; icon: string }[];
+  wantsCategories: { id: string; name: string; icon: string }[];
+  savingsCategories: { id: string; name: string; icon: string }[];
+}> = {
+  "Konservatif": {
+    ratios: { needs: 0.50, wants: 0.20, savings: 0.30 },
+    needsCategories: [
+      { id: "makan", name: "Makan & Minum", icon: "utensils" },
+      { id: "transport", name: "Transportasi", icon: "car" },
+      { id: "tagihan", name: "Tagihan & Utilitas", icon: "home" },
+    ],
+    wantsCategories: [
+      { id: "hiburan", name: "Hiburan & Rekreasi", icon: "tv" },
+      { id: "belanja", name: "Belanja & Lifestyle", icon: "cart" },
+    ],
+    savingsCategories: [
+      { id: "darurat", name: "Dana Darurat", icon: "shield" },
+      { id: "deposito", name: "Deposito", icon: "piggybank" },
+      { id: "reksadana_pasar_uang", name: "Reksadana Pasar Uang", icon: "target" },
+    ],
+  },
+  "Moderat": {
+    ratios: { needs: 0.50, wants: 0.30, savings: 0.20 },
+    needsCategories: [
+      { id: "makan", name: "Makan & Minum", icon: "utensils" },
+      { id: "transport", name: "Transportasi", icon: "car" },
+      { id: "tagihan", name: "Tagihan & Utilitas", icon: "home" },
+    ],
+    wantsCategories: [
+      { id: "hiburan", name: "Hiburan & Rekreasi", icon: "tv" },
+      { id: "belanja", name: "Belanja & Lifestyle", icon: "cart" },
+      { id: "kopi", name: "Kopi & Jajan", icon: "coffee" },
+    ],
+    savingsCategories: [
+      { id: "reksadana_tetap", name: "Reksadana Pendapatan Tetap", icon: "target" },
+      { id: "emas", name: "Emas", icon: "shield" },
+      { id: "saham_bluechip", name: "Saham Blue Chip", icon: "piggybank" },
+    ],
+  },
+  "Agresif": {
+    ratios: { needs: 0.40, wants: 0.20, savings: 0.40 },
+    needsCategories: [
+      { id: "makan", name: "Makan & Minum", icon: "utensils" },
+      { id: "transport", name: "Transportasi", icon: "car" },
+      { id: "tagihan", name: "Tagihan & Utilitas", icon: "home" },
+    ],
+    wantsCategories: [
+      { id: "hiburan", name: "Hiburan & Rekreasi", icon: "tv" },
+      { id: "belanja", name: "Belanja & Lifestyle", icon: "cart" },
+    ],
+    savingsCategories: [
+      { id: "saham_growth", name: "Saham Growth", icon: "target" },
+      { id: "reksadana_saham", name: "Reksa Dana Saham", icon: "piggybank" },
+      { id: "kripto", name: "Kripto", icon: "shield" },
+    ],
+  },
+};
+
+// Fallback default (Moderat)
 const DEFAULT_BUDGET: BudgetCategory[] = [
-  // Needs
   { id: "makan", name: "Makan & Minum", type: "needs", allocated: 0, spent: 0, icon: "utensils" },
   { id: "transport", name: "Transportasi", type: "needs", allocated: 0, spent: 0, icon: "car" },
   { id: "tagihan", name: "Tagihan & Utilitas", type: "needs", allocated: 0, spent: 0, icon: "home" },
-  // Wants
   { id: "hiburan", name: "Hiburan & Rekreasi", type: "wants", allocated: 0, spent: 0, icon: "tv" },
   { id: "belanja", name: "Belanja & Lifestyle", type: "wants", allocated: 0, spent: 0, icon: "cart" },
   { id: "kopi", name: "Kopi & Jajan", type: "wants", allocated: 0, spent: 0, icon: "coffee" },
-  // Savings
   { id: "darurat", name: "Dana Darurat", type: "savings", allocated: 0, spent: 0, icon: "shield" },
   { id: "investasi", name: "Investasi Saham", type: "savings", allocated: 0, spent: 0, icon: "target" },
 ];
@@ -128,7 +242,10 @@ interface SavingsTarget {
   deadline: string;
 }
 
-const DEFAULT_TARGETS: SavingsTarget[] = [];
+const DEFAULT_TARGETS: SavingsTarget[] = [
+  { id: 1, name: "Dana Darurat", target: 30000000, current: 0, icon: "shield", color: "purple", deadline: "TBD" },
+  { id: 2, name: "Investasi Saham", target: 100000000, current: 0, icon: "target", color: "purple", deadline: "TBD" }
+];
 
 const ICON_OPTIONS = [
   { key: "target", label: "Target" },
@@ -164,11 +281,9 @@ const PROFILE_INFO: Record<string, { description: string; suggestion: string; co
 };
 
 const RISK_QUIZ = [
-  { id: "saving_rate",       label: "Berapa % income yang kamu tabung tiap bulan?",      options: [{label:"< 5%",v:0.03},{label:"5–15%",v:0.10},{label:"15–30%",v:0.22},{label:"> 30%",v:0.40}] },
-  { id: "emergency_fund",    label: "Punya dana darurat berapa bulan pengeluaran?",      options: [{label:"Belum ada",v:0},{label:"1–2 bulan",v:1.5},{label:"3–5 bulan",v:4},{label:"> 6 bulan",v:7}] },
-  { id: "investment_rate",   label: "Apakah kamu rutin investasi?",                     options: [{label:"Belum sama sekali",v:0},{label:"Sesekali",v:0.03},{label:"Rutin 5–10%",v:0.07},{label:"Rutin > 10%",v:0.15}] },
-  { id: "financial_goals",   label: "Seberapa jelas target keuangan kamu?",              options: [{label:"Belum punya",v:0},{label:"Ada tapi abstrak",v:1},{label:"Cukup jelas",v:2},{label:"Sangat spesifik",v:3}] },
-  { id: "budget_discipline", label: "Seberapa disiplin kamu mengikuti budget bulanan?", options: [{label:"Jarang",v:0.3},{label:"Kadang-kadang",v:0.55},{label:"Sering",v:0.75},{label:"Selalu",v:0.95}] },
+  { id: "SELFCONTROL_1", label: "Seberapa baik kamu bisa menahan godaan belanja impulsif?", options: [{label:"Sangat Buruk",v:1},{label:"Buruk",v:2},{label:"Cukup",v:3},{label:"Baik",v:4},{label:"Sangat Baik",v:5}] },
+  { id: "SCFHORIZON",    label: "Seberapa jauh ke depan kamu merencanakan keuanganmu?",    options: [{label:"Tidak merencanakan",v:1},{label:"Bulan depan",v:2},{label:"1 tahun",v:3},{label:"Beberapa tahun (2-4)",v:4},{label:"5 - 10 tahun",v:5},{label:"Lebih dari 10 tahun",v:6}] },
+  { id: "FINGOALS",      label: "Seberapa spesifik dan jelas target keuanganmu saat ini?",    options: [{label:"Tidak punya",v:1},{label:"Ada tapi samar",v:2},{label:"Cukup jelas",v:3},{label:"Sangat spesifik",v:4}] },
 ];
 
 interface RiskResult {
@@ -185,6 +300,7 @@ export default function PlanningPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
   const { isGuest } = useGuest();
+  const { userData } = useUser();
   const { t } = useLanguage();
   const [budget, setBudget] = useState<BudgetCategory[]>([]);
   const [targets, setTargets] = useState<SavingsTarget[]>([]);
@@ -192,6 +308,7 @@ export default function PlanningPage() {
   const [showAddTarget, setShowAddTarget] = useState(false);
   const [newTarget, setNewTarget] = useState({ name: "", target: "", icon: "target", deadline: "" });
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<"needs" | "wants" | "savings">("needs");
   const [newCategory, setNewCategory] = useState<{name: string; type: "needs"|"wants"|"savings"; allocated: string; icon: string}>({ name: "", type: "needs", allocated: "", icon: "home" });
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -205,13 +322,67 @@ export default function PlanningPage() {
     setRiskLoading(true);
     setShowRiskQuiz(false);
     try {
+      // 1. Get Onboarding data
+      const onboardingData = await onboardingApi.get(userData.id);
+      const inc = onboardingData?.income || 0;
+      
+      // 2. Calculate transaction metrics
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const monthTxns = transactions.filter(t => {
+        const d = new Date(t.created_at);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      });
+      const totalExpense = monthTxns.filter(t => t.type === "pengeluaran").reduce((acc, t) => acc + t.amount, 0);
+      
+      const expense_ratio = inc > 0 ? Math.min(totalExpense / inc, 1.0) : 0;
+      const saving_rate = inc > 0 ? Math.max((inc - totalExpense) / inc, 0) : 0;
+      const disposable_ratio = 1 - expense_ratio;
+      
+      // 3. Calculate DTI Ratio from cached debts
+      let totalDebt = 0;
+      try {
+        const savedDebts = localStorage.getItem("ceamis_debts");
+        if (savedDebts) {
+          const debts = JSON.parse(savedDebts);
+          totalDebt = debts.filter((d: any) => d.type === "hutang" && !d.is_paid).reduce((acc: number, d: any) => acc + d.amount, 0);
+        }
+      } catch (e) {}
+      const dti_ratio = (inc > 0 && totalDebt > 0) ? Math.min(totalDebt / (inc * 12), 1.0) : 0;
+
+      // 4. Encode occupation
+      const isStudent = onboardingData?.income_source === "uang_saku" ? 1 : 0;
+      const isSelfEmployed = onboardingData?.income_source === "bisnis" || onboardingData?.income_source === "freelance" ? 1 : 0;
+      const isProfessional = onboardingData?.income_source === "gaji" ? 1 : 0;
+
+      // 5. Construct payload
       const payload = {
-        saving_rate:       answers["saving_rate"]       ?? 0.10,
-        emergency_fund:    answers["emergency_fund"]    ?? 0,
-        investment_rate:   answers["investment_rate"]   ?? 0,
-        financial_goals:   answers["financial_goals"]   ?? 0,
-        budget_discipline: answers["budget_discipline"] ?? 0.5,
+        saving_rate:       saving_rate,
+        dti_ratio:         dti_ratio,
+        disposable_ratio:  disposable_ratio,
+        expense_ratio:     expense_ratio,
+        ceamis_score:      (userData.healthScore || 50) / 100,
+
+        punya_tabungan:        onboardingData?.punya_tabungan ? 1 : 0,
+        jumlah_tabungan_bulan: onboardingData?.jumlah_tabungan_bulan || 0,
+
+        SAVEHABIT:     onboardingData?.save_habit || 3,
+        SELFCONTROL_1: answers["SELFCONTROL_1"] || 3,
+        SCFHORIZON:    answers["SCFHORIZON"] || 3,
+        FINGOALS:      answers["FINGOALS"] || 3,
+
+        toleransi_rugi_enc:  onboardingData?.toleransi_rugi_enc || 1,
+        tujuan_keuangan_enc: (onboardingData?.goals && onboardingData.goals.length > 0) ? 1 : 0,
+        tanggungan_keluarga: onboardingData?.tanggungan_keluarga || 0,
+        Age:                 onboardingData?.age || 20,
+        city_tier_enc:       onboardingData?.city_tier_enc || 1,
+
+        occ_Professional:  isProfessional,
+        occ_Retired:       0,
+        occ_Self_Employed: isSelfEmployed,
+        occ_Student:       isStudent,
       };
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000"}/api/v1/predict/risk-profile`,
         { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
@@ -221,18 +392,20 @@ export default function PlanningPage() {
       setRiskResult(data);
       localStorage.setItem("ceamis_risk_profile", JSON.stringify(data));
     } catch {
-      // fallback: derive dari jawaban secara lokal
+      // fallback: derive dari jawaban secara lokal (mock)
       const score = Object.values(answers).reduce((a, b) => a + b, 0);
-      const profile = score < 1.5 ? "Konservatif" : score < 4 ? "Moderat" : "Agresif";
+      const profile = score < 6 ? "Konservatif" : score < 11 ? "Moderat" : "Agresif";
       const info = PROFILE_INFO[profile];
-      setRiskResult({
+      const mockData = {
         risk_profile: profile as RiskResult["risk_profile"],
         confidence: 0.75,
         probabilities: { Konservatif: profile==="Konservatif"?0.75:0.15, Moderat: profile==="Moderat"?0.75:0.15, Agresif: profile==="Agresif"?0.75:0.10 },
         description: info.description,
         suggestion: info.suggestion,
         is_mock: true,
-      });
+      };
+      setRiskResult(mockData);
+      localStorage.setItem("ceamis_risk_profile", JSON.stringify(mockData));
     } finally {
       setRiskLoading(false);
     }
@@ -245,20 +418,98 @@ export default function PlanningPage() {
   }, []);
 
   useEffect(() => {
-    const savedBudget = localStorage.getItem("ceamis_budget");
-    const savedTargets = localStorage.getItem("ceamis_targets");
-    if (savedBudget) {
-      setBudget(JSON.parse(savedBudget));
-    } else {
-      setBudget(DEFAULT_BUDGET);
-    }
-    if (savedTargets) {
-      setTargets(JSON.parse(savedTargets));
-    } else {
-      setTargets(DEFAULT_TARGETS);
-    }
-    setIsLoaded(true);
-  }, []);
+    const initData = async () => {
+      let income = 0;
+      if (!isGuest && userData?.id) {
+        try {
+          const data = await onboardingApi.get(userData.id);
+          if (data && data.income) {
+            income = data.income;
+          }
+        } catch (e) {
+          console.error("Failed to fetch onboarding for budget", e);
+        }
+      }
+
+      const savedBudget = localStorage.getItem("ceamis_budget");
+      const savedTargets = localStorage.getItem("ceamis_targets");
+      
+      let initialBudget: BudgetCategory[] = [];
+      let initialTargets = savedTargets ? JSON.parse(savedTargets) : [...DEFAULT_TARGETS];
+
+      if (savedBudget) {
+        initialBudget = JSON.parse(savedBudget);
+      } else {
+        // Get risk profile from cache, fallback to "Moderat"
+        let riskProfile: "Konservatif" | "Moderat" | "Agresif" = "Moderat";
+        const cachedProfile = localStorage.getItem("ceamis_risk_profile");
+        if (cachedProfile) {
+          try {
+            const p = JSON.parse(cachedProfile);
+            if (p.risk_profile in RISK_BUDGET_CONFIG) riskProfile = p.risk_profile;
+          } catch (e) {}
+        }
+
+        const config = RISK_BUDGET_CONFIG[riskProfile];
+        const { needs: pNeeds, wants: pWants, savings: pSavings } = config.ratios;
+
+        const needsTotal = income * pNeeds;
+        const wantsTotal = income * pWants;
+        const savingsTotal = income * pSavings;
+
+        // Build budget from per-profile category presets
+        initialBudget = [
+          ...config.needsCategories.map(c => ({
+            ...c, type: "needs" as const, spent: 0,
+            allocated: income > 0 ? Math.round(needsTotal / config.needsCategories.length) : 0,
+          })),
+          ...config.wantsCategories.map(c => ({
+            ...c, type: "wants" as const, spent: 0,
+            allocated: income > 0 ? Math.round(wantsTotal / config.wantsCategories.length) : 0,
+          })),
+          ...config.savingsCategories.map(c => ({
+            ...c, type: "savings" as const, spent: 0,
+            allocated: income > 0 ? Math.round(savingsTotal / config.savingsCategories.length) : 0,
+          })),
+        ];
+      }
+
+      // Auto-sync missing targets from savings budgets (budget -> targets)
+      initialBudget.filter((b: any) => b.type === "savings").forEach((b: any) => {
+        if (!initialTargets.find((t: any) => t.name === b.name)) {
+          initialTargets.push({
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            name: b.name,
+            target: b.allocated > 0 ? b.allocated * 12 : 0,
+            current: 0,
+            icon: b.icon,
+            color: "purple",
+            deadline: "TBD"
+          });
+        }
+      });
+
+      // Auto-sync missing savings budgets from targets (targets -> budget)
+      initialTargets.forEach((t: any) => {
+        if (!initialBudget.find((b: any) => b.type === "savings" && b.name === t.name)) {
+          initialBudget.push({
+            id: Date.now().toString() + Math.floor(Math.random() * 1000),
+            name: t.name,
+            type: "savings",
+            allocated: 0,
+            spent: 0,
+            icon: t.icon
+          });
+        }
+      });
+
+      setBudget(initialBudget);
+      setTargets(initialTargets);
+      setIsLoaded(true);
+    };
+
+    initData();
+  }, [isGuest, userData?.id]);
 
   useEffect(() => {
     if (isLoaded) {
@@ -303,9 +554,36 @@ export default function PlanningPage() {
   
   const totalAllocated = totalNeeds + totalWants + totalSavings;
   
+  // Percentages for allocation bars (from actual totals)
   const needsPercent = totalAllocated > 0 ? Math.round((totalNeeds / totalAllocated) * 100) : 0;
   const wantsPercent = totalAllocated > 0 ? Math.round((totalWants / totalAllocated) * 100) : 0;
   const savingsPercent = totalAllocated > 0 ? Math.round((totalSavings / totalAllocated) * 100) : 0;
+
+  // Target percentages from risk profile (for header badge display)
+  const getRiskTargetRatios = () => {
+    try {
+      const cached = localStorage.getItem("ceamis_risk_profile");
+      if (cached) {
+        const p = JSON.parse(cached);
+        const config = RISK_BUDGET_CONFIG[p.risk_profile as string];
+        if (config) return {
+          needs: Math.round(config.ratios.needs * 100),
+          wants: Math.round(config.ratios.wants * 100),
+          savings: Math.round(config.ratios.savings * 100),
+        };
+      }
+    } catch (e) {}
+    return { needs: 50, wants: 30, savings: 20 }; // Moderat fallback
+  };
+  const riskRatios = getRiskTargetRatios();
+  const badgeNeeds   = needsPercent   > 0 ? needsPercent   : riskRatios.needs;
+  const badgeWants   = wantsPercent   > 0 ? wantsPercent   : riskRatios.wants;
+  const badgeSavings = savingsPercent > 0 ? savingsPercent : riskRatios.savings;
+
+  // Badge amounts: use actual totals if available, else calculate from income × ratio
+  const badgeNeedsRp   = totalNeeds   > 0 ? totalNeeds   : Math.round(income * riskRatios.needs / 100);
+  const badgeWantsRp   = totalWants   > 0 ? totalWants   : Math.round(income * riskRatios.wants / 100);
+  const badgeSavingsRp = totalSavings > 0 ? totalSavings : Math.round(income * riskRatios.savings / 100);
 
   const formatRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
 
@@ -315,9 +593,18 @@ export default function PlanningPage() {
 
   const handleAddTarget = () => {
     if (!newTarget.name || !newTarget.target) return;
+    const newId = Date.now();
     setTargets([...targets, {
-      id: Date.now(), name: newTarget.name, target: parseInt(newTarget.target),
+      id: newId, name: newTarget.name, target: parseInt(newTarget.target),
       current: 0, icon: newTarget.icon, color: "purple", deadline: newTarget.deadline || "TBD"
+    }]);
+    setBudget([...budget, {
+      id: newId.toString(),
+      name: newTarget.name,
+      type: "savings",
+      allocated: 0,
+      spent: 0,
+      icon: newTarget.icon
     }]);
     setNewTarget({ name: "", target: "", icon: "target", deadline: "" });
     setShowAddTarget(false);
@@ -337,81 +624,128 @@ export default function PlanningPage() {
     setShowAddCategory(false);
   };
 
-  const deleteTarget = (id: number) => setTargets(targets.filter(t => t.id !== id));
-
-  const handleUpdateAllocation = (id: string, newAmount: number) => {
-    setBudget(budget.map(b => b.id === id ? { ...b, allocated: newAmount } : b));
+  const deleteTarget = (id: number) => {
+    const targetToDelete = targets.find(t => t.id === id);
+    setTargets(targets.filter(t => t.id !== id));
+    if (targetToDelete) {
+      setBudget(budget.filter(b => !(b.type === "savings" && b.name === targetToDelete.name)));
+    }
   };
 
-  // ── Budget category row ───────────────
+  // ── Overbudget warning guard for manual edit ──
+  const handleUpdateAllocation = (id: string, newAmount: number) => {
+    const otherAllocated = budget
+      .filter(b => b.id !== id)
+      .reduce((s, b) => s + b.allocated, 0);
+    const cap = income > 0 ? income : Infinity;
+    if (otherAllocated + newAmount > cap) {
+      const remaining = Math.max(cap - otherAllocated, 0);
+      setBudget(budget.map(b => b.id === id ? { ...b, allocated: remaining } : b));
+    } else {
+      setBudget(budget.map(b => b.id === id ? { ...b, allocated: newAmount } : b));
+    }
+  };
+
   const BudgetRow = ({ item }: { item: BudgetCategory }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(item.allocated.toString());
+    const [hitCap, setHitCap] = useState(false);
 
     const pct = item.allocated > 0 ? Math.round((item.spent / item.allocated) * 100) : 0;
     const isOverBudget = item.spent > item.allocated && item.allocated > 0;
+    const isNearLimit = pct >= 80 && !isOverBudget;
 
     const handleSave = () => {
-      handleUpdateAllocation(item.id, parseInt(editValue) || 0);
+      const val = parseInt(editValue) || 0;
+      const otherAllocated = budget.filter(b => b.id !== item.id).reduce((s, b) => s + b.allocated, 0);
+      const cap = income > 0 ? income : Infinity;
+      if (otherAllocated + val > cap) {
+        const remaining = Math.max(cap - otherAllocated, 0);
+        setEditValue(remaining.toString());
+        setHitCap(true);
+        setTimeout(() => setHitCap(false), 3000);
+        handleUpdateAllocation(item.id, remaining);
+      } else {
+        setHitCap(false);
+        handleUpdateAllocation(item.id, val);
+      }
       setIsEditing(false);
     };
 
     return (
-      <div style={{
-        display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem",
-        background: "var(--color-white)", border: "2.5px solid var(--color-navy)",
-        borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)",
+      <div className="card-brutal" style={{
+        display: "flex", flexDirection: "column", gap: "1.25rem", padding: "1.5rem",
+        background: isOverBudget ? "#fff5f5" : "var(--color-white)",
+        border: `3px solid ${isOverBudget ? "#e74c3c" : "var(--color-navy)"}`,
+        borderRadius: "var(--radius-brutal-sm)",
+        boxShadow: isOverBudget ? "6px 6px 0px #e74c3c" : "6px 6px 0px var(--color-navy)",
+        transition: "all 0.3s"
       }}>
-        <IconBox iconKey={item.icon} size={20} bg={item.type === "needs" ? "var(--color-lime)" : item.type === "wants" ? "var(--color-orange)" : "var(--color-purple)"} />
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", alignItems: "center" }}>
-            <span style={{ fontWeight: 800, fontSize: "0.9375rem" }}>{item.name}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div style={{ transform: "scale(1.2)", transformOrigin: "left center" }}>
+            <IconBox iconKey={item.icon} size={20} bg={isOverBudget ? "#e74c3c" : item.type === "needs" ? "var(--color-lime)" : item.type === "wants" ? "var(--color-orange)" : "var(--color-purple)"} />
+          </div>
+          <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontWeight: 900, fontSize: "1.1rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{item.name}</span>
             {isEditing ? (
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <input 
-                  type="number" 
-                  value={editValue} 
-                  onChange={e => setEditValue(e.target.value)}
-                  className="input-brutal"
-                  style={{ width: "100px", padding: "0.2rem 0.5rem", fontSize: "0.8rem", border: "2px solid var(--color-navy)" }}
-                  autoFocus
-                />
-                <button onClick={handleSave} className="btn-brutal" style={{ padding: "0.2rem 0.5rem", background: "var(--color-lime)" }}>OK</button>
+              <div style={{ display: "flex", gap: "0.5rem", flexDirection: "column", alignItems: "flex-end" }}>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <input 
+                    type="number" 
+                    value={editValue} 
+                    onChange={e => setEditValue(e.target.value)}
+                    className="input-brutal"
+                    style={{ width: "110px", padding: "0.4rem 0.6rem", fontSize: "0.85rem", border: "2.5px solid var(--color-navy)", fontWeight: 800 }}
+                    autoFocus
+                    onKeyDown={e => e.key === "Enter" && handleSave()}
+                  />
+                  <button onClick={handleSave} className="btn-brutal" style={{ padding: "0.4rem 0.6rem", background: "var(--color-lime)", fontWeight: 800 }}>OK</button>
+                </div>
+                {hitCap && (
+                  <span style={{ fontSize: "0.75rem", color: "#e74c3c", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                    <AlertTriangle size={12} /> Dibatasi - melebihi total pendapatan
+                  </span>
+                )}
               </div>
             ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span 
-                  style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem", color: isOverBudget ? "var(--color-danger, #e74c3c)" : "var(--color-navy)" }}
-                >
-                  {formatRp(item.spent)} / {formatRp(item.allocated)}
-                </span>
-                <button 
-                  onClick={() => setIsEditing(true)}
-                  style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", color: "var(--color-navy)", padding: "0.2rem", opacity: 0.6, transition: "opacity 0.2s" }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = "0.6"}
-                  title="Ubah Alokasi Budget"
-                >
-                  <Edit3 size={16} />
-                </button>
-              </div>
+              <button 
+                onClick={() => setIsEditing(true)}
+                style={{ background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", padding: "0.4rem", transition: "all 0.2s", boxShadow: "2px 2px 0px var(--color-navy)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-purple)"; e.currentTarget.style.color = "var(--color-white)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-bg)"; e.currentTarget.style.color = "var(--color-navy)"; }}
+                title="Ubah Alokasi Budget"
+              >
+                <Edit3 size={16} />
+              </button>
             )}
           </div>
-          <div style={{ width: "100%", height: "12px", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+            <span style={{ fontWeight: 900, fontFamily: "var(--font-heading)", fontSize: "1.1rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>
+              {formatRp(item.spent)} <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>/ {formatRp(item.allocated)}</span>
+            </span>
+            <span style={{ fontSize: "0.9rem", fontWeight: 800, color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{pct}%</span>
+          </div>
+          <div style={{ width: "100%", height: "16px", background: "var(--color-bg)", border: `2.5px solid ${isOverBudget ? "#e74c3c" : "var(--color-navy)"}`, borderRadius: "100px", overflow: "hidden", position: "relative" }}>
             <div style={{
               width: `${Math.min(pct, 100)}%`, height: "100%", borderRadius: "100px",
-              background: isOverBudget ? "var(--color-danger, #e74c3c)" : pct > 80 ? "var(--color-orange)" : `var(--color-${item.type === "needs" ? "lime" : item.type === "wants" ? "orange" : "purple"})`,
-              transition: "width 0.5s ease", borderRight: pct > 0 ? "2px solid var(--color-navy)" : "none"
+              background: isOverBudget ? "#e74c3c" : isNearLimit ? "var(--color-orange)" : `var(--color-${item.type === "needs" ? "lime" : item.type === "wants" ? "orange" : "purple"})`,
+              transition: "width 0.5s ease", borderRight: pct > 0 ? `2.5px solid ${isOverBudget ? "#c0392b" : "var(--color-navy)"}` : "none"
             }} />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.4rem" }}>
-            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)" }}>{pct}% terpakai</span>
-            {isOverBudget && (
-              <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-danger, #e74c3c)", display: "flex", alignItems: "center", gap: "0.2rem" }}>
-                <AlertTriangle size={12} /> Over budget!
-              </span>
-            )}
-          </div>
+          {isOverBudget && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#e74c3c", padding: "0.4rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid #c0392b", marginTop: "0.25rem" }}>
+              <AlertTriangle size={14} color="white" />
+              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "white" }}>⚠️ Pengeluaran melebihi batas alokasi!</span>
+            </div>
+          )}
+          {isNearLimit && (
+            <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#e67e22", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+              <AlertTriangle size={12} /> Mendekati batas ({pct}%)
+            </span>
+          )}
         </div>
       </div>
     );
@@ -441,457 +775,407 @@ export default function PlanningPage() {
         </div>
       </div>
 
-      {/* ── Model 3: Risk Profile Card ──────────────────────────────────────── */}
-      <div className="card-brutal animate-bounce-in" style={{ marginBottom: "2.5rem", overflow: "hidden",
-        background: "var(--color-white)",
-        border: riskResult ? `4px solid ${PROFILE_INFO[riskResult.risk_profile]?.color ?? "var(--color-navy)"}` : "4px solid var(--color-navy)",
-        boxShadow: riskResult ? `8px 8px 0px ${PROFILE_INFO[riskResult.risk_profile]?.color ?? "var(--color-navy)"}` : "8px 8px 0px var(--color-navy)",
-        padding: 0
-      }}>
-        {/* Card Header */}
-        <div style={{ padding: "1.5rem 2rem", background: "var(--color-purple)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", borderBottom: "4px solid var(--color-navy)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-            <div style={{ width: "48px", height: "48px", background: "var(--color-lime)", borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-              <Brain size={28} color="var(--color-navy)" strokeWidth={2.5} />
-            </div>
-            <div>
-              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>Profil Risiko Keuangan</div>
-              <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>Model 3 · Risk Profile Classifier · Akurasi 97.91%</div>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowRiskQuiz(v => !v)}
-            className="btn-brutal"
-            style={{ padding: "0.75rem 1.5rem", background: "var(--color-white)", color: "var(--color-navy)", fontWeight: 900, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-navy)" }}
-          >
-            {riskResult ? "Isi Ulang" : "Mulai Analisis"} <ChevronDown size={18} style={{ transform: showRiskQuiz ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-          </button>
-        </div>
+      {/* Top Row: 4 Stats Cards */}
+      <div className="stagger-children" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
 
-        {/* Quiz */}
-        {showRiskQuiz && (
-          <div style={{ padding: "2rem", background: "var(--color-bg)", borderTop: "3px solid var(--color-navy)" }}>
-            <p style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", marginBottom: "2rem", fontWeight: 700 }}>
-              Jawab 5 pertanyaan berikut untuk mendapatkan profil risiko keuanganmu dari AI.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              {RISK_QUIZ.map((q) => (
-                <div key={q.id}>
-                  <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", marginBottom: "0.75rem" }}>{q.label}</div>
-                  <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                    {q.options.map((opt) => (
-                      <button
-                        key={opt.label}
-                        type="button"
-                        onClick={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt.v }))}
-                        className="btn-brutal"
-                        style={{
-                          padding: "0.6rem 1.25rem", fontSize: "0.9rem", fontWeight: 800,
-                          background: quizAnswers[q.id] === opt.v ? "var(--color-purple)" : "var(--color-white)",
-                          color: quizAnswers[q.id] === opt.v ? "var(--color-white)" : "var(--color-navy)",
-                          boxShadow: quizAnswers[q.id] === opt.v ? "4px 4px 0px var(--color-navy)" : "4px 4px 0px var(--color-navy)",
-                          border: "2.5px solid var(--color-navy)",
-                          transform: quizAnswers[q.id] === opt.v ? "translate(-2px,-2px)" : "none",
-                        }}
-                      >{opt.label}</button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => fetchRiskProfile(quizAnswers)}
-              disabled={!allAnswered}
-              className="btn-brutal"
-              style={{
-                marginTop: "2.5rem", padding: "1rem 2.5rem", fontWeight: 900, fontSize: "1.1rem",
-                background: allAnswered ? "var(--color-lime)" : "var(--color-bg)",
-                color: allAnswered ? "var(--color-navy)" : "var(--color-text-muted)",
-                boxShadow: allAnswered ? "6px 6px 0px var(--color-navy)" : "none",
-                border: allAnswered ? "3px solid var(--color-navy)" : "3px dashed var(--color-text-light)",
-                cursor: allAnswered ? "pointer" : "not-allowed",
-                display: "flex", alignItems: "center", gap: "0.75rem",
-              }}
-            >
-              <Sparkles size={20} /> Analisis Profil Saya
-            </button>
-          </div>
-        )}
-
-        {/* Loading */}
-        {riskLoading && (
-          <div style={{ padding: "3rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", background: "var(--color-white)" }}>
-            <Loader size={32} color="var(--color-purple)" style={{ animation: "spin 1s linear infinite" }} />
-            <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.1rem" }}>AI sedang memproses datamu...</span>
-          </div>
-        )}
-
-        {/* Result */}
-        {riskResult && !riskLoading && !showRiskQuiz && (() => {
-          const info = PROFILE_INFO[riskResult.risk_profile];
+        {/* Risk Profile Card - FIRST */}
+        {(() => {
+          // Inline color map — no external dependency needed
+          const COLOR_MAP: Record<string, { bg: string; icon: string; text: string }> = {
+            "Konservatif": { bg: "var(--color-lime)",   icon: "var(--color-navy)",  text: "#4a7c00" },
+            "Moderat":     { bg: "var(--color-purple)", icon: "var(--color-white)", text: "var(--color-purple)" },
+            "Agresif":     { bg: "var(--color-orange)", icon: "var(--color-navy)",  text: "#b85c00" },
+          };
+          const profile = riskResult?.risk_profile ?? "";
+          const colors = COLOR_MAP[profile];
           return (
-            <div style={{ padding: "2rem", display: "grid", gridTemplateColumns: "auto 1fr", gap: "2rem", alignItems: "start", background: "var(--color-white)" }}>
-              {/* Profile Badge */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
-                <div style={{
-                  width: "100px", height: "100px", background: info.color,
-                  borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
-                  boxShadow: "6px 6px 0px var(--color-navy)",
-                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Shield size={40} color={info.accentColor} strokeWidth={2.5} />
-                </div>
-                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.1rem", color: "var(--color-navy)", textAlign: "center" }}>
-                  {riskResult.risk_profile}
-                </div>
-                {riskResult.is_mock && (
-                  <span className="badge-brutal" style={{ fontSize: "0.7rem", background: "var(--color-bg)" }}>ESTIMASI</span>
-                )}
+            <div className="card-brutal" style={{
+              display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem",
+              background: "var(--color-white)",
+              border: "3px solid var(--color-navy)",
+              boxShadow: "4px 4px 0px var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)", transition: "all 0.3s"
+            }}>
+              <div style={{
+                background: colors ? colors.bg : "var(--color-bg)",
+                width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center",
+                borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)",
+                boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0
+              }}>
+                <Brain size={24} color={colors ? colors.icon : "var(--color-text-muted)"} strokeWidth={2.5} />
               </div>
-
-              {/* Info */}
-              <div>
-                <p style={{ fontSize: "1.1rem", lineHeight: 1.6, color: "var(--color-navy)", marginBottom: "1.5rem", fontWeight: 600 }}>
-                  {riskResult.description}
-                </p>
-                <div style={{ background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal)", padding: "1.5rem", marginBottom: "2rem", boxShadow: "6px 6px 0px var(--color-navy)", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-                  <div style={{ background: info.color, padding: "0.5rem", borderRadius: "8px", border: "2px solid var(--color-navy)", flexShrink: 0 }}>
-                    <Sparkles size={24} color={info.accentColor} />
-                  </div>
-                  <div>
-                    <h4 style={{ margin: "0 0 0.5rem 0", fontFamily: "var(--font-heading)", fontWeight: 900, color: "var(--color-navy)", fontSize: "1.1rem" }}>Saran AI:</h4>
-                    <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.6, color: "var(--color-navy)", fontWeight: 600 }}>{riskResult.suggestion}</p>
-                  </div>
+              <div style={{ overflow: "hidden" }}>
+                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: colors ? colors.text : "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {profile || "—"}
                 </div>
-
-                {/* Probability bars */}
-                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                  {(["Konservatif","Moderat","Agresif"] as const).map(p => {
-                    const prob = Math.round((riskResult.probabilities[p] || 0) * 100);
-                    const isActive = riskResult.risk_profile === p;
-                    return (
-                      <div key={p} style={{ flex: "1 1 100px" }}>
-                        <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between" }}>
-                          <span>{p}</span><span>{prob}%</span>
-                        </div>
-                        <div style={{ height: "12px", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
-                          <div style={{ width: `${prob}%`, height: "100%", background: isActive ? PROFILE_INFO[p].color : "var(--color-text-light)", transition: "width 0.8s ease", borderRight: prob > 0 ? "2px solid var(--color-navy)" : "none" }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>Profil Risiko</div>
               </div>
             </div>
           );
         })()}
 
-        {/* Empty state */}
-        {!riskResult && !riskLoading && !showRiskQuiz && (
-          <div style={{ padding: "4rem 2rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--color-white)" }}>
-            <div style={{ background: "var(--color-bg)", padding: "1.5rem", borderRadius: "50%", border: "3px dashed var(--color-navy)", marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Brain size={48} color="var(--color-navy)" strokeWidth={2} style={{ opacity: 0.6 }} />
+        {[
+          { label: t("dashboard.planning.needs"), amount: totalNeeds, color: "lime", Icon: Home },
+          { label: t("dashboard.planning.wants"), amount: totalWants, color: "orange", Icon: Gamepad2 },
+          { label: t("dashboard.planning.savings"), amount: totalSavings, color: "purple", Icon: Banknote },
+        ].map((s, idx) => (
+          <div key={idx} className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", transition: "transform 0.2s" }}>
+            <div style={{ background: `var(--color-${s.color})`, width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
+              <s.Icon size={24} color={s.color === "purple" ? "var(--color-white)" : "var(--color-navy)"} strokeWidth={2.5} />
             </div>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: "1.1rem", color: "var(--color-navy)", opacity: 0.8 }}>Klik <strong>&quot;Mulai Analisis&quot;</strong> untuk mengetahui profil risiko keuanganmu!</p>
+            <div style={{ overflow: "hidden" }}>
+              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{formatRp(s.amount)}</div>
+              <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>{s.label}</div>
+            </div>
           </div>
-        )}
+        ))}
+
       </div>
 
-      {/* Overview Cards — 50/30/20 Rule */}
-      <div className="card-brutal animate-bounce-in" style={{ padding: "2.5rem", marginBottom: "3rem", background: "var(--color-white)", border: "4px solid var(--color-navy)", boxShadow: "8px 8px 0px var(--color-navy)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "2rem" }}>
-          <div style={{ background: "var(--color-purple)", padding: "0.5rem", borderRadius: "8px", border: "2.5px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Sparkles size={28} color="var(--color-white)" />
-          </div>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>{t("dashboard.planning.summary")}</h2>
-        </div>
-
-        <div style={{ display: "flex", height: "56px", borderRadius: "var(--radius-brutal)", border: "4px solid var(--color-navy)", overflow: "hidden", marginBottom: "2.5rem", boxShadow: "4px 4px 0px rgba(10,25,47,0.2)" }}>
-          <div style={{ width: `${needsPercent}%`, background: "var(--color-lime)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "1rem", color: "var(--color-navy)", borderRight: needsPercent > 0 ? "4px solid var(--color-navy)" : "none", transition: "width 0.5s ease" }}>
-            {needsPercent > 10 ? `Needs ${needsPercent}%` : ''}
-          </div>
-          <div style={{ width: `${wantsPercent}%`, background: "var(--color-orange)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "1rem", color: "var(--color-navy)", borderRight: wantsPercent > 0 ? "4px solid var(--color-navy)" : "none", transition: "width 0.5s ease" }}>
-            {wantsPercent > 10 ? `Wants ${wantsPercent}%` : ''}
-          </div>
-          <div style={{ width: `${savingsPercent}%`, background: "var(--color-purple)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "1rem", color: "var(--color-white)", transition: "width 0.5s ease" }}>
-            {savingsPercent > 10 ? `Save ${savingsPercent}%` : ''}
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1.5rem" }}>
-          {[
-            { label: t("dashboard.planning.needs"), amount: totalNeeds, spent: totalSpentNeeds, color: "lime", Icon: Home },
-            { label: t("dashboard.planning.wants"), amount: totalWants, spent: totalSpentWants, color: "orange", Icon: Gamepad2 },
-            { label: t("dashboard.planning.savings"), amount: totalSavings, spent: totalSpentSavings, color: "purple", Icon: Banknote },
-          ].map(s => (
-            <div key={s.label} className="card-brutal" style={{
-              background: "var(--color-white)", padding: "1.75rem", border: "3px solid var(--color-navy)",
-              boxShadow: `6px 6px 0px var(--color-${s.color})`, display: "flex", flexDirection: "column"
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
-                <div style={{ background: `var(--color-${s.color})`, padding: "0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
-                  <s.Icon size={28} color={s.color === "purple" ? "var(--color-white)" : "var(--color-navy)"} strokeWidth={2.5} />
-                </div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--color-navy)" }}>{s.label}</div>
+      <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
+        
+        {/* ── Sidebar (Left) ──────────────────────────────────────── */}
+        <div style={{ flex: "1 1 72%", minWidth: "320px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 2 }}>
+          {/* ── BUDGET VIEW ────────────────────── */}
+          <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "100%", minHeight: "60vh" }}>
+            
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
+              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <Target size={24} /> {t("dashboard.planning.categoryBudget")}
+              </h3>
+              
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                {[
+                  { id: "needs", label: "Needs", icon: Home, color: "lime" },
+                  { id: "wants", label: "Wants", icon: Gamepad2, color: "orange" },
+                  { id: "savings", label: "Save", icon: Banknote, color: "purple" }
+                ].map((item) => (
+                  <button 
+                    key={item.id}
+                    onClick={() => setActiveFilter(item.id as any)}
+                    className="btn-brutal"
+                    style={{ 
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      padding: "0.6rem 1.25rem", 
+                      borderRadius: "var(--radius-brutal-sm)", 
+                      background: activeFilter === item.id ? `var(--color-${item.color})` : "var(--color-white)",
+                      color: activeFilter === item.id && item.color !== "lime" && item.color !== "orange" ? "var(--color-white)" : "var(--color-navy)",
+                      fontWeight: 900, fontSize: "0.95rem",
+                      border: "2.5px solid var(--color-navy)",
+                      boxShadow: activeFilter === item.id ? `4px 4px 0px var(--color-navy)` : "2px 2px 0px var(--color-navy)",
+                      transform: activeFilter === item.id ? "translate(-2px, -2px)" : "none",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    <item.icon size={16} /> {item.label}
+                  </button>
+                ))}
               </div>
-              <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>{formatRp(s.amount)}</div>
-              {s.spent > 0 && (
-                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text-muted)", marginTop: "0.35rem" }}>
-                  {t("dashboard.planning.used")}{formatRp(s.spent).replace('Rp ', '')}
+            </div>
+            
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
+              <div>
+                {activeFilter === "needs" && (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.85rem", background: "var(--color-white)", padding: "0.5rem 1rem 0.5rem 0.5rem", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
+                    <div style={{ background: "var(--color-lime)", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
+                      <AlertTriangle size={22} color="var(--color-navy)" strokeWidth={2.5} />
+                    </div>
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
+                      Kebutuhan (Needs)
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <div style={{ background: "var(--color-lime)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                        {badgeNeeds}%
+                      </div>
+                      <div style={{ background: "var(--color-bg)", padding: "0.2rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                        {formatRp(badgeNeedsRp)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {activeFilter === "wants" && (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.85rem", background: "var(--color-white)", padding: "0.5rem 1rem 0.5rem 0.5rem", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
+                    <div style={{ background: "var(--color-orange)", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
+                      <Sparkles size={22} color="var(--color-navy)" strokeWidth={2.5} />
+                    </div>
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
+                      Keinginan (Wants)
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                        {badgeWants}%
+                      </div>
+                      <div style={{ background: "var(--color-bg)", padding: "0.2rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                        {formatRp(badgeWantsRp)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {activeFilter === "savings" && (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.85rem", background: "var(--color-white)", padding: "0.5rem 1rem 0.5rem 0.5rem", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
+                    <div style={{ background: "var(--color-purple)", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
+                      <ShieldCheck size={22} color="var(--color-white)" strokeWidth={2.5} />
+                    </div>
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
+                      Tabungan (Savings)
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <div style={{ background: "var(--color-purple)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                        {badgeSavings}%
+                      </div>
+                      <div style={{ background: "var(--color-bg)", padding: "0.2rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                        {formatRp(badgeSavingsRp)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
+                padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
+                background: showAddCategory ? "var(--color-orange)" : "var(--color-navy)",
+                color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.5rem",
+                boxShadow: "4px 4px 0px var(--color-navy)",
+              }}>
+                <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
+                {showAddCategory ? "Batal" : t("dashboard.planning.addCategory")}
+              </button>
+            </div>
+
+            {showAddCategory && (
+              <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2.5rem", background: "var(--color-white)", boxShadow: "6px 6px 0px var(--color-navy)", overflow: "visible", border: "3px dashed var(--color-navy)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", alignItems: "flex-end" }}>
+                  <div>
+                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>TIPE</label>
+                    <TypePicker 
+                      value={newCategory.type} 
+                      onChange={v => setNewCategory({ ...newCategory, type: v as any })} 
+                      options={[
+                        {key: "needs", label: "Needs"},
+                        {key: "wants", label: "Wants"},
+                        {key: "savings", label: "Savings"}
+                      ]} 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ICON</label>
+                    <IconPicker 
+                      value={newCategory.icon} 
+                      onChange={v => setNewCategory({ ...newCategory, icon: v })} 
+                      options={ICON_OPTIONS} 
+                    />
+                  </div>
+                  <div style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", alignItems: "flex-end" }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>NAMA KATEGORI</label>
+                      <input 
+                        value={newCategory.name} 
+                        onChange={e => setNewCategory({ ...newCategory, name: e.target.value })} 
+                        className="input-brutal" 
+                        placeholder="Contoh: Belanja Online" 
+                        style={{ border: "3px solid var(--color-navy)", padding: "0.85rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)", outline: "none", fontWeight: 800, fontSize: "1rem" }} 
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ALOKASI (RP)</label>
+                      <input value={newCategory.allocated} onChange={e => setNewCategory({ ...newCategory, allocated: e.target.value })} className="input-brutal" type="number" placeholder="0" style={{ border: "3px solid var(--color-navy)", padding: "0.85rem", width: "100%", fontWeight: 900, boxShadow: "3px 3px 0px var(--color-navy)", fontSize: "1rem" }} />
+                    </div>
+                    <button onClick={handleAddCategory} className="btn-brutal" style={{
+                      padding: "0.85rem 2rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900, fontSize: "1rem",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)", border: "3px solid var(--color-navy)"
+                    }}>
+                      Simpan
+                    </button>
+                  </div>
                 </div>
+              </div>
+            )}
+
+            <div>
+              {searchQuery && filteredBudget.length === 0 ? (
+                <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                  <SearchX size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
+                  <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
+                    Pencarian untuk "{searchQuery}" tidak ditemukan.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {activeFilter === "needs" && (
+                    <div style={{ marginBottom: "3rem" }}>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
+                        {needsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                      </div>
+                    </div>
+                  )}
+
+                  {activeFilter === "wants" && (
+                    <div style={{ marginBottom: "3rem" }}>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
+                        {wantsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                      </div>
+                    </div>
+                  )}
+
+                  {activeFilter === "savings" && (
+                    <div style={{ marginBottom: "2rem" }}>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
+                        {savingsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tab Switch */}
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
-        <button onClick={() => setActiveView("budget")} className="btn-brutal" style={{
-          padding: "0.8rem 1.75rem", fontWeight: 900, fontSize: "1.05rem",
-          background: activeView === "budget" ? "var(--color-navy)" : "var(--color-white)",
-          color: activeView === "budget" ? "var(--color-white)" : "var(--color-navy)",
-          display: "flex", alignItems: "center", gap: "0.6rem",
-          boxShadow: activeView === "budget" ? "6px 6px 0px var(--color-lime)" : "4px 4px 0px var(--color-navy)",
-          transform: activeView === "budget" ? "translate(-2px, -2px)" : "none",
-        }}>
-          <Wallet size={20} /> {t("dashboard.planning.allocBudget")}
-        </button>
-        <button onClick={() => setActiveView("targets")} className="btn-brutal" style={{
-          padding: "0.8rem 1.75rem", fontWeight: 900, fontSize: "1.05rem",
-          background: activeView === "targets" ? "var(--color-navy)" : "var(--color-white)",
-          color: activeView === "targets" ? "var(--color-white)" : "var(--color-navy)",
-          display: "flex", alignItems: "center", gap: "0.6rem",
-          boxShadow: activeView === "targets" ? "6px 6px 0px var(--color-purple)" : "4px 4px 0px var(--color-navy)",
-          transform: activeView === "targets" ? "translate(-2px, -2px)" : "none",
-        }}>
-          <PiggyBank size={20} /> {t("dashboard.planning.targetSavings")}
-        </button>
-      </div>
-
-      {/* ── BUDGET VIEW ────────────────────── */}
-      {activeView === "budget" && (
-        <div className="animate-slide-up">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)" }}>
-              {t("dashboard.planning.categoryBudget")}
-            </h3>
-            <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
-              padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
-              background: showAddCategory ? "var(--color-orange)" : "var(--color-navy)",
-              color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.5rem",
-              boxShadow: "4px 4px 0px var(--color-navy)",
-            }}>
-              <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
-              {showAddCategory ? "Batal" : t("dashboard.planning.addCategory")}
-            </button>
-          </div>
-
-          {showAddCategory && (
-            <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2.5rem", background: "var(--color-white)", boxShadow: "6px 6px 0px var(--color-purple)", overflow: "visible" }}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", alignItems: "flex-end" }}>
-                <div>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>TIPE</label>
-                  <select value={newCategory.type} onChange={e => setNewCategory({ ...newCategory, type: e.target.value as any })} className="input-brutal" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", fontSize: "0.9rem", fontWeight: 800, minWidth: "120px", boxShadow: "3px 3px 0px var(--color-navy)" }}>
-                    <option value="needs">Needs</option>
-                    <option value="wants">Wants</option>
-                    <option value="savings">Savings</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ICON</label>
-                  <IconPicker 
-                    value={newCategory.icon} 
-                    onChange={v => setNewCategory({ ...newCategory, icon: v })} 
-                    options={ICON_OPTIONS} 
-                  />
-                </div>
-                <div style={{ flex: 1, minWidth: "200px" }}>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>NAMA KATEGORI</label>
-                  <input value={newCategory.name} onChange={e => setNewCategory({ ...newCategory, name: e.target.value })} className="input-brutal" placeholder="Contoh: Belanja Online" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)" }} />
-                </div>
-                <div style={{ flex: 1, minWidth: "150px" }}>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ALOKASI (RP)</label>
-                  <input value={newCategory.allocated} onChange={e => setNewCategory({ ...newCategory, allocated: e.target.value })} className="input-brutal" type="number" placeholder="0" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", width: "100%", fontWeight: 900, boxShadow: "3px 3px 0px var(--color-navy)" }} />
-                </div>
-                  <button onClick={handleAddCategory} className="btn-brutal" style={{
-                    padding: "0.8rem 1.5rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900,
-                    display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)"
-                  }}>
-                    Simpan
-                  </button>
-              </div>
-            </div>
-          )}
-
-          <div style={{ padding: "1.5rem" }}>
-            {searchQuery && filteredBudget.length === 0 ? (
-              <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
-                <SearchX size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
-                <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
-                  Pencarian untuk "{searchQuery}" tidak ditemukan.
-                </p>
-              </div>
-            ) : (
-              <>
-                <div style={{ marginBottom: "2.5rem" }}>
-                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: "0 0 1rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-                    <AlertTriangle size={20} color="var(--color-danger, #e74c3c)" /> {t("dashboard.planning.needs")} 50%
-                  </h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                    {needsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: "2.5rem" }}>
-                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: "0 0 1rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-                    <Sparkles size={20} color="var(--color-purple)" /> {t("dashboard.planning.wants")} 30%
-                  </h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                    {wantsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-                    <ShieldCheck size={20} color="var(--color-lime)" /> {t("dashboard.planning.savings")} 20%
-                  </h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                    {savingsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </div>
-      )}
 
-      {/* ── TARGETS VIEW ───────────────────── */}
-      {activeView === "targets" && (
-        <div className="animate-slide-up">
-          {/* Emergency Fund */}
-          <div className="card-brutal" style={{
-            padding: "2.5rem", marginBottom: "3rem",
-            background: "var(--color-white)", border: "4px solid var(--color-navy)",
-            boxShadow: `8px 8px 0px ${emergencyMonths >= 3 ? "var(--color-lime)" : "var(--color-orange)"}`
+        {/* ── Main Area (Right) ──────────────────────────────────────── */}
+        <div style={{ flex: "1 1 24%", minWidth: "250px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 1 }}>
+          {/* ── Model 3: Risk Profile Card ──────────────────────────────────────── */}
+          <div className="card-brutal animate-bounce-in" style={{ overflow: "hidden",
+            background: "var(--color-white)",
+            border: "4px solid var(--color-navy)",
+            boxShadow: "8px 8px 0px var(--color-navy)",
+            padding: 0
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "2rem", flexWrap: "wrap" }}>
-              <div style={{ width: "80px", height: "80px", background: emergencyMonths >= 3 ? "var(--color-lime)" : "var(--color-orange)", borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "4px 4px 0px var(--color-navy)" }}>
-                <ShieldCheck size={44} color="var(--color-navy)" strokeWidth={2.5} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 900, color: "var(--color-navy)", marginBottom: "0.5rem" }}>
-                  Dana Darurat: {emergencyMonths} bulan pengeluaran tersimpan
+            {/* Card Header */}
+            <div style={{ padding: "1.5rem 2rem", background: "var(--color-purple)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", borderBottom: "4px solid var(--color-navy)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                <div style={{ width: "48px", height: "48px", background: "var(--color-lime)", borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                  <Brain size={28} color="var(--color-navy)" strokeWidth={2.5} />
                 </div>
-                <div style={{ fontSize: "1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>
-                  Idealnya 3–6 bulan. Target: {formatRp(emergencyFundTarget)} | Terkumpul: {formatRp(emergencyFundCurrent)}
+                <div>
+                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>Profil Risiko Keuangan</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>Model 3 · Risk Profile Classifier</div>
                 </div>
               </div>
-              <div style={{
-                fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 900,
-                color: "var(--color-white)", padding: "1rem 2rem",
-                background: "var(--color-navy)", border: "3px solid var(--color-navy)",
-                borderRadius: "var(--radius-brutal)", boxShadow: `6px 6px 0px ${emergencyMonths >= 3 ? "var(--color-lime)" : "var(--color-orange)"}`,
-              }}>
-                {Math.round((emergencyFundCurrent / (emergencyFundTarget || 1)) * 100)}%
-              </div>
+              <button
+                onClick={() => setShowRiskQuiz(v => !v)}
+                className="btn-brutal"
+                style={{ padding: "0.75rem 1.5rem", background: "var(--color-white)", color: "var(--color-navy)", fontWeight: 900, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-navy)" }}
+              >
+                {riskResult ? "Isi Ulang" : "Mulai Analisis"} <ChevronDown size={18} style={{ transform: showRiskQuiz ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+              </button>
             </div>
-          </div>
 
-          {/* Savings Targets Header */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)" }}>
-              Target Tabungan
-            </h3>
-            <button onClick={() => setShowAddTarget(!showAddTarget)} className="btn-brutal" style={{
-              padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
-              background: showAddTarget ? "var(--color-orange)" : "var(--color-navy)",
-              color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.5rem",
-              boxShadow: "4px 4px 0px var(--color-navy)",
-            }}>
-              <Plus size={18} style={{ transform: showAddTarget ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
-              {showAddTarget ? "Batal" : "Tambah Target"}
-            </button>
-          </div>
-
-          {/* Add Target Form */}
-          {showAddTarget && (
-            <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2.5rem", background: "var(--color-white)", boxShadow: "6px 6px 0px var(--color-purple)", overflow: "visible" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "auto 1fr 1fr auto", gap: "1.5rem", alignItems: "end" }}>
-                <div>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ICON</label>
-                  <IconPicker 
-                    value={newTarget.icon} 
-                    onChange={v => setNewTarget({ ...newTarget, icon: v })} 
-                    options={ICON_OPTIONS} 
-                  />
+            {/* Quiz */}
+            {showRiskQuiz && (
+              <div style={{ padding: "2rem", background: "var(--color-bg)", borderTop: "3px solid var(--color-navy)" }}>
+                <p style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", marginBottom: "2rem", fontWeight: 700 }}>
+                  Jawab 5 pertanyaan berikut untuk mendapatkan profil risiko keuanganmu dari AI.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                  {RISK_QUIZ.map((q) => (
+                    <div key={q.id}>
+                      <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", marginBottom: "0.75rem" }}>{q.label}</div>
+                      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                        {q.options.map((opt) => (
+                          <button
+                            key={opt.label}
+                            type="button"
+                            onClick={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt.v }))}
+                            className="btn-brutal"
+                            style={{
+                              padding: "0.6rem 1.25rem", fontSize: "0.9rem", fontWeight: 800,
+                              background: quizAnswers[q.id] === opt.v ? "var(--color-purple)" : "var(--color-white)",
+                              color: quizAnswers[q.id] === opt.v ? "var(--color-white)" : "var(--color-navy)",
+                              boxShadow: quizAnswers[q.id] === opt.v ? "4px 4px 0px var(--color-navy)" : "4px 4px 0px var(--color-navy)",
+                              border: "2.5px solid var(--color-navy)",
+                              transform: quizAnswers[q.id] === opt.v ? "translate(-2px,-2px)" : "none",
+                            }}
+                          >{opt.label}</button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>NAMA TARGET</label>
-                  <input value={newTarget.name} onChange={e => setNewTarget({ ...newTarget, name: e.target.value })} className="input-brutal" placeholder="Contoh: Dana Nikah" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)" }} />
-                </div>
-                <div>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>TARGET (RP)</label>
-                  <input value={newTarget.target} onChange={e => setNewTarget({ ...newTarget, target: e.target.value })} className="input-brutal" type="number" placeholder="0" style={{ border: "3px solid var(--color-navy)", padding: "0.75rem", width: "100%", fontWeight: 900, boxShadow: "3px 3px 0px var(--color-navy)" }} />
-                </div>
-                <button onClick={handleAddTarget} className="btn-brutal" style={{
-                  padding: "0.8rem 1.5rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900,
-                  display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)"
-                }}>
-                  Simpan
+                <button
+                  onClick={() => fetchRiskProfile(quizAnswers)}
+                  disabled={!allAnswered}
+                  className="btn-brutal"
+                  style={{
+                    marginTop: "2.5rem", padding: "1rem 2.5rem", fontWeight: 900, fontSize: "1.1rem",
+                    background: allAnswered ? "var(--color-lime)" : "var(--color-bg)",
+                    color: allAnswered ? "var(--color-navy)" : "var(--color-text-muted)",
+                    boxShadow: allAnswered ? "6px 6px 0px var(--color-navy)" : "none",
+                    border: allAnswered ? "3px solid var(--color-navy)" : "3px dashed var(--color-text-light)",
+                    cursor: allAnswered ? "pointer" : "not-allowed",
+                    display: "flex", alignItems: "center", gap: "0.75rem",
+                  }}
+                >
+                  <Sparkles size={20} /> Analisis Profil Saya
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem" }}>
-            {searchQuery && filteredTargets.length === 0 ? (
-              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
-                <SearchX size={48} color="var(--color-text-muted)" style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
-                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>Pencarian untuk "{searchQuery}" tidak ditemukan.</p>
+            {/* Loading */}
+            {riskLoading && (
+              <div style={{ padding: "3rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", background: "var(--color-white)" }}>
+                <Loader size={32} color="var(--color-purple)" style={{ animation: "spin 1s linear infinite" }} />
+                <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.1rem" }}>AI sedang memproses datamu...</span>
               </div>
-            ) : (
-              filteredTargets.map(t => {
-                const pct = t.target > 0 ? Math.round((t.current / t.target) * 100) : 0;
-                const remaining = t.target - t.current;
-                return (
-                  <div key={t.id} className="card-brutal" style={{ padding: "2rem", position: "relative", background: "var(--color-white)", boxShadow: `6px 6px 0px var(--color-${t.color})` }}>
-                    <button onClick={() => deleteTarget(t.id)} style={{
-                      position: "absolute", top: "1rem", right: "1rem", background: "var(--color-bg)",
-                      border: "2px solid var(--color-navy)", borderRadius: "6px", cursor: "pointer", padding: "0.4rem", transition: "transform 0.2s"
-                    }} className="hover:scale-110">
-                    <Trash2 size={16} color="var(--color-navy)" />
-                  </button>
+            )}
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1.5rem" }}>
-                    <IconBox iconKey={t.icon} size={32} bg={`var(--color-${t.color})`} />
-                    <div>
-                      <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.35rem", fontWeight: 900, color: "var(--color-navy)" }}>{t.name}</div>
-                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-muted)" }}>Target: {t.deadline}</div>
+            {/* Result */}
+            {riskResult && !riskLoading && !showRiskQuiz && (() => {
+              const info = PROFILE_INFO[riskResult.risk_profile];
+              return (
+                <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "center", background: "var(--color-white)" }}>
+                  {/* Info */}
+                  <div>
+                    <p style={{ fontSize: "1.1rem", lineHeight: 1.6, color: "var(--color-navy)", marginBottom: "1.5rem", fontWeight: 600 }}>
+                      {riskResult.description}
+                    </p>
+                    {/* Probability bars */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>
+                      {(["Konservatif","Moderat","Agresif"] as const).map(p => {
+                        const prob = Math.round((riskResult.probabilities[p] || 0) * 100);
+                        const isActive = riskResult.risk_profile === p;
+                        return (
+                          <div key={p} style={{ width: "100%" }}>
+                            <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between" }}>
+                              <span>{p}</span><span>{prob}%</span>
+                            </div>
+                            <div style={{ height: "12px", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
+                              <div style={{ width: `${prob}%`, height: "100%", background: isActive ? PROFILE_INFO[p].color : "var(--color-text-light)", transition: "width 0.8s ease", borderRight: prob > 0 ? "2px solid var(--color-navy)" : "none" }} />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
 
-                  <div style={{ marginBottom: "1rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                      <span style={{ fontWeight: 900, fontSize: "1.1rem", fontFamily: "var(--font-heading)" }}>{formatRp(t.current)}</span>
-                      <span style={{ fontWeight: 800, fontSize: "0.9rem", color: "var(--color-text-muted)" }}>{formatRp(t.target)}</span>
+                    <div style={{ background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal)", padding: "1.5rem", boxShadow: "6px 6px 0px var(--color-navy)", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+                      <div style={{ background: info.color, padding: "0.5rem", borderRadius: "8px", border: "2px solid var(--color-navy)", flexShrink: 0 }}>
+                        <Sparkles size={24} color={info.accentColor} />
+                      </div>
+                      <div>
+                        <h4 style={{ margin: "0 0 0.5rem 0", fontFamily: "var(--font-heading)", fontWeight: 900, color: "var(--color-navy)", fontSize: "1.1rem" }}>Saran AI:</h4>
+                        <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.6, color: "var(--color-navy)", fontWeight: 600 }}>{riskResult.suggestion}</p>
+                      </div>
                     </div>
-                    <div className="progress-brutal" style={{ height: "24px", border: "2.5px solid var(--color-navy)", background: "var(--color-bg)" }}>
-                      <div className="progress-brutal__fill" style={{ width: `${pct}%`, background: `var(--color-${t.color})`, borderRight: pct > 0 ? "2.5px solid var(--color-navy)" : "none" }} />
-                      <div className="progress-brutal__label" style={{ fontSize: "0.85rem", fontWeight: 900 }}>{pct}%</div>
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: "0.95rem", color: "var(--color-navy)", fontWeight: 700 }}>
-                    Kurang <span style={{ fontWeight: 900, color: `var(--color-${t.color})`, padding: "0 0.2rem" }}>{formatRp(remaining)}</span> lagi!
                   </div>
                 </div>
               );
-            })
-          )}
+            })()}
+
+            {/* Empty state */}
+            {!riskResult && !riskLoading && !showRiskQuiz && (
+              <div style={{ padding: "4rem 2rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--color-white)" }}>
+                <div style={{ background: "var(--color-bg)", padding: "1.5rem", borderRadius: "50%", border: "3px dashed var(--color-navy)", marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Brain size={48} color="var(--color-navy)" strokeWidth={2} style={{ opacity: 0.6 }} />
+                </div>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: "1.1rem", color: "var(--color-navy)", opacity: 0.8 }}>Klik <strong>&quot;Mulai Analisis&quot;</strong> untuk mengetahui profil risiko keuanganmu!</p>
+              </div>
+            )}
+          </div>
+          
         </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 

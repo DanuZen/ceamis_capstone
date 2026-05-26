@@ -8,7 +8,8 @@ import {
   ArrowRight, ArrowLeft, CheckCircle2, Sparkles,
   Home, Utensils, Car, Tv, Package, Smartphone, HeartPulse, GraduationCap,
   PiggyBank, TrendingUp, Unlock, Umbrella, Laptop, Plane,
-  ShieldCheck, Scale, Rocket, Briefcase, Store
+  ShieldCheck, Scale, Rocket, Briefcase, Store,
+  Users, MapPin, AlertCircle
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { onboardingApi } from "@/lib/api";
@@ -31,7 +32,7 @@ const STEPS = [
     accent: "var(--color-orange)", bg: "var(--color-orange)", textColor: "var(--color-navy)"
   },
   {
-    id: 5, title: "Profil Risiko", subtitle: "Tipe investor apa kamu?", icon: Shield,
+    id: 5, title: "Kebiasaan Menabung", subtitle: "Gimana cara kamu simpan uang?", icon: Shield,
     accent: "var(--color-warning)", bg: "var(--color-warning)", textColor: "var(--color-navy)"
   },
 ];
@@ -63,22 +64,30 @@ const FINANCIAL_GOALS = [
   { id: "traveling",  label: "Dana traveling",            desc: "Dana untuk jalan-jalan", icon: Plane },
 ];
 
-const RISK_PROFILES = [
-  {
-    id: "konservatif", label: "Konservatif", icon: ShieldCheck,
-    desc: "Aman dulu, baru untung. Prioritas tabungan.",
-    color: "var(--color-lime)", tag: "AMAN & STABIL",
-  },
-  {
-    id: "moderat", label: "Moderat", icon: Scale,
-    desc: "Seimbang aman & cuan. Mix tabungan & investasi.",
-    color: "var(--color-info)", tag: "BALANCED",
-  },
-  {
-    id: "agresif", label: "Agresif", icon: Rocket,
-    desc: "Berani ambil risiko untuk return lebih besar.",
-    color: "var(--color-pink)", tag: "HIGH RETURN",
-  },
+const RISK_PROFILES = []; // Not used directly anymore
+
+const CITY_TIERS = [
+  { id: 1, label: "Kota Besar / Metro" },
+  { id: 2, label: "Kota Menengah" },
+  { id: 3, label: "Kota Kecil / Kabupaten" },
+];
+const TANGGUNGAN_OPTIONS = [
+  { id: 0, label: "Tidak ada" },
+  { id: 1, label: "1 orang" },
+  { id: 2, label: "2 orang" },
+  { id: 3, label: "3+ orang" },
+];
+const TOLERANSI_RUGI = [
+  { id: 0, label: "Jual semua", desc: "Panik, langsung amankan sisa dana" },
+  { id: 1, label: "Tunggu & pantau", desc: "Tenang, tunggu harganya naik lagi" },
+  { id: 2, label: "Beli lagi", desc: "Mumpung murah (buy the dip!)" },
+];
+const SAVE_HABIT_OPTIONS = [
+  { id: 1, label: "Tidak pernah" },
+  { id: 2, label: "Jarang" },
+  { id: 3, label: "Kadang-kadang" },
+  { id: 4, label: "Sering" },
+  { id: 5, label: "Selalu (rutin)" },
 ];
 
 export default function OnboardingPage() {
@@ -90,7 +99,9 @@ export default function OnboardingPage() {
   const [formData, setFormData] = useState({
     name: "", age: "", income: "", incomeSource: "gaji",
     topExpenses: [] as string[], monthlyExpense: "",
-    goals: [] as string[], riskProfile: "",
+    goals: [] as string[], riskProfile: "moderat",
+    tanggunganKeluarga: 0, cityTier: 1, toleransiRugi: 1, 
+    saveHabit: 3, punyaTabungan: false, jumlahTabunganBulan: "0",
   });
 
   const step = STEPS[currentStep - 1];
@@ -118,7 +129,7 @@ export default function OnboardingPage() {
       case 2: return formData.income !== "";
       case 3: return formData.topExpenses.length > 0;
       case 4: return formData.goals.length > 0;
-      case 5: return formData.riskProfile !== "";
+      case 5: return !formData.punyaTabungan || (formData.punyaTabungan && formData.jumlahTabunganBulan !== "");
       default: return false;
     }
   };
@@ -138,12 +149,25 @@ export default function OnboardingPage() {
           top_expenses: formData.topExpenses,
           monthly_expense: parseFloat(formData.monthlyExpense || "0"),
           goals: formData.goals,
-          risk_profile: formData.riskProfile,
+          risk_profile: "moderat", // Fallback, no longer directly chosen
+          tanggungan_keluarga: formData.tanggunganKeluarga,
+          city_tier_enc: formData.cityTier,
+          toleransi_rugi_enc: formData.toleransiRugi,
+          save_habit: formData.saveHabit,
+          punya_tabungan: formData.punyaTabungan,
+          jumlah_tabungan_bulan: formData.punyaTabungan ? parseFloat(formData.jumlahTabunganBulan || "0") : 0,
         });
+        // Hapus cache user agar di-fetch ulang dari server saat login
+        localStorage.removeItem("ceamis_user");
+        localStorage.removeItem("ceamis_transactions");
       }
+      
+      setIsSubmitting(false);
+      const { data } = await supabase.auth.getUser();
+      const emailParam = data?.user?.email ? encodeURIComponent(data.user.email) : "";
+      router.push(`/auth?verify=1&email=${emailParam}`);
     } catch (err) {
       console.error("Onboarding save error:", err);
-    } finally {
       setIsSubmitting(false);
       router.push("/dashboard");
     }
@@ -284,6 +308,35 @@ export default function OnboardingPage() {
                     value={formData.age} onChange={v => setFormData({ ...formData, age: v })}
                     accent={step.accent}
                   />
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.75rem" }}>
+                      JUMLAH TANGGUNGAN KELUARGA
+                    </label>
+                    <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                      {TANGGUNGAN_OPTIONS.map(opt => {
+                        const isSelected = formData.tanggunganKeluarga === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            onClick={() => setFormData({ ...formData, tanggunganKeluarga: opt.id })}
+                            className={`selectable-card ${isSelected ? 'selected' : ''}`}
+                            style={{
+                              padding: "0.6rem 1rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.9rem", fontWeight: 700,
+                              border: "2px solid var(--color-navy)",
+                              background: isSelected ? step.accent : "var(--color-white)",
+                              color: "var(--color-navy)",
+                              cursor: "pointer",
+                              boxShadow: "2px 2px 0px var(--color-navy)",
+                              display: "flex", alignItems: "center", gap: "0.5rem"
+                            }}
+                          >
+                            <Users size={16} strokeWidth={2.5} />
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -332,6 +385,35 @@ export default function OnboardingPage() {
                     value={formData.income} onChange={v => setFormData({ ...formData, income: v })}
                     accent={step.accent} prefix="Rp"
                   />
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.75rem" }}>
+                      LOKASI TEMPAT TINGGAL
+                    </label>
+                    <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                      {CITY_TIERS.map(tier => {
+                        const isSelected = formData.cityTier === tier.id;
+                        return (
+                          <button
+                            key={tier.id}
+                            onClick={() => setFormData({ ...formData, cityTier: tier.id })}
+                            className={`selectable-card ${isSelected ? 'selected' : ''}`}
+                            style={{
+                              padding: "0.6rem 1rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.9rem", fontWeight: 700,
+                              border: "2px solid var(--color-navy)",
+                              background: isSelected ? step.accent : "var(--color-white)",
+                              color: "var(--color-navy)",
+                              cursor: "pointer",
+                              boxShadow: "2px 2px 0px var(--color-navy)",
+                              display: "flex", alignItems: "center", gap: "0.5rem"
+                            }}
+                          >
+                            <MapPin size={16} strokeWidth={2.5} />
+                            {tier.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -417,6 +499,40 @@ export default function OnboardingPage() {
                     );
                   })}
                 </div>
+                
+                <div style={{ marginTop: "2rem" }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.75rem" }}>
+                    TOLERANSI RISIKO INVESTASI
+                  </label>
+                  <p style={{ color: "var(--color-text-muted)", marginBottom: "1rem", fontSize: "0.9rem", fontWeight: 500 }}>
+                    Jika investasimu tiba-tiba turun 20% dalam seminggu, apa yang akan kamu lakukan?
+                  </p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}>
+                    {TOLERANSI_RUGI.map(opt => {
+                      const isSelected = formData.toleransiRugi === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => setFormData({ ...formData, toleransiRugi: opt.id })}
+                          className={`selectable-card ${isSelected ? 'selected' : ''}`}
+                          style={{
+                            padding: "0.85rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.85rem", fontWeight: 700,
+                            border: "2px solid var(--color-navy)",
+                            background: isSelected ? step.accent : "var(--color-white)",
+                            color: "var(--color-navy)",
+                            cursor: "pointer",
+                            boxShadow: "2px 2px 0px var(--color-navy)",
+                            display: "flex", flexDirection: "column", gap: "0.5rem", textAlign: "left"
+                          }}
+                        >
+                          <AlertCircle size={18} strokeWidth={2.5} color={isSelected ? "var(--color-navy)" : "var(--color-text-muted)"} />
+                          <span style={{ fontWeight: 800, fontSize: "0.9rem" }}>{opt.label}</span>
+                          <span style={{ fontSize: "0.7rem", color: isSelected ? "var(--color-navy)" : "var(--color-text-muted)", fontWeight: 600 }}>{opt.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -424,43 +540,94 @@ export default function OnboardingPage() {
             {currentStep === 5 && (
               <div>
                 <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.8rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.25rem" }}>
-                  Gaya finansialmu gimana?
+                  Kebiasaan Menabung
                 </h2>
                 <p style={{ color: "var(--color-text-muted)", marginBottom: "1.5rem", fontSize: "1rem", fontWeight: 500 }}>
-                  Pilih profil yang paling cocok dengan kepribadian finansialmu.
+                  Gimana cara kamu menyimpan uang saat ini?
                 </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  {RISK_PROFILES.map(profile => {
-                    const sel = formData.riskProfile === profile.id;
-                    return (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.75rem" }}>
+                      SEBERAPA RUTIN KAMU MENABUNG SETIAP BULAN?
+                    </label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                      {SAVE_HABIT_OPTIONS.map(opt => {
+                        const isSelected = formData.saveHabit === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            onClick={() => setFormData({ ...formData, saveHabit: opt.id })}
+                            className={`selectable-card ${isSelected ? 'selected' : ''}`}
+                            style={{
+                              padding: "0.6rem 1rem", borderRadius: "100px", fontSize: "0.85rem", fontWeight: 700,
+                              border: "2px solid var(--color-navy)",
+                              background: isSelected ? step.accent : "var(--color-white)",
+                              color: "var(--color-navy)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.75rem" }}>
+                      APAKAH SAAT INI KAMU PUNYA TABUNGAN / DANA DARURAT?
+                    </label>
+                    <div style={{ display: "flex", gap: "1rem", marginBottom: formData.punyaTabungan ? "1rem" : "0" }}>
                       <button
-                        key={profile.id}
-                        onClick={() => setFormData({ ...formData, riskProfile: profile.id })}
-                        className={`selectable-card ${sel ? 'selected' : ''}`}
+                        onClick={() => setFormData({ ...formData, punyaTabungan: true })}
+                        className={`selectable-card ${formData.punyaTabungan ? 'selected' : ''}`}
                         style={{
-                          padding: "1.25rem", borderRadius: "var(--radius-brutal)", textAlign: "left",
-                          background: sel ? profile.color : "var(--color-white)",
-                          cursor: "pointer", display: "flex", alignItems: "center", gap: "1.25rem",
+                          flex: 1, padding: "0.75rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.9rem", fontWeight: 800,
                           border: "2px solid var(--color-navy)",
-                          boxShadow: "4px 4px 0px var(--color-navy)",
+                          background: formData.punyaTabungan ? step.accent : "var(--color-white)",
+                          color: "var(--color-navy)", cursor: "pointer", boxShadow: "2px 2px 0px var(--color-navy)"
                         }}
                       >
-                        <span style={{ flexShrink: 0, background: "var(--color-white)", borderRadius: "10px", width: "52px", height: "52px", border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <profile.icon size={28} strokeWidth={2.5} color="var(--color-navy)" />
-                        </span>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.25rem" }}>
-                            <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.2rem", color: "var(--color-navy)" }}>{profile.label}</span>
-                            <span className="badge-brutal" style={{ fontSize: "0.65rem", background: "var(--color-white)", color: "var(--color-navy)", padding: "0.15rem 0.5rem" }}>
-                              {profile.tag}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: "0.85rem", color: "var(--color-navy)", fontWeight: 600, lineHeight: 1.4 }}>{profile.desc}</div>
-                        </div>
-                        {sel && <CheckCircle2 size={26} color="var(--color-navy)" style={{ flexShrink: 0 }} strokeWidth={3} />}
+                        Ya, Punya
                       </button>
-                    );
-                  })}
+                      <button
+                        onClick={() => setFormData({ ...formData, punyaTabungan: false, jumlahTabunganBulan: "0" })}
+                        className={`selectable-card ${!formData.punyaTabungan ? 'selected' : ''}`}
+                        style={{
+                          flex: 1, padding: "0.75rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.9rem", fontWeight: 800,
+                          border: "2px solid var(--color-navy)",
+                          background: !formData.punyaTabungan ? "var(--color-pink)" : "var(--color-white)",
+                          color: !formData.punyaTabungan ? "var(--color-white)" : "var(--color-navy)", cursor: "pointer", boxShadow: "2px 2px 0px var(--color-navy)"
+                        }}
+                      >
+                        Belum Ada
+                      </button>
+                    </div>
+
+                    {formData.punyaTabungan && (
+                      <div className="animate-fade-in">
+                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.5rem" }}>
+                          CUKUP UNTUK BERAPA BULAN PENGELUARAN?
+                        </label>
+                        <select
+                          value={formData.jumlahTabunganBulan}
+                          onChange={(e) => setFormData({ ...formData, jumlahTabunganBulan: e.target.value })}
+                          style={{
+                            width: "100%", padding: "0.75rem", borderRadius: "var(--radius-brutal-sm)",
+                            border: "2px solid var(--color-navy)", fontSize: "0.9rem", fontWeight: 700,
+                            background: "var(--color-white)", color: "var(--color-navy)",
+                            boxShadow: "2px 2px 0px var(--color-navy)", outline: "none", cursor: "pointer"
+                          }}
+                        >
+                          <option value="0" disabled>Pilih opsi...</option>
+                          <option value="0.5">&lt; 1 Bulan</option>
+                          <option value="1.5">1 - 2 Bulan</option>
+                          <option value="4">3 - 5 Bulan</option>
+                          <option value="7">&gt; 6 Bulan</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

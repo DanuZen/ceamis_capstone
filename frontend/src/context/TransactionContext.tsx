@@ -14,13 +14,14 @@ export interface Transaction {
   type: TransactionType;
   category: string;
   date: string;
+  created_at: string;
   tag?: "needs" | "wants" | "save";
 }
 
 interface TransactionContextType {
   transactions: Transaction[];
   isLoading: boolean;
-  addTransaction: (transaction: Omit<Transaction, "id" | "date" | "desc">) => Promise<void>;
+  addTransaction: (transaction: Omit<Transaction, "id" | "date" | "desc" | "created_at">) => Promise<void>;
   clearTransactions: () => void;
   refreshTransactions: () => Promise<void>;
   summary: {
@@ -43,6 +44,7 @@ const mapApiToLocal = (t: ApiTransaction): Transaction => ({
   type: t.type,
   category: t.category,
   tag: t.tag,
+  created_at: t.created_at,
   date: new Date(t.created_at).toLocaleDateString("id-ID", {
     day: "numeric", month: "short", year: "numeric",
   }),
@@ -107,7 +109,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   }, [refreshTransactions]);
 
   const addTransaction = async (
-    transaction: Omit<Transaction, "id" | "date" | "desc">
+    transaction: Omit<Transaction, "id" | "date" | "desc" | "created_at">
   ) => {
     const userId = await getUserId();
 
@@ -116,6 +118,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const newTx: Transaction = {
         ...transaction,
         id: Math.random().toString(36).substring(2, 9),
+        created_at: new Date().toISOString(),
         date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
         desc: transaction.description,
       };

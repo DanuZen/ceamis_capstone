@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShieldCheck, User, Eye, Zap, LogIn, ArrowLeft, Mail, X, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/context/LanguageContext";
@@ -24,6 +24,14 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("verify") === "1") {
+      setRegisteredEmail(searchParams.get("email") || "");
+      setShowVerifyModal(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -385,7 +393,7 @@ export default function AuthPage() {
               border: "3px solid var(--color-navy)",
               borderTop: "8px solid var(--color-navy)",
               borderRadius: "var(--radius-brutal-lg)",
-              boxShadow: "8px 8px 0px #D1D5DB",
+              boxShadow: "8px 8px 0px var(--color-navy)",
               position: "relative",
             }}
           >

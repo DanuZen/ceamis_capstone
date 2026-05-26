@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Clock, ChevronRight, CheckCircle } from "lucide-react";
 import { useUser } from "@/context/UserContext";
@@ -12,9 +12,12 @@ const moduleData = {
   }
 };
 
+
+
 export default function ModuleDetailPage() {
   const { addXp } = useUser();
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const id = params.id as string;
   const { t } = useLanguage();
@@ -150,7 +153,7 @@ export default function ModuleDetailPage() {
           </div>
 
           {/* Navigation Controls */}
-          <div style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: "4px dashed var(--color-navy)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <button 
               onClick={handlePrev}
               disabled={currentPage === 0}

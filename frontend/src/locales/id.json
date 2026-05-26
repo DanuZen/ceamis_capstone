@@ -39,7 +39,7 @@
     "dashboard": "Dashboard",
     "transactions": "Transaksi",
     "history": "Riwayat",
-    "planning": "Planning",
+    "planning": "Perencanaan",
     "debt": "Utang & Piutang",
     "reports": "Laporan",
     "education": "Edukasi",
@@ -131,7 +131,7 @@
       "allocBudget": "Alokasi Budget",
       "targetSavings": "Target Tabungan",
       "categoryBudget": "Kategori Budget",
-      "addCategory": "+ Tambah Kategori"
+      "addCategory": "Tambah Kategori"
     },
     "history": {
       "title": "Riwayat Transaksi",

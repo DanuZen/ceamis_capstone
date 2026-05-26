@@ -1,6 +1,6 @@
 import {
   IsString, IsNotEmpty, IsNumber, IsEnum, IsOptional,
-  IsArray, IsPositive, Min, Max,
+  IsArray, IsPositive, Min, Max, IsBoolean
 } from 'class-validator';
 
 export class SaveOnboardingDto {
@@ -37,5 +37,31 @@ export class SaveOnboardingDto {
   goals: string[];
 
   @IsEnum(['konservatif', 'moderat', 'agresif'])
+  @IsOptional() // Make optional since we are deriving it in frontend now, or keep it if we still send a default
   risk_profile: string;
+
+  // Model 3 Features
+  @IsNumber()
+  @IsOptional()
+  tanggungan_keluarga: number;
+
+  @IsNumber()
+  @IsOptional()
+  city_tier_enc: number;
+
+  @IsNumber()
+  @IsOptional()
+  toleransi_rugi_enc: number;
+
+  @IsNumber()
+  @IsOptional()
+  save_habit: number;
+
+  @IsBoolean()
+  @IsOptional()
+  punya_tabungan: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  jumlah_tabungan_bulan: number;
 }

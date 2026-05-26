@@ -51,6 +51,7 @@ export default function EducationPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
   const [modules, setModules] = useState(initialModules);
+  const [activeTab, setActiveTab] = useState<"modules" | "quizzes">("modules");
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -140,85 +141,197 @@ export default function EducationPage() {
         </p>
       </div>
 
-      {/* Module Cards */}
-      <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)" }}>
-        {t("dashboard.education.chooseModule")}
-      </h2>
-      <div
-        className="stagger-children"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "1.5rem",
-        }}
-      >
-        {filteredModules.length === 0 && (
-          <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
-            <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>{t("dashboard.education.searchNotFound1")}{searchQuery}{t("dashboard.education.searchNotFound2")}</p>
-          </div>
-        )}
-        {filteredModules.map((mod, index) => {
-          const accentColor = `var(--color-${mod.color})`;
-          return (
-            <Link 
-              key={mod.id} 
-              href={`/dashboard/education/${mod.id}`}
-              className="card-brutal module-card" 
-              style={{ 
-                cursor: "pointer", 
-                display: "flex", 
-                flexDirection: "column", 
-                padding: 0, 
-                height: "100%",
-                background: "var(--color-white)",
-                overflow: "hidden",
-                textDecoration: "none",
-                ["--card-shadow-color" as any]: accentColor,
-                animation: `fadeUp 0.5s ease-out ${index * 0.1}s both`,
-                transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease"
-              }}
-            >
-              <div style={{ background: accentColor, padding: "1rem 1.5rem", borderBottom: "3px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "var(--radius-brutal-sm)",
-                  border: "2px solid var(--color-navy)",
-                  background: "var(--color-white)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  <PlayCircle size={20} color="var(--color-navy)" strokeWidth={2.5} />
-                </div>
-                <span className={`badge-brutal ${getLevelBadge(mod.level)}`} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}>{mod.level}</span>
-              </div>
-              
-              <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
-                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", marginBottom: "0.5rem", fontWeight: 800 }}>
-                  {t(`dashboard.education.modules.${mod.id - 1}.title`)}
-                </h3>
-                <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", marginBottom: "1.5rem", flex: 1, fontWeight: 500 }}>
-                  {t(`dashboard.education.modules.${mod.id - 1}.desc`)}
-                </p>
-                
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: "2px solid rgba(10, 25, 47, 0.05)" }}>
-                  <span style={{ fontSize: "0.8125rem", color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                    <Clock size={14} /> {t(`dashboard.education.modules.${mod.id - 1}.duration`)}
-                  </span>
-                  {mod.progress === 100 ? (
-                    <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{t("dashboard.education.statusDone")}</span>
-                  ) : mod.progress > 0 ? (
-                    <span className="badge-brutal" style={{ background: "var(--color-orange)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{mod.progress}%</span>
-                  ) : (
-                    <span className="badge-brutal" style={{ background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{t("dashboard.education.statusStart")}</span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
+        <button 
+          onClick={() => setActiveTab("modules")}
+          className="btn-brutal"
+          style={{
+            padding: "0.75rem 1.5rem",
+            background: activeTab === "modules" ? "var(--color-navy)" : "var(--color-white)",
+            color: activeTab === "modules" ? "var(--color-white)" : "var(--color-navy)",
+            fontWeight: 800,
+            fontSize: "1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem"
+          }}
+        >
+          Modul Materi
+        </button>
+        <button 
+          onClick={() => setActiveTab("quizzes")}
+          className="btn-brutal"
+          style={{
+            padding: "0.75rem 1.5rem",
+            background: activeTab === "quizzes" ? "var(--color-navy)" : "var(--color-white)",
+            color: activeTab === "quizzes" ? "var(--color-white)" : "var(--color-navy)",
+            fontWeight: 800,
+            fontSize: "1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem"
+          }}
+        >
+          Kuis Evaluasi
+        </button>
       </div>
+
+      {activeTab === "modules" ? (
+        <>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)" }}>
+            {t("dashboard.education.chooseModule")}
+          </h2>
+          <div
+            className="stagger-children"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
+            {filteredModules.length === 0 && (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>{t("dashboard.education.searchNotFound1")}{searchQuery}{t("dashboard.education.searchNotFound2")}</p>
+              </div>
+            )}
+            {filteredModules.map((mod, index) => {
+              const accentColor = `var(--color-${mod.color})`;
+              return (
+                <Link 
+                  key={mod.id} 
+                  href={`/dashboard/education/${mod.id}`}
+                  className="card-brutal module-card" 
+                  style={{ 
+                    cursor: "pointer", 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    padding: 0, 
+                    height: "100%",
+                    background: "var(--color-white)",
+                    overflow: "hidden",
+                    textDecoration: "none",
+                    ["--card-shadow-color" as any]: accentColor,
+                    animation: `fadeUp 0.5s ease-out ${index * 0.1}s both`,
+                    transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease"
+                  }}
+                >
+                  <div style={{ background: accentColor, padding: "1rem 1.5rem", borderBottom: "3px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "var(--radius-brutal-sm)",
+                      border: "2px solid var(--color-navy)",
+                      background: "var(--color-white)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      <PlayCircle size={20} color="var(--color-navy)" strokeWidth={2.5} />
+                    </div>
+                    <span className={`badge-brutal ${getLevelBadge(mod.level)}`} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}>{mod.level}</span>
+                  </div>
+                  
+                  <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", marginBottom: "0.5rem", fontWeight: 800 }}>
+                      {t(`dashboard.education.modules.${mod.id - 1}.title`)}
+                    </h3>
+                    <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", marginBottom: "1.5rem", flex: 1, fontWeight: 500 }}>
+                      {t(`dashboard.education.modules.${mod.id - 1}.desc`)}
+                    </p>
+                    
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: "2px solid rgba(10, 25, 47, 0.05)" }}>
+                      <span style={{ fontSize: "0.8125rem", color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        <Clock size={14} /> {t(`dashboard.education.modules.${mod.id - 1}.duration`)}
+                      </span>
+                      {mod.progress === 100 ? (
+                        <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{t("dashboard.education.statusDone")}</span>
+                      ) : mod.progress > 0 ? (
+                        <span className="badge-brutal" style={{ background: "var(--color-orange)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{mod.progress}%</span>
+                      ) : (
+                        <span className="badge-brutal" style={{ background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{t("dashboard.education.statusStart")}</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)" }}>
+            Pilih Kuis Evaluasi
+          </h2>
+          <div
+            className="stagger-children"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
+            {filteredModules.map((mod, index) => {
+              return (
+                <Link 
+                  key={mod.id} 
+                  href={`/dashboard/education/quiz/${mod.id}`}
+                  className="card-brutal module-card" 
+                  style={{ 
+                    cursor: "pointer", 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    padding: 0, 
+                    height: "100%",
+                    background: "var(--color-white)",
+                    overflow: "hidden",
+                    textDecoration: "none",
+                    ["--card-shadow-color" as any]: "var(--color-navy)",
+                    animation: `fadeUp 0.5s ease-out ${index * 0.1}s both`,
+                    transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease"
+                  }}
+                >
+                  <div style={{ background: "var(--color-pink)", padding: "1rem 1.5rem", borderBottom: "3px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "var(--radius-brutal-sm)",
+                      border: "2px solid var(--color-navy)",
+                      background: "var(--color-white)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      <Award size={20} color="var(--color-navy)" strokeWidth={2.5} />
+                    </div>
+                    <span className="badge-brutal" style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}>+150 XP</span>
+                  </div>
+                  
+                  <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", marginBottom: "0.5rem", fontWeight: 800 }}>
+                      Kuis: {t(`dashboard.education.modules.${mod.id - 1}.title`)}
+                    </h3>
+                    <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", marginBottom: "1.5rem", flex: 1, fontWeight: 500 }}>
+                      Uji pemahamanmu tentang materi {t(`dashboard.education.modules.${mod.id - 1}.title`)} dan dapatkan XP tambahan!
+                    </p>
+                    
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: "2px solid rgba(10, 25, 47, 0.05)" }}>
+                      <span style={{ fontSize: "0.8125rem", color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        <Clock size={14} /> 2 menit
+                      </span>
+                      {mod.progress === 100 ? (
+                        <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>Selesai</span>
+                      ) : (
+                        <span className="badge-brutal" style={{ background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>Mulai Kuis</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

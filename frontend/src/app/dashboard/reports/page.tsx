@@ -5,8 +5,11 @@ import {
   FileText, Download, Mail, Calendar,
   TrendingUp, TrendingDown, Wallet, PieChart,
   Filter, BarChart3, ArrowRight, FileSpreadsheet,
-  Banknote, Target, Lightbulb
+  Banknote, Target, Lightbulb, Loader2
 } from "lucide-react";
+import * as XLSX from "xlsx-js-style";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import { useTransactions } from "@/context/TransactionContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -60,6 +63,19 @@ export default function ReportsPage() {
     color: CATEGORY_COLORS[name] || CATEGORY_COLORS["default"]
   })).sort((a, b) => b.amount - a.amount);
 
+  // Income category breakdown
+  const incomeCategoryMap = new Map<string, number>();
+  filteredTransactions.filter(tx => tx.type === "pemasukan").forEach(tx => {
+    incomeCategoryMap.set(tx.category, (incomeCategoryMap.get(tx.category) || 0) + tx.amount);
+  });
+
+  const INCOME_CATEGORY_DATA = Array.from(incomeCategoryMap.entries()).map(([name, amount]) => ({
+    name,
+    amount,
+    percentage: income > 0 ? Math.round((amount / income) * 100) : 0,
+    color: CATEGORY_COLORS[name] || CATEGORY_COLORS["default"]
+  })).sort((a, b) => b.amount - a.amount);
+
   const MONTHLY_SUMMARY = {
     income,
     expense,
@@ -71,36 +87,171 @@ export default function ReportsPage() {
 
   const handleExportExcel = () => {
     const monthName = MONTHS[selectedMonth];
-    const headers = ["Kategori", "Jumlah (Rp)", "Persentase (%)"];
-    const rows = CATEGORY_DATA.map(c => [c.name, c.amount.toString(), c.percentage.toString()]);
+    
+    const ws: any = {};
+    const range = { s: { c: 0, r: 0 }, e: { c: 2, r: 0 } };
 
-    const summaryRows = [
-      [],
-      [`Laporan Keuangan — ${monthName} ${selectedYear}`],
-      [],
-      ["Ringkasan", "Jumlah (Rp)"],
-      ["Pemasukan", MONTHLY_SUMMARY.income.toString()],
-      ["Pengeluaran", MONTHLY_SUMMARY.expense.toString()],
-      ["Tabungan", MONTHLY_SUMMARY.savings.toString()],
-      ["Rasio Tabungan", `${MONTHLY_SUMMARY.savingsRate}%`],
-      ["Total Transaksi", MONTHLY_SUMMARY.transactions.toString()],
-      [],
-      ["Detail Pengeluaran per Kategori"],
-      headers,
-      ...rows,
-    ];
+    const addCell = (r: number, c: number, value: any, style: any = {}) => {
+      const cellRef = XLSX.utils.encode_cell({ c, r });
+      ws[cellRef] = { v: value, t: typeof value === "number" ? "n" : "s", s: style };
+      if (c > range.e.c) range.e.c = c;
+      if (r > range.e.r) range.e.r = r;
+    };
 
-    const csvContent = summaryRows.map(row => row.join(",")).join("\n");
-    const BOM = "\uFEFF";
-    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Laporan_CEAMIS_${monthName}_${selectedYear}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Styles
+    const titleStyle = { font: { bold: true, sz: 14, color: { rgb: "0F172A" } } };
+    const subtitleStyle = { font: { bold: true, sz: 12, color: { rgb: "475569" } } };
+    const headerStyle = { 
+      font: { bold: true, color: { rgb: "FFFFFF" } }, 
+      fill: { fgColor: { rgb: "0F172A" } }, // Navy
+      alignment: { horizontal: "center", vertical: "center" },
+      border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }
+    };
+    const rowStyle = { 
+      border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }
+    };
+    const numStyle = { 
+      ...rowStyle, 
+      numFmt: '"Rp"#,##0', 
+      alignment: { horizontal: "right" }
+    };
+
+    let rowIdx = 0;
+    
+    addCell(rowIdx, 0, "LAPORAN KEUANGAN CEAMIS", titleStyle); rowIdx++;
+    addCell(rowIdx, 0, `Periode: ${monthName} ${selectedYear}`, subtitleStyle); rowIdx += 2;
+    
+    // SUMMARY
+    addCell(rowIdx, 0, "RINGKASAN", titleStyle); rowIdx++;
+    addCell(rowIdx, 0, "Total Pemasukan", headerStyle);
+    addCell(rowIdx, 1, "Total Pengeluaran", headerStyle);
+    addCell(rowIdx, 2, "Sisa Tabungan", headerStyle);
+    rowIdx++;
+    addCell(rowIdx, 0, MONTHLY_SUMMARY.income, numStyle);
+    addCell(rowIdx, 1, MONTHLY_SUMMARY.expense, numStyle);
+    addCell(rowIdx, 2, MONTHLY_SUMMARY.savings, numStyle);
+    rowIdx += 2;
+
+    addCell(rowIdx, 0, "Rasio Tabungan", rowStyle);
+    addCell(rowIdx, 1, `${MONTHLY_SUMMARY.savingsRate}%`, { ...rowStyle, alignment: { horizontal: "right" } }); rowIdx++;
+    addCell(rowIdx, 0, "Total Transaksi", rowStyle);
+    addCell(rowIdx, 1, MONTHLY_SUMMARY.transactions, { ...rowStyle, alignment: { horizontal: "right" } }); rowIdx += 2;
+
+    // INCOME DETAILS
+    addCell(rowIdx, 0, "DETAIL PEMASUKAN PER KATEGORI", titleStyle); rowIdx++;
+    addCell(rowIdx, 0, "Kategori", headerStyle);
+    addCell(rowIdx, 1, "Jumlah (Rp)", headerStyle);
+    addCell(rowIdx, 2, "Persentase (%)", headerStyle);
+    rowIdx++;
+    
+    INCOME_CATEGORY_DATA.forEach(cat => {
+      addCell(rowIdx, 0, cat.name, rowStyle);
+      addCell(rowIdx, 1, cat.amount, numStyle);
+      addCell(rowIdx, 2, `${cat.percentage}%`, { ...rowStyle, alignment: { horizontal: "center" } });
+      rowIdx++;
+    });
+    rowIdx++;
+
+    // EXPENSE DETAILS
+    addCell(rowIdx, 0, "DETAIL PENGELUARAN PER KATEGORI", titleStyle); rowIdx++;
+    
+    addCell(rowIdx, 0, "Kategori", headerStyle);
+    addCell(rowIdx, 1, "Jumlah (Rp)", headerStyle);
+    addCell(rowIdx, 2, "Persentase (%)", headerStyle);
+    rowIdx++;
+    
+    CATEGORY_DATA.forEach(cat => {
+      addCell(rowIdx, 0, cat.name, rowStyle);
+      addCell(rowIdx, 1, cat.amount, numStyle);
+      addCell(rowIdx, 2, `${cat.percentage}%`, { ...rowStyle, alignment: { horizontal: "center" } });
+      rowIdx++;
+    });
+
+    ws["!ref"] = XLSX.utils.encode_range(range);
+    ws["!cols"] = [ { wch: 35 }, { wch: 25 }, { wch: 15 } ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Laporan");
+    XLSX.writeFile(wb, `Laporan_CEAMIS_${monthName}_${selectedYear}.xlsx`);
+  };
+
+  const handleExportPdf = () => {
+    const monthName = MONTHS[selectedMonth];
+    const doc = new jsPDF();
+    
+    // Title
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42); // Navy
+    doc.setFont("helvetica", "bold");
+    doc.text("Laporan Keuangan CEAMIS", 14, 22);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(71, 85, 105); // Slate
+    doc.setFont("helvetica", "normal");
+    doc.text(`Periode: ${monthName} ${selectedYear}`, 14, 30);
+    
+    // Summary
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "bold");
+    doc.text("Ringkasan", 14, 45);
+    
+    autoTable(doc, {
+      startY: 50,
+      head: [["Deskripsi", "Jumlah"]],
+      body: [
+        ["Total Pemasukan", formatRupiah(MONTHLY_SUMMARY.income)],
+        ["Total Pengeluaran", formatRupiah(MONTHLY_SUMMARY.expense)],
+        ["Sisa Tabungan", formatRupiah(MONTHLY_SUMMARY.savings)],
+        ["Rasio Tabungan", `${MONTHLY_SUMMARY.savingsRate}%`],
+        ["Total Transaksi", MONTHLY_SUMMARY.transactions.toString()]
+      ],
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: "bold" },
+      theme: "grid"
+    });
+    
+    // Income Details
+    let finalY = (doc as any).lastAutoTable.finalY || 50;
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "bold");
+    doc.text("Detail Pemasukan per Kategori", 14, finalY + 15);
+    
+    autoTable(doc, {
+      startY: finalY + 20,
+      head: [["Kategori", "Jumlah (Rp)", "Persentase (%)"]],
+      body: INCOME_CATEGORY_DATA.map(c => [c.name, formatRupiah(c.amount), `${c.percentage}%`]),
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: "bold" },
+      theme: "grid"
+    });
+
+    // Expense Details
+    finalY = (doc as any).lastAutoTable.finalY || 50;
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "bold");
+    doc.text("Detail Pengeluaran per Kategori", 14, finalY + 15);
+    
+    autoTable(doc, {
+      startY: finalY + 20,
+      head: [["Kategori", "Jumlah (Rp)", "Persentase (%)"]],
+      body: CATEGORY_DATA.map(c => [c.name, formatRupiah(c.amount), `${c.percentage}%`]),
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: "bold" },
+      theme: "grid"
+    });
+    
+    doc.save(`Laporan_CEAMIS_${monthName}_${selectedYear}.pdf`);
+  };
+
+  const [isSending, setIsSending] = useState(false);
+  
+  const handleSendEmail = () => {
+    setIsSending(true);
+    // Simulate sending email with attachments
+    setTimeout(() => {
+      setIsSending(false);
+      alert(`Sukses! Laporan Keuangan (berisi lampiran PDF & Excel) bulan ${MONTHS[selectedMonth]} ${selectedYear} telah dikirim ke email terdaftar Anda.`);
+    }, 1500);
   };
 
   return (
@@ -127,7 +278,7 @@ export default function ReportsPage() {
         </div>
 
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <button className="btn-brutal" style={{
+          <button onClick={handleExportPdf} className="btn-brutal" style={{
             background: "var(--color-white)", padding: "0.75rem 1.25rem", fontWeight: 800,
             display: "flex", alignItems: "center", gap: "0.5rem",
             boxShadow: "3px 3px 0px var(--color-navy)",
@@ -141,13 +292,16 @@ export default function ReportsPage() {
           }}>
             <FileSpreadsheet size={16} /> {t("dashboard.reports.exportExcel")}
           </button>
-          <button className="btn-brutal" style={{
+          <button onClick={handleSendEmail} disabled={isSending} className="btn-brutal" style={{
             background: "var(--color-navy)", color: "var(--color-white)",
             padding: "0.75rem 1.25rem", fontWeight: 800,
             display: "flex", alignItems: "center", gap: "0.5rem",
             boxShadow: "3px 3px 0px var(--color-purple)",
+            cursor: isSending ? "not-allowed" : "pointer",
+            opacity: isSending ? 0.7 : 1
           }}>
-            <Mail size={16} /> {t("dashboard.reports.sendEmail")}
+            {isSending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} 
+            {isSending ? "Mengirim..." : t("dashboard.reports.sendEmail")}
           </button>
         </div>
       </div>
@@ -341,13 +495,16 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          <button className="btn-brutal" style={{
+          <button onClick={handleSendEmail} disabled={isSending} className="btn-brutal" style={{
             width: "100%", marginTop: "1.5rem", padding: "1rem",
             background: "var(--color-lime)", color: "var(--color-navy)", fontWeight: 800,
             display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
             boxShadow: "4px 4px 0px var(--color-white)",
+            cursor: isSending ? "not-allowed" : "pointer",
+            opacity: isSending ? 0.8 : 1
           }}>
-            <Mail size={16} /> {t("dashboard.reports.sendToMyEmail")}
+            {isSending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} 
+            {isSending ? "Mengirim Email..." : t("dashboard.reports.sendToMyEmail")}
           </button>
         </div>
       </div>

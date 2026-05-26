@@ -278,10 +278,7 @@
   position: relative;
 }
 
-.card-brutal:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 10px 10px 0px var(--card-shadow-color, var(--color-navy));
-}
+
 
 .btn-brutal {
   cursor: pointer;

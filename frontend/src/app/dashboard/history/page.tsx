@@ -32,6 +32,22 @@ export default function HistoryPage() {
 
   const sisaSaldo = totalPemasukan - totalPengeluaran;
 
+  const categoryCounts = transactions
+    .filter(tx => tx.type === "pengeluaran")
+    .reduce((acc, tx) => {
+      acc[tx.category] = (acc[tx.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const topCategories = Object.entries(categoryCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map((entry, index) => ({
+      name: entry[0],
+      count: entry[1],
+      color: index === 0 ? "var(--color-lime)" : index === 1 ? "var(--color-orange)" : "var(--color-purple)"
+    }));
+
   return (
     <div style={{ paddingBottom: "3rem" }}>
       {/* Header Area */}
@@ -68,7 +84,7 @@ export default function HistoryPage() {
             <TrendingUp size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(totalPemasukan/1000).toLocaleString("id-ID")}k</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {totalPemasukan.toLocaleString("id-ID")}</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.income")}</div>
           </div>
         </div>
@@ -78,7 +94,7 @@ export default function HistoryPage() {
             <TrendingDown size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(totalPengeluaran/1000).toLocaleString("id-ID")}k</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {totalPengeluaran.toLocaleString("id-ID")}</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.expense")}</div>
           </div>
         </div>
@@ -88,7 +104,7 @@ export default function HistoryPage() {
             <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(sisaSaldo/1000).toLocaleString("id-ID")}k</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {sisaSaldo.toLocaleString("id-ID")}</div>
             <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.balance")}</div>
           </div>
         </div>
@@ -104,10 +120,10 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "2rem" }}>
+      <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "2rem", alignItems: "stretch" }}>
         {/* Main List Area (Left) */}
         <div style={{ flex: "1 1 65%", minWidth: "300px" }}>
-          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)" }}>
+          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "100%", minHeight: "60vh" }}>
             
             {/* Header List & Filters */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
@@ -115,24 +131,35 @@ export default function HistoryPage() {
                 <Filter size={24} /> {searchQuery ? `${t("dashboard.history.search")}"${searchQuery}"` : t("dashboard.history.transactionList")}
               </h2>
               
-              <div style={{ display: "flex", gap: "0.25rem", background: "var(--color-bg)", padding: "0.4rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
-                {["semua", "pemasukan", "pengeluaran"].map((type) => (
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                {[
+                  { id: "semua", icon: Filter },
+                  { id: "pemasukan", icon: TrendingUp },
+                  { id: "pengeluaran", icon: TrendingDown }
+                ].map((item) => (
                   <button 
-                    key={type}
-                    onClick={() => setFilter(type as any)}
+                    key={item.id}
+                    onClick={() => setFilter(item.id as any)}
+                    className="btn-brutal"
                     style={{ 
-                      padding: "0.5rem 1rem", 
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      padding: "0.6rem 1.25rem", 
                       borderRadius: "var(--radius-brutal-sm)", 
-                      background: filter === type ? "var(--color-navy)" : "transparent",
-                      color: filter === type ? "var(--color-white)" : "var(--color-navy)",
+                      background: filter === item.id ? "var(--color-navy)" : "var(--color-white)",
+                      color: filter === item.id ? "var(--color-white)" : "var(--color-navy)",
                       fontWeight: 800,
-                      fontSize: "0.875rem",
-                      border: "none",
+                      fontSize: "0.95rem",
+                      border: "2px solid var(--color-navy)",
+                      boxShadow: filter === item.id ? "4px 4px 0px var(--color-purple)" : "4px 4px 0px var(--color-navy)",
                       cursor: "pointer",
-                      textTransform: "capitalize"
+                      textTransform: "capitalize",
+                      transition: "all 0.2s ease"
                     }}
                   >
-                    {t(`dashboard.history.${type === "semua" ? "all" : type === "pemasukan" ? "income" : "expense"}`)}
+                    <item.icon size={18} color={filter === item.id ? "var(--color-white)" : "var(--color-navy)"} strokeWidth={2.5} />
+                    {t(`dashboard.history.${item.id === "semua" ? "all" : item.id === "pemasukan" ? "income" : "expense"}`)}
                   </button>
                 ))}
               </div>
@@ -191,7 +218,7 @@ export default function HistoryPage() {
                         color: tx.type === "pemasukan" ? "var(--color-navy)" : "var(--color-danger)",
                       }}
                     >
-                      {tx.type === "pemasukan" ? "+" : "-"}Rp {Math.abs(tx.amount/1000).toLocaleString("id-ID")}k
+                      {tx.type === "pemasukan" ? "+" : "-"}Rp {Math.abs(tx.amount).toLocaleString("id-ID")}
                     </div>
                   </div>
                 ))
@@ -206,17 +233,13 @@ export default function HistoryPage() {
 
         {/* Sidebar Info (Right) */}
         <div style={{ flex: "1 1 25%", minWidth: "280px" }}>
-          <div className="card-brutal" style={{ padding: "1.5rem", background: "var(--color-white)", height: "100%" }}>
+          <div className="card-brutal" style={{ padding: "1.5rem", background: "var(--color-white)", height: "100%", minHeight: "60vh", display: "flex", flexDirection: "column" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 900 }}>
               <TrendingUp size={24} color="var(--color-purple)" /> {t("dashboard.history.topCategories")}
             </h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              {[
-                { name: t("dashboard.history.mockCat1"), count: 12, color: "var(--color-lime)" },
-                { name: t("dashboard.history.mockCat2"), count: 8, color: "var(--color-orange)" },
-                { name: t("dashboard.history.mockCat3"), count: 5, color: "var(--color-purple)" },
-              ].map((cat, i) => (
+              {topCategories.length > 0 ? topCategories.map((cat, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                     <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: cat.color, border: "2px solid var(--color-navy)" }}></div>
@@ -224,14 +247,20 @@ export default function HistoryPage() {
                   </div>
                   <span style={{ fontWeight: 800, color: "var(--color-text-muted)" }}>{cat.count}</span>
                 </div>
-              ))}
+              )) : (
+                <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontStyle: "italic" }}>
+                  Belum ada data pengeluaran.
+                </div>
+              )}
             </div>
 
-            <div style={{ marginTop: "2rem", padding: "1.25rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
-              <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: 900 }}>{t("dashboard.history.aiInsight")}</h4>
-              <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.4, fontWeight: 500 }}>
-                {t("dashboard.history.mockInsight")}
-              </p>
+            <div style={{ marginTop: "auto", paddingTop: "2rem" }}>
+              <div style={{ padding: "1.25rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
+                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: 900 }}>{t("dashboard.history.aiInsight")}</h4>
+                <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.4, fontWeight: 500 }}>
+                  {t("dashboard.history.mockInsight")}
+                </p>
+              </div>
             </div>
           </div>
         </div>

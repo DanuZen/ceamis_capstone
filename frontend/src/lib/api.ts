@@ -189,7 +189,15 @@ export interface OnboardingPayload {
   top_expenses: string[];
   monthly_expense: number;
   goals: string[];
-  risk_profile: string;
+  risk_profile?: string;
+  
+  // Model 3 Features
+  tanggungan_keluarga?: number;
+  city_tier_enc?: number;
+  toleransi_rugi_enc?: number;
+  save_habit?: number;
+  punya_tabungan?: boolean;
+  jumlah_tabungan_bulan?: number;
 }
 
 export interface OnboardingData extends OnboardingPayload {

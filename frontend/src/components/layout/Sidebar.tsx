@@ -46,9 +46,9 @@ const navGroups: NavGroup[] = [
     title: "sidebar.groups.keuangan",
     items: [
       { href: "/dashboard/transactions", label: "sidebar.transactions", icon: Wallet, color: "lime" },
+      { href: "/dashboard/debt", label: "sidebar.debt", icon: HandCoins, color: "orange" },
       { href: "/dashboard/history", label: "sidebar.history", icon: History, color: "orange" },
       { href: "/dashboard/planning", label: "sidebar.planning", icon: Target, color: "purple", guestRestricted: true },
-      { href: "/dashboard/debt", label: "sidebar.debt", icon: HandCoins, color: "orange" },
       { href: "/dashboard/reports", label: "sidebar.reports", icon: FileText, color: "lime" },
       { href: "/dashboard/education", label: "sidebar.education", icon: BookOpen, color: "orange", guestRestricted: true },
     ],

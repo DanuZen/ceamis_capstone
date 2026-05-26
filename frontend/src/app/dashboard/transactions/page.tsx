@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet, Plus, Coffee, Utensils, Car, ShoppingBag, Zap, Sparkles, TrendingUp, ArrowRight, Tag, Home, Gamepad2, Banknote, Brain, RefreshCw } from "lucide-react";
+import { Wallet, Plus, Coffee, Utensils, Car, ShoppingBag, Zap, Sparkles, TrendingUp, ArrowRight, Tag, Home, Gamepad2, Banknote, Brain, RefreshCw, ChevronDown } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTransactions, TransactionType } from "@/context/TransactionContext";
@@ -37,6 +37,60 @@ const CLUSTER_COLORS: Record<string, string> = {
   "Si Boros":    "var(--color-pink)",
 };
 
+const CustomSelect = ({ value, onChange, options }: { value: string, onChange: (val: string) => void, options: {key:string, label:string}[] }) => {
+  const [open, setOpen] = useState(false);
+  const selectedOpt = options.find(o => o.key === value) || options[0];
+
+  return (
+    <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column" }}>
+      <button 
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="input-brutal"
+        style={{ 
+          border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", fontWeight: 700, 
+          width: "100%", boxShadow: "4px 4px 0px var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: "var(--color-bg)", cursor: "pointer", flex: 1
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--color-navy)" }}>
+          {selectedOpt?.label || value}
+        </span>
+        <ChevronDown size={20} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s", color: "var(--color-navy)" }} />
+      </button>
+      
+      {open && (
+        <div className="no-scrollbar" style={{
+          position: "absolute", top: "100%", left: 0, width: "100%", marginTop: "0.5rem",
+          background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+          boxShadow: "4px 4px 0px var(--color-navy)", zIndex: 10, maxHeight: "250px", overflowY: "auto", display: "flex", flexDirection: "column"
+        }}>
+          {options.map(opt => {
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => { onChange(opt.key); setOpen(false); }}
+                style={{
+                  padding: "1rem", display: "flex", alignItems: "center", gap: "0.5rem", border: "none",
+                  background: value === opt.key ? "var(--color-purple)" : "transparent",
+                  color: value === opt.key ? "var(--color-white)" : "var(--color-navy)",
+                  fontWeight: 800, textAlign: "left", cursor: "pointer", borderBottom: "2px solid rgba(10,25,47,0.05)",
+                  fontSize: "1rem"
+                }}
+                onMouseEnter={(e) => { if(value !== opt.key) e.currentTarget.style.background = "var(--color-bg)" }}
+                onMouseLeave={(e) => { if(value !== opt.key) e.currentTarget.style.background = "transparent" }}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function TransactionsPage() {
   const { addTransaction, transactions } = useTransactions();
   const { userData } = useUser();
@@ -60,14 +114,39 @@ export default function TransactionsPage() {
   const [cluster, setCluster]     = useState<SpendingClusterResult>(MOCK_CLUSTER);
   const [loadingCluster, setLoadingCluster] = useState(false);
 
+  const [dynamicNeeds, setDynamicNeeds] = useState<string[]>([]);
+  const [dynamicWants, setDynamicWants] = useState<string[]>([]);
+  const [dynamicSavings, setDynamicSavings] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const budgetData = localStorage.getItem("ceamis_budget");
+      if (budgetData) {
+        const parsed = JSON.parse(budgetData);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDynamicNeeds(parsed.filter((b: any) => b.type === "needs").map((b: any) => b.name));
+          setDynamicWants(parsed.filter((b: any) => b.type === "wants").map((b: any) => b.name));
+          setDynamicSavings(parsed.filter((b: any) => b.type === "savings").map((b: any) => b.name));
+        }
+      }
+    } catch (e) {}
+  }, []);
+
+  const currentCategoryOptions = {
+    ...CATEGORY_OPTIONS,
+    needs: dynamicNeeds.length > 0 ? dynamicNeeds : CATEGORY_OPTIONS.needs,
+    wants: dynamicWants.length > 0 ? dynamicWants : CATEGORY_OPTIONS.wants,
+    save: dynamicSavings.length > 0 ? dynamicSavings : CATEGORY_OPTIONS.save
+  };
+
   // Auto-update category when type or tag changes
   useEffect(() => {
     if (type === "pemasukan") {
-      setCategory(CATEGORY_OPTIONS.pemasukan[0]);
+      setCategory(currentCategoryOptions.pemasukan[0]);
     } else {
-      setCategory(CATEGORY_OPTIONS[tag][0]);
+      setCategory(currentCategoryOptions[tag]?.[0] || "");
     }
-  }, [type, tag]);
+  }, [type, tag, dynamicNeeds, dynamicWants, dynamicSavings]);
 
   // ── Hitung category_breakdown dari transaksi yang ada ─────────────────────
   const buildCategoryBreakdown = useCallback(() => {
@@ -169,7 +248,8 @@ export default function TransactionsPage() {
       {/* ── Model 2: Spending Cluster Insight Card ─────────────────────────── */}
       <div className="card-brutal animate-bounce-in" style={{
         padding: "1.5rem", marginBottom: "2rem",
-        background: "var(--color-navy)", color: "var(--color-white)",
+        background: "var(--color-white)", color: "var(--color-navy)",
+        border: "4px solid var(--color-navy)", boxShadow: "8px 8px 0px var(--color-navy)",
         position: "relative", overflow: "hidden",
       }}>
         {/* Mock badge */}
@@ -177,8 +257,8 @@ export default function TransactionsPage() {
           <div style={{
             position: "absolute", top: "0.75rem", right: "0.75rem",
             fontSize: "0.6rem", fontWeight: 800, padding: "0.15rem 0.5rem",
-            background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
-            borderRadius: "100px", color: "rgba(255,255,255,0.5)",
+            background: "rgba(10,25,47,0.05)", border: "1px solid rgba(10,25,47,0.1)",
+            borderRadius: "100px", color: "var(--color-text-muted)",
           }}>
             {t("dashboard.transactions.demoData")}
           </div>
@@ -191,7 +271,8 @@ export default function TransactionsPage() {
               width: "72px", height: "72px",
               background: clusterAccentColor,
               borderRadius: "var(--radius-brutal-sm)",
-              border: "3px solid var(--color-white)",
+              border: "3px solid var(--color-navy)",
+              boxShadow: "4px 4px 0px var(--color-navy)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <Brain size={36} color="var(--color-navy)" strokeWidth={2.5} />
@@ -230,7 +311,7 @@ export default function TransactionsPage() {
                 <span style={{
                   fontSize: "0.7rem", fontWeight: 800, padding: "0.15rem 0.5rem",
                   background: clusterAccentColor, color: "var(--color-navy)",
-                  borderRadius: "100px", border: "1.5px solid rgba(255,255,255,0.3)",
+                  borderRadius: "100px", border: "1.5px solid var(--color-navy)",
                 }}>
                   {cluster.is_mock ? t("dashboard.transactions.mockDominantCategory") : cluster.dominant_category}
                 </span>
@@ -238,7 +319,7 @@ export default function TransactionsPage() {
             )}
 
             {/* Needs / Wants / Savings bar */}
-            <div style={{ display: "flex", height: "12px", borderRadius: "100px", border: "1.5px solid var(--color-white)", overflow: "hidden" }}>
+            <div style={{ display: "flex", height: "12px", borderRadius: "100px", border: "1.5px solid var(--color-navy)", overflow: "hidden" }}>
               <div style={{ width: `${cluster.needs_ratio}%`,   background: "var(--color-lime)"   }} title="Needs"    />
               <div style={{ width: `${cluster.wants_ratio}%`,   background: "var(--color-orange)" }} title="Wants"    />
               <div style={{ width: `${cluster.savings_ratio}%`, background: "var(--color-purple)" }} title="Savings"  />
@@ -257,7 +338,7 @@ export default function TransactionsPage() {
                 background: "var(--color-lime)", color: "var(--color-navy)",
                 padding: "0.75rem 1.25rem", fontWeight: 800,
                 display: "flex", alignItems: "center", gap: "0.5rem",
-                boxShadow: "3px 3px 0px var(--color-white)", whiteSpace: "nowrap",
+                boxShadow: "3px 3px 0px var(--color-navy)", whiteSpace: "nowrap",
               }}>
                 {t("dashboard.transactions.manageBudget")} <ArrowRight size={16} />
               </button>
@@ -267,10 +348,10 @@ export default function TransactionsPage() {
               disabled={loadingCluster}
               className="btn-brutal"
               style={{
-                background: "rgba(255,255,255,0.1)", color: "var(--color-white)",
+                background: "var(--color-bg)", color: "var(--color-navy)",
                 padding: "0.5rem 1.25rem", fontWeight: 700, fontSize: "0.8rem",
                 display: "flex", alignItems: "center", gap: "0.4rem",
-                border: "2px solid rgba(255,255,255,0.3)", boxShadow: "none",
+                border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)",
                 opacity: loadingCluster ? 0.5 : 1, cursor: loadingCluster ? "wait" : "pointer",
               }}
             >
@@ -281,12 +362,12 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "2.5rem", alignItems: "start" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "2.5rem", alignItems: "stretch" }}>
         {/* Quick Input Section */}
-        <div className="animate-slide-up" style={{ animationDelay: "100ms" }}>
-          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", display: "flex", flexDirection: "column" }}>
+        <div className="animate-slide-up" style={{ flex: "1 1 300px", maxWidth: "100%", animationDelay: "100ms", display: "flex", flexDirection: "column" }}>
+          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column", flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-              <Zap size={28} color="var(--color-orange)" fill="var(--color-orange)" />
+              <Zap size={28} color="var(--color-white)" fill="var(--color-orange)" style={{ background: "var(--color-orange)", borderRadius: "var(--radius-brutal-sm)", padding: "4px", border: "2px solid var(--color-navy)" }} />
               <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", color: "var(--color-navy)", margin: 0, fontWeight: 900 }}>{t("dashboard.transactions.quickInputTitle")}</h3>
             </div>
             <p style={{ fontSize: "1rem", color: "var(--color-text-muted)", marginBottom: "2rem", lineHeight: 1.5, fontWeight: 500 }}>
@@ -295,55 +376,63 @@ export default function TransactionsPage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
               {[
-                { label: t("dashboard.transactions.quickCoffeeLabel"), amount: "25000", desc: t("dashboard.transactions.quickCoffeeDesc"), color: "var(--color-purple)", icon: Coffee, type: "wants" as const },
-                { label: t("dashboard.transactions.quickFoodLabel"), amount: "35000", desc: t("dashboard.transactions.quickFoodDesc"), color: "var(--color-orange)", icon: Utensils, type: "needs" as const },
+                { label: t("dashboard.transactions.quickCoffeeLabel"), amount: "25000", desc: t("dashboard.transactions.quickCoffeeDesc"), color: "var(--color-orange)", icon: Coffee, type: "wants" as const },
+                { label: t("dashboard.transactions.quickSnackLabel"), amount: "15000", desc: t("dashboard.transactions.quickSnackDesc"), color: "var(--color-orange)", icon: ShoppingBag, type: "wants" as const },
+                { label: t("dashboard.transactions.quickFoodLabel"), amount: "35000", desc: t("dashboard.transactions.quickFoodDesc"), color: "var(--color-lime)", icon: Utensils, type: "needs" as const },
                 { label: t("dashboard.transactions.quickGasLabel"), amount: "20000", desc: t("dashboard.transactions.quickGasDesc"), color: "var(--color-lime)", icon: Car, type: "needs" as const },
-                { label: t("dashboard.transactions.quickSnackLabel"), amount: "15000", desc: t("dashboard.transactions.quickSnackDesc"), color: "var(--color-pink)", icon: ShoppingBag, type: "wants" as const },
+                { label: "Tabungan", amount: "50000", desc: "Tabungan Darurat", color: "var(--color-purple)", icon: Wallet, type: "save" as const },
+                { label: "Investasi", amount: "100000", desc: "Beli Reksadana", color: "var(--color-purple)", icon: TrendingUp, type: "save" as const },
               ].map((btn) => (
                 <button
                   key={btn.label}
                   onClick={() => { handleQuickInput(btn.desc, btn.amount); setTag(btn.type); }}
                   className="btn-brutal"
                   style={{
-                    background: "var(--color-white)", padding: "1.25rem",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem",
+                    background: "var(--color-white)", padding: "1rem",
+                    display: "flex", flexDirection: "row", alignItems: "center", gap: "1rem",
                     border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
                     boxShadow: "4px 4px 0px var(--color-navy)", transition: "all 0.1s", position: "relative",
+                    justifyContent: "flex-start", width: "100%"
                   }}
                 >
+                  <div style={{ background: btn.color, padding: "0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                    <btn.icon size={22} color={btn.color === "var(--color-lime)" ? "var(--color-navy)" : "var(--color-white)"} />
+                  </div>
+                  <span style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", flex: 1, textAlign: "left" }}>{btn.label}</span>
                   <div style={{
-                    position: "absolute", top: "0.4rem", right: "0.4rem",
-                    fontSize: "0.6rem", fontWeight: 800, padding: "0.1rem 0.35rem",
-                    background: btn.type === "needs" ? "var(--color-lime)" : "var(--color-orange)",
-                    border: "1.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
-                    color: "var(--color-navy)",
+                    fontSize: "0.65rem", fontWeight: 800, padding: "0.25rem 0.5rem",
+                    background: btn.color,
+                    border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+                    color: btn.color === "var(--color-lime)" ? "var(--color-navy)" : "var(--color-white)",
+                    boxShadow: "2px 2px 0px var(--color-navy)"
                   }}>
-                    {btn.type === "needs" ? "NEED" : "WANT"}
+                    {btn.type === "needs" ? "NEED" : btn.type === "wants" ? "WANT" : "SAVE"}
                   </div>
-                  <div style={{ background: btn.color, padding: "0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                    <btn.icon size={24} color="var(--color-navy)" />
-                  </div>
-                  <span style={{ fontWeight: 800, fontSize: "0.9375rem", color: "var(--color-navy)" }}>{btn.label}</span>
                 </button>
               ))}
             </div>
 
-            <div style={{ marginTop: "2rem", padding: "1.25rem", background: "var(--color-bg)", border: "2px dashed var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
-              <div style={{ fontSize: "0.875rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>{t("dashboard.transactions.tipsTitle")}</div>
-              <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.4 }}>
-                {t("dashboard.transactions.tipsDesc")}
-              </p>
+            <div style={{ marginTop: "auto", paddingTop: "2rem", width: "100%" }}>
+              <div style={{ padding: "1.25rem", background: "var(--color-bg)", border: "3px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
+                <div style={{ fontSize: "0.875rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>{t("dashboard.transactions.tipsTitle")}</div>
+                <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.4 }}>
+                  {t("dashboard.transactions.tipsDesc")}
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Form Section */}
-        <div className="animate-slide-up" style={{ animationDelay: "200ms" }}>
-          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-purple)", display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "2rem" }}>
+        <div className="animate-slide-up" style={{ flex: "1.7 1 450px", maxWidth: "100%", animationDelay: "200ms", display: "flex", flexDirection: "column" }}>
+          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column", overflow: "visible", flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
               <Plus size={28} color="var(--color-white)" fill="var(--color-purple)" style={{ background: "var(--color-purple)", borderRadius: "var(--radius-brutal-sm)", padding: "4px", border: "2px solid var(--color-navy)" }} />
               <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", color: "var(--color-navy)", margin: 0, fontWeight: 900 }}>{t("dashboard.transactions.formTitle")}</h3>
             </div>
+            <p style={{ fontSize: "1rem", color: "var(--color-text-muted)", marginBottom: "2rem", lineHeight: 1.5, fontWeight: 500 }}>
+              Catat secara manual detail transaksi pemasukan, pengeluaran, atau tabunganmu di sini.
+            </p>
 
             <form
               onSubmit={(e) => {
@@ -353,7 +442,7 @@ export default function TransactionsPage() {
                 alert(t("dashboard.transactions.savedSuccess"));
                 setDesc(""); setAmount("");
               }}
-              style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+              style={{ display: "flex", flexDirection: "column", gap: "1.5rem", flex: 1 }}
             >
               <div>
                 <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
@@ -394,85 +483,85 @@ export default function TransactionsPage() {
                   <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
                     {t("dashboard.transactions.typeLabel")}
                   </label>
-                  <select
+                  <CustomSelect
                     value={type}
-                    onChange={(e) => setType(e.target.value as TransactionType)}
-                    className="input-brutal"
-                    style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", height: "auto", boxShadow: "4px 4px 0px var(--color-navy)", fontWeight: 700, background: "var(--color-bg)" }}
-                  >
-                    <option value="pengeluaran">{t("dashboard.transactions.expense")}</option>
-                    <option value="pemasukan">{t("dashboard.transactions.income")}</option>
-                  </select>
+                    onChange={(v) => setType(v as TransactionType)}
+                    options={[
+                      { key: "pengeluaran", label: t("dashboard.transactions.expense") },
+                      { key: "pemasukan", label: t("dashboard.transactions.income") }
+                    ]}
+                  />
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.5rem" }}>
-                <div>
+              <div style={{ display: "grid", gridTemplateColumns: type === "pemasukan" ? "1fr" : "1.5fr 1fr", gap: "1.5rem" }}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
                   <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
                     {t("dashboard.transactions.categoryLabel")}
                   </label>
-                  <select
-                    value={category}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="input-brutal"
-                    style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", height: "auto", boxShadow: "4px 4px 0px var(--color-navy)", fontWeight: 700, background: "var(--color-bg)" }}
-                  >
-                    {(type === "pemasukan" ? CATEGORY_OPTIONS.pemasukan : CATEGORY_OPTIONS[tag]).map((catOption) => (
-                      <option key={catOption} value={catOption}>{catOption}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                    <Tag size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />{t("dashboard.transactions.priorityLabel")}
-                  </label>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button type="button" onClick={() => setTag("needs")} className="btn-brutal" style={{
-                      flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
-                      background: tag === "needs" ? "var(--color-lime)" : "var(--color-white)",
-                      transform: tag === "needs" ? "translate(-2px, -2px)" : "none",
-                      boxShadow: tag === "needs" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
-                    }}>
-                      <Home size={12} /> Need
-                    </button>
-                    <button type="button" onClick={() => setTag("wants")} className="btn-brutal" style={{
-                      flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
-                      background: tag === "wants" ? "var(--color-orange)" : "var(--color-white)",
-                      color: tag === "wants" ? "var(--color-white)" : "var(--color-navy)",
-                      transform: tag === "wants" ? "translate(-2px, -2px)" : "none",
-                      boxShadow: tag === "wants" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
-                    }}>
-                      <Gamepad2 size={12} /> Want
-                    </button>
-                    <button type="button" onClick={() => setTag("save")} className="btn-brutal" style={{
-                      flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
-                      background: tag === "save" ? "var(--color-purple)" : "var(--color-white)",
-                      color: tag === "save" ? "var(--color-white)" : "var(--color-navy)",
-                      transform: tag === "save" ? "translate(-2px, -2px)" : "none",
-                      boxShadow: tag === "save" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
-                    }}>
-                      <Banknote size={12} /> Save
-                    </button>
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    <CustomSelect
+                      value={category}
+                      onChange={(v) => handleCategoryChange(v)}
+                      options={(type === "pemasukan" ? currentCategoryOptions.pemasukan : currentCategoryOptions[tag]).map(cat => ({ key: cat, label: cat }))}
+                    />
                   </div>
                 </div>
+
+                {type !== "pemasukan" && (
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
+                      <Tag size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />{t("dashboard.transactions.priorityLabel")}
+                    </label>
+                    <div style={{ display: "flex", gap: "0.5rem", flex: 1 }}>
+                      <button type="button" onClick={() => setTag("needs")} className="btn-brutal" style={{
+                        flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
+                        background: tag === "needs" ? "var(--color-lime)" : "var(--color-white)",
+                        transform: tag === "needs" ? "translate(-2px, -2px)" : "none",
+                        boxShadow: tag === "needs" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
+                      }}>
+                        <Home size={12} /> Need
+                      </button>
+                      <button type="button" onClick={() => setTag("wants")} className="btn-brutal" style={{
+                        flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
+                        background: tag === "wants" ? "var(--color-orange)" : "var(--color-white)",
+                        color: tag === "wants" ? "var(--color-white)" : "var(--color-navy)",
+                        transform: tag === "wants" ? "translate(-2px, -2px)" : "none",
+                        boxShadow: tag === "wants" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
+                      }}>
+                        <Gamepad2 size={12} /> Want
+                      </button>
+                      <button type="button" onClick={() => setTag("save")} className="btn-brutal" style={{
+                        flex: 1, padding: "0.75rem 0.25rem", fontWeight: 800, fontSize: "0.85rem",
+                        background: tag === "save" ? "var(--color-purple)" : "var(--color-white)",
+                        color: tag === "save" ? "var(--color-white)" : "var(--color-navy)",
+                        transform: tag === "save" ? "translate(-2px, -2px)" : "none",
+                        boxShadow: tag === "save" ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
+                      }}>
+                        <Banknote size={12} /> Save
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <button
-                type="submit"
-                className="btn-brutal btn-brutal--primary"
-                style={{
-                  marginTop: "1.5rem", padding: "1.25rem", fontSize: "1.25rem", fontWeight: 900,
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem",
-                  background: "var(--color-navy)", color: "var(--color-white)",
-                  boxShadow: "6px 6px 0px var(--color-lime)"
-                }}
-              >
-                {t("dashboard.transactions.saveTransaction")} <Sparkles size={20} />
-              </button>
+              <div style={{ marginTop: "auto", paddingTop: "1rem" }}>
+                <button
+                  type="submit"
+                  className="btn-brutal btn-brutal--primary"
+                  style={{
+                    width: "100%", padding: "1.25rem", fontSize: "1.25rem", fontWeight: 900,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem",
+                    background: "var(--color-lime)", color: "var(--color-navy)",
+                    boxShadow: "6px 6px 0px var(--color-navy)"
+                  }}
+                >
+                  {t("dashboard.transactions.saveTransaction")} <Sparkles size={20} />
+                </button>
+              </div>
             </form>
           </div>
         </div>
