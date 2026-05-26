@@ -60,40 +60,136 @@ class HealthScoreResponse(BaseModel):
 
 
 # ═══════════════════════════════════════════════════
-# MODEL 2 — SPENDING CLUSTER
+# MODEL 2 — SPENDING CLUSTER (UPDATED REAL MODEL ✅)
 # ═══════════════════════════════════════════════════
 
 class SpendingClusterRequest(BaseModel):
-    user_id:            str
-    category_breakdown: Dict[str, float] = Field(..., description="{'makan': 500000, 'hiburan': 200000, ...}")
-    total_transactions: Optional[int] = 0
+
+    # USER
+    user_id: str
+
+    # TRANSACTION
+    transaction_datetime: str
+
+    category: str
+
+    amount: float
+
+    # BEHAVIOR FEATURES
+    is_late_night: int
+
+    is_weekend: int
+
+    is_unbudgeted: int
+
+    is_risky_category: int
+
+    is_binge_spending: int
+
+    hourly_txn_count: float
+
+    # FINANCIAL FEATURES
+    income_monthly: float
+
+    total_expense: float
+
+    wants_spending: float
+
+    total_debt_payment: float
+
+    investment_amount: float
 
     class Config:
         json_schema_extra = {
             "example": {
-                "user_id": "user-123",
-                "category_breakdown": {
-                    "Makan & Minum": 800000,
-                    "Hiburan & Streaming": 500000,
-                    "Transportasi": 200000,
-                    "Belanja Online": 600000
-                },
-                "total_transactions": 35
+
+                "user_id":
+                    "user-123",
+
+                "transaction_datetime":
+                    "2026-05-01 21:30:00",
+
+                "category":
+                    "Entertainment",
+
+                "amount":
+                    250000,
+
+                "is_late_night":
+                    1,
+
+                "is_weekend":
+                    1,
+
+                "is_unbudgeted":
+                    1,
+
+                "is_risky_category":
+                    0,
+
+                "is_binge_spending":
+                    1,
+
+                "hourly_txn_count":
+                    3.2,
+
+                "income_monthly":
+                    8000000,
+
+                "total_expense":
+                    6200000,
+
+                "wants_spending":
+                    2500000,
+
+                "total_debt_payment":
+                    1000000,
+
+                "investment_amount":
+                    500000
             }
         }
 
 
 class SpendingClusterResponse(BaseModel):
-    user_id:            str
-    cluster_id:         int
-    cluster_label:      str     # "Si Boros" | "Si Hemat" | "Si Impulsif"
-    dominant_category:  str
-    insight:            str
-    needs_ratio:        Optional[float] = None
-    wants_ratio:        Optional[float] = None
-    savings_ratio:      Optional[float] = None
-    trend:              Optional[str] = "stable"
-    is_mock:            bool = True
+
+    cluster: int
+
+    cluster_label: str
+
+    cluster_description: str
+
+    metrics_summary: dict
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+
+                "cluster":
+                    1,
+
+                "cluster_label":
+                    "Si Impulsif",
+
+                "cluster_description":
+                    "Pengguna rentan melakukan pembelian spontan di luar rencana anggaran.",
+
+                "metrics_summary": {
+
+                    "saving_rate":
+                        0.18,
+
+                    "wants_ratio":
+                        0.42,
+
+                    "unbudgeted_ratio":
+                        0.37,
+
+                    "avg_transactions":
+                        42.1
+                }
+            }
+        }
 
 
 # ═══════════════════════════════════════════════════

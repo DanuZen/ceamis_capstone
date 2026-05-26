@@ -1,0 +1,150 @@
+import json
+import joblib
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+BASE_DIR = Path(_file_).resolve().parent.parent.parent
+
+ARTIFACT_DIR = BASE_DIR / "artifacts"
+
+model = joblib.load(
+    ARTIFACT_DIR / "cluster_model.pkl"
+)
+
+scaler = joblib.load(
+    ARTIFACT_DIR / "cluster_scaler.pkl"
+)
+
+with open(
+    ARTIFACT_DIR / "cluster_profiles.json",
+    "r",
+    encoding="utf-8"
+) as f:
+    
+    cluster_profiles = json.load(f)
+
+with open(
+    ARTIFACT_DIR / "cluster_features.json",
+    "r",
+    encoding="utf-8"
+) as f:
+    
+    feature_order = json.load(f)
+
+def predict_persona(transaction_df: pd.DataFrame):
+
+    df = transaction_df.copy()
+
+    df['transaction_datetime'] = pd.to_datetime(
+        df['transaction_datetime']
+    )
+
+    df['month'] = df['transaction_datetime'] \
+        .dt.to_period('M') \
+        .astype(str)
+
+    monthly_base = df.groupby(
+        ['user_id', 'month']
+    ).agg({
+
+        'is_late_night': 'mean',
+        'is_weekend': 'mean',
+        'is_unbudgeted': 'mean',
+        'is_risky_category': 'mean',
+        'is_binge_spending': 'mean',
+        'hourly_txn_count': 'mean',
+
+        'amount': 'count',
+
+        'income_monthly': 'first',
+        'total_expense': 'first',
+        'wants_spending': 'first',
+        'total_debt_payment': 'first',
+        'investment_amount': 'first'
+
+    }).rename(columns={
+        'amount': 'transaction_count'
+    })
+
+    eps = 1e-5
+
+    monthly_base['saving_rate_raw'] = (
+        monthly_base['income_monthly']
+        - monthly_base['total_expense']
+    ) / (
+        monthly_base['income_monthly'] + eps
+    )
+
+    monthly_base['wants_ratio_raw'] = (
+        monthly_base['wants_spending']
+    ) / (
+        monthly_base['income_monthly'] + eps
+    )
+
+    monthly_base['investment_rate_raw'] = (
+        monthly_base['investment_amount']
+    ) / (
+        monthly_base['income_monthly'] + eps
+    )
+
+    monthly_base['dti_ratio_raw'] = (
+        monthly_base['total_debt_payment']
+    ) / (
+        monthly_base['income_monthly'] + eps
+    )
+
+    cat_pivot = df.groupby(
+        ['user_id', 'month', 'category']
+    )['amount'].sum().unstack(fill_value=0)
+
+    cat_prop = cat_pivot.div(
+        cat_pivot.sum(axis=1),
+        axis=0
+    )
+
+    cat_prop.columns = [
+        f'cat_{c.lower().replace(" ", "_")}'
+        for c in cat_prop.columns
+    ]
+
+    monthly = monthly_base.merge(
+        cat_prop,
+        on=['user_id', 'month'],
+        how='left'
+    ).fillna(0)
+
+    for col in feature_order:
+
+        if col not in monthly.columns:
+            monthly[col] = 0
+
+    monthly = monthly[feature_order]
+
+    X_scaled = scaler.transform(monthly)
+
+    clusters = model.predict(X_scaled)
+
+    results = []
+
+    for idx, cluster_id in enumerate(clusters):
+
+        cluster_id = str(cluster_id)
+
+        profile = cluster_profiles[cluster_id]
+
+        results.append({
+
+            "cluster": int(cluster_id),
+
+            "persona_label": profile['label'],
+
+            "persona_description":
+                profile['description'],
+
+            "metrics_summary":
+                profile['metrics_summary']
+
+        })
+
+    return results
