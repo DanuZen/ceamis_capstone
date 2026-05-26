@@ -1,0 +1,32 @@
+{
+    "0": {
+        "label": "Si Minimalis",
+        "description": "Pengguna sangat jarang melakukan transaksi bulanan dan cenderung pasif, namun memiliki kontrol pengeluaran yang baik dengan tingkat tabungan yang sehat.",
+        "metrics_summary": {
+            "saving_rate": 0.29,
+            "wants_ratio": 0.25,
+            "unbudgeted_ratio": 0.58,
+            "avg_transactions": 2.4
+        }
+    },
+    "1": {
+        "label": "Si Impulsif",
+        "description": "Pengguna rentan melakukan pembelian spontan di luar rencana anggaran keuangan bulanan yang sudah dicanangkan, serta memiliki frekuensi transaksi yang sangat tinggi.",
+        "metrics_summary": {
+            "saving_rate": 0.08,
+            "wants_ratio": 0.44,
+            "unbudgeted_ratio": 0.76,
+            "avg_transactions": 33.8
+        }
+    },
+    "2": {
+        "label": "Si Hemat",
+        "description": "Pengguna bertipe terencana, sangat disiplin dalam menyisihkan tabungan, serta ketat dalam menjaga rasio pengeluaran non-esensial (wants).",
+        "metrics_summary": {
+            "saving_rate": 0.35,
+            "wants_ratio": 0.19,
+            "unbudgeted_ratio": 0.65,
+            "avg_transactions": 24.0
+        }
+    }
+}
