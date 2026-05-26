@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   Wallet, 
@@ -13,8 +13,13 @@ import {
   User,
   HandCoins,
   FileText,
-  Target
+  Target,
+  Lock
 } from "lucide-react";
+import { useUser } from "@/context/UserContext";
+import { useGuest } from "@/context/GuestContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { createClient } from "@/lib/supabase/client";
 
 // ── Grouped Navigation ──────────────────────
 interface NavItem {
@@ -22,6 +27,7 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number; style?: React.CSSProperties }>;
   color: string;
+  guestRestricted?: boolean; // true = dikunci untuk guest
 }
 
 interface NavGroup {
@@ -31,39 +37,143 @@ interface NavGroup {
 
 const navGroups: NavGroup[] = [
   {
-    title: "UTAMA",
+    title: "sidebar.groups.utama",
     items: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, color: "purple" },
+      { href: "/dashboard", label: "sidebar.dashboard", icon: LayoutDashboard, color: "purple" },
     ],
   },
   {
-    title: "KEUANGAN",
+    title: "sidebar.groups.keuangan",
     items: [
-      { href: "/dashboard/transactions", label: "Transaksi", icon: Wallet, color: "lime" },
-      { href: "/dashboard/history", label: "Riwayat", icon: History, color: "orange" },
-      { href: "/dashboard/planning", label: "Perencanaan", icon: Target, color: "purple" },
-      { href: "/dashboard/debt", label: "Utang & Piutang", icon: HandCoins, color: "orange" },
-      { href: "/dashboard/reports", label: "Laporan", icon: FileText, color: "lime" },
-      { href: "/dashboard/education", label: "Edukasi", icon: BookOpen, color: "orange" },
+      { href: "/dashboard/transactions", label: "sidebar.transactions", icon: Wallet, color: "lime" },
+      { href: "/dashboard/history", label: "sidebar.history", icon: History, color: "orange" },
+      { href: "/dashboard/planning", label: "sidebar.planning", icon: Target, color: "purple", guestRestricted: true },
+      { href: "/dashboard/debt", label: "sidebar.debt", icon: HandCoins, color: "orange" },
+      { href: "/dashboard/reports", label: "sidebar.reports", icon: FileText, color: "lime" },
+      { href: "/dashboard/education", label: "sidebar.education", icon: BookOpen, color: "orange", guestRestricted: true },
     ],
   },
   {
-    title: "AI & TOOLS",
+    title: "sidebar.groups.ai",
     items: [
-      { href: "/dashboard/warnings", label: "Warning System", icon: AlertTriangle, color: "pink" },
-      { href: "/dashboard/chatbot", label: "Chatbot AI", icon: Bot, color: "lime" },
+      { href: "/dashboard/warnings", label: "sidebar.warnings", icon: AlertTriangle, color: "pink", guestRestricted: true },
+      { href: "/dashboard/chatbot", label: "sidebar.chatbot", icon: Bot, color: "lime", guestRestricted: true },
     ],
   },
 ];
 
 export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { userData } = useUser();
+  const { isGuest } = useGuest();
+  const { t } = useLanguage();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+
+    // Hapus semua data user-spesifik dari localStorage
+    const keysToRemove = [
+      "ceamis_role",
+      "ceamis_user",
+      "ceamis_transactions",
+      "ceamis_budget",
+      "ceamis_targets",
+      "ceamis_risk_profile",
+      "ceamis_debts",
+      "ceamis_chat_history_v2",
+      "ceamis_read_notifs",
+    ];
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith("ceamis_module_")) {
+        localStorage.removeItem(key);
+      }
+    });
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    router.push("/");
+  };
+  const warningTriggered = userData.warningTriggered;
+  const healthScore = userData.healthScore;
 
   const renderNavItem = (item: NavItem) => {
     const isActive =
       item.href === "/dashboard"
         ? pathname === "/dashboard"
         : pathname.startsWith(item.href);
+
+    // Guest restriction — visible tapi terkunci
+    const isGuestLocked = isGuest && item.guestRestricted;
+    if (isGuestLocked) {
+      return (
+        <div
+          key={item.href}
+          title={t("sidebar.guestLockedTitle")}
+          style={{
+            padding: "0.75rem 1.25rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.85rem",
+            borderRadius: "var(--radius-brutal-sm)",
+            opacity: 0.4,
+            cursor: "not-allowed",
+            border: "2px dashed rgba(255,255,255,0.15)",
+            userSelect: "none",
+          }}
+        >
+          <Lock 
+            size={18} 
+            color="rgba(255,255,255,0.5)"
+            strokeWidth={2.5}
+            style={{ minWidth: "18px" }}
+          />
+          <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap", color: "rgba(255,255,255,0.5)" }}>
+            {t(item.label)}
+          </span>
+          <span className="sidebar-text" style={{ fontSize: "0.6rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "100px", padding: "0.1rem 0.4rem", color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap", marginLeft: "auto" }}>
+            {t("sidebar.guestTag")}
+          </span>
+        </div>
+      );
+    }
+
+    // Warning System: hanya bisa diakses jika warningTriggered (score < 40)
+    const isWarningItem = item.href === "/dashboard/warnings";
+    const isLocked = isWarningItem && !warningTriggered;
+
+    if (isLocked) {
+      return (
+        <div
+          key={item.href}
+          title={`${t("sidebar.warningTitle")} (${healthScore.toFixed(0)}%)`}
+          style={{
+            padding: "0.75rem 1.25rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.85rem",
+            borderRadius: "var(--radius-brutal-sm)",
+            opacity: 0.35,
+            cursor: "not-allowed",
+            border: "2px dashed rgba(255,255,255,0.2)",
+            userSelect: "none",
+          }}
+        >
+          <Lock 
+            size={18} 
+            color="rgba(255,255,255,0.5)"
+            strokeWidth={2.5}
+            style={{ minWidth: "18px" }}
+          />
+          <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap", color: "rgba(255,255,255,0.5)" }}>
+            {t(item.label)}
+          </span>
+          <span className="sidebar-text" style={{ fontSize: "0.6rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "100px", padding: "0.1rem 0.4rem", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", marginLeft: "auto" }}>
+            {healthScore.toFixed(0)}%
+          </span>
+        </div>
+      );
+    }
 
     return (
       <Link
@@ -86,11 +196,14 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       >
         <item.icon 
           size={18} 
-          color={isActive ? "var(--color-navy)" : "rgba(255,255,255,0.7)"}
+          color={isActive ? "var(--color-navy)" : isWarningItem ? "var(--color-pink)" : "rgba(255,255,255,0.7)"}
           strokeWidth={isActive ? 3 : 2.5}
           style={{ minWidth: "18px" }}
         />
-        <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap" }}>{item.label}</span>
+        <span className="sidebar-text" style={{ fontWeight: 800, fontSize: "0.875rem", whiteSpace: "nowrap" }}>{t(item.label)}</span>
+        {isWarningItem && (
+          <span className="animate-pulse" style={{ marginLeft: "auto", width: "8px", height: "8px", borderRadius: "50%", background: "var(--color-pink)", border: "2px solid var(--color-navy)", flexShrink: 0 }} />
+        )}
       </Link>
     );
   };
@@ -128,7 +241,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
               textTransform: "uppercase",
               whiteSpace: "nowrap"
             }}>
-              {group.title}
+              {t(group.title)}
             </div>
 
             {/* Group Items */}
@@ -150,7 +263,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
 
       {/* Footer — Only back to landing page */}
       <div className="sidebar__footer" style={{ padding: "1rem 1rem 1.5rem 1rem", borderTop: "2px dashed rgba(255, 255, 255, 0.1)" }}>
-        <Link href="/" style={{ textDecoration: "none" }}>
+        <div onClick={handleLogout} style={{ textDecoration: "none" }}>
           <button 
             className="btn-brutal" 
             style={{ 
@@ -172,9 +285,9 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
             }}
           >
             <LogOut size={18} strokeWidth={2.5} style={{ minWidth: "18px" }} />
-            <span className="sidebar-text" style={{ whiteSpace: "nowrap" }}>Kembali</span>
+            <span className="sidebar-text" style={{ whiteSpace: "nowrap" }}>{t("sidebar.back")}</span>
           </button>
-        </Link>
+        </div>
       </div>
     </aside>
   );

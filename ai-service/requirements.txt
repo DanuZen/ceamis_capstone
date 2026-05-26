@@ -1,0 +1,21 @@
+# ─── Core Framework ────────────────────────────────────────────────────────────
+fastapi==0.136.1
+uvicorn[standard]==0.46.0
+pydantic==2.12.3
+pydantic-settings==2.14.0
+python-dotenv==1.2.2
+python-multipart==0.0.26
+httpx==0.28.1
+
+# ─── ML / Deep Learning ────────────────────────────────────────────────────────
+tensorflow==2.20.0
+keras==3.13.2
+scikit-learn==1.6.1
+joblib==1.5.3
+numpy==2.0.2
+pandas==2.2.2
+
+# ─── Generative AI ─────────────────────────────────────────────────────────────
+google-genai==1.68.0
+groq==0.13.0
+openai==2.32.0

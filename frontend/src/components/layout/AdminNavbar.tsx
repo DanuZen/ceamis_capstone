@@ -180,7 +180,7 @@ export default function AdminNavbar({ toggleSidebar, isOpen = true }: AdminNavba
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                <Link href="/auth" onClick={() => setShowProfileMenu(false)} style={{ textDecoration: "none" }}>
+                <Link href="/" onClick={() => setShowProfileMenu(false)} style={{ textDecoration: "none" }}>
                   <div className="btn-brutal" style={{
                     padding: "0.75rem", background: "var(--color-danger, #e74c3c)", border: "2px solid var(--color-navy)",
                     borderRadius: "var(--radius-brutal-sm)", display: "flex", alignItems: "center", gap: "0.6rem",

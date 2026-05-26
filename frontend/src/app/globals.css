@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
 
 /* ── CEAMIS Imports ── */
 @import "../styles/components.css";
@@ -186,6 +187,12 @@ a {
   }
 }
 
+@media (min-width: 769px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}
+
 /* ═══════════════════════════════════════════════
    SCROLLBAR
    ═══════════════════════════════════════════════ */
@@ -205,4 +212,14 @@ a {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.module-card:hover {
+  transform: translateY(-4px) scale(1.02) !important;
+  box-shadow: 12px 12px 0px var(--card-shadow-color) !important;
 }

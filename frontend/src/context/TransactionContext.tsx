@@ -1,74 +1,163 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { transactionsApi, Transaction as ApiTransaction } from "@/lib/api";
 
 export type TransactionType = "pemasukan" | "pengeluaran";
 
 export interface Transaction {
   id: string;
-  desc: string;
+  description: string;    // mapped from API
+  desc?: string;          // alias for backward compat
   amount: number;
   type: TransactionType;
   category: string;
   date: string;
-  tag?: "needs" | "wants";
+  tag?: "needs" | "wants" | "save";
 }
 
 interface TransactionContextType {
   transactions: Transaction[];
-  addTransaction: (transaction: Omit<Transaction, "id" | "date">) => void;
+  isLoading: boolean;
+  addTransaction: (transaction: Omit<Transaction, "id" | "date" | "desc">) => Promise<void>;
   clearTransactions: () => void;
+  refreshTransactions: () => Promise<void>;
+  summary: {
+    total_pemasukan: number;
+    total_pengeluaran: number;
+    sisa_saldo: number;
+    savings_ratio: number;
+    category_breakdown: Record<string, number>;
+  };
 }
 
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
 
-export function TransactionProvider({ children }: { children: ReactNode }) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+// Convert API transaction → local format
+const mapApiToLocal = (t: ApiTransaction): Transaction => ({
+  id: t.id,
+  description: t.description,
+  desc: t.description,        // backward compat alias
+  amount: t.amount,
+  type: t.type,
+  category: t.category,
+  tag: t.tag,
+  date: new Date(t.created_at).toLocaleDateString("id-ID", {
+    day: "numeric", month: "short", year: "numeric",
+  }),
+});
 
-  useEffect(() => {
-    const saved = localStorage.getItem("ceamis_transactions");
-    if (saved) {
-      try {
-        setTransactions(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse transactions", e);
+export function TransactionProvider({ children }: { children: ReactNode }) {
+  const supabase = createClient();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [summary, setSummary] = useState({
+    total_pemasukan: 0,
+    total_pengeluaran: 0,
+    sisa_saldo: 0,
+    savings_ratio: 0,
+    category_breakdown: {} as Record<string, number>,
+  });
+
+  const getUserId = async (): Promise<string | null> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
+  };
+
+  const refreshTransactions = useCallback(async () => {
+    const userId = await getUserId();
+    if (!userId) {
+      // Fallback: load from localStorage for guest/unauthenticated
+      const saved = localStorage.getItem("ceamis_transactions");
+      if (saved) {
+        try { setTransactions(JSON.parse(saved)); } catch { /* ignore */ }
       }
+      return;
     }
-    setIsLoaded(true);
+
+    setIsLoading(true);
+    try {
+      const [listRes, summaryRes] = await Promise.all([
+        transactionsApi.getAll(userId, 100),
+        transactionsApi.getSummary(userId),
+      ]);
+
+      setTransactions(listRes.data.map(mapApiToLocal));
+      setSummary({
+        total_pemasukan: summaryRes.total_pemasukan,
+        total_pengeluaran: summaryRes.total_pengeluaran,
+        sisa_saldo: summaryRes.sisa_saldo,
+        savings_ratio: summaryRes.savings_ratio,
+        category_breakdown: summaryRes.category_breakdown,
+      });
+    } catch (err) {
+      console.error("Failed to fetch transactions from API, falling back to localStorage:", err);
+      const saved = localStorage.getItem("ceamis_transactions");
+      if (saved) {
+        try { setTransactions(JSON.parse(saved)); } catch { /* ignore */ }
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("ceamis_transactions", JSON.stringify(transactions));
-    }
-  }, [transactions, isLoaded]);
+    refreshTransactions();
+  }, [refreshTransactions]);
 
-  const addTransaction = (transaction: Omit<Transaction, "id" | "date">) => {
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: Math.random().toString(36).substring(2, 9),
-      date: new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      })
-    };
-    
-    // Convert positive amount to negative if it's an expense, or just keep absolute values
-    // In the form they put positive number. 
-    // In history they render Math.abs(amount) anyway, and check tx.type
-    // We will standardise amount as absolute and use `type` to determine if it's income/expense
-    
-    setTransactions((prev) => [newTransaction, ...prev]);
+  const addTransaction = async (
+    transaction: Omit<Transaction, "id" | "date" | "desc">
+  ) => {
+    const userId = await getUserId();
+
+    if (!userId) {
+      // Fallback: save to localStorage for guest
+      const newTx: Transaction = {
+        ...transaction,
+        id: Math.random().toString(36).substring(2, 9),
+        date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+        desc: transaction.description,
+      };
+      const updated = [newTx, ...transactions];
+      setTransactions(updated);
+      localStorage.setItem("ceamis_transactions", JSON.stringify(updated));
+      return;
+    }
+
+    try {
+      const created = await transactionsApi.create({
+        user_id: userId,
+        description: transaction.description,
+        amount: transaction.amount,
+        type: transaction.type,
+        category: transaction.category,
+        tag: transaction.tag,
+      });
+      setTransactions(prev => [mapApiToLocal(created), ...prev]);
+      // Refresh summary
+      const summaryRes = await transactionsApi.getSummary(userId);
+      setSummary({
+        total_pemasukan: summaryRes.total_pemasukan,
+        total_pengeluaran: summaryRes.total_pengeluaran,
+        sisa_saldo: summaryRes.sisa_saldo,
+        savings_ratio: summaryRes.savings_ratio,
+        category_breakdown: summaryRes.category_breakdown,
+      });
+    } catch (err) {
+      console.error("Failed to save transaction to API:", err);
+    }
   };
 
   const clearTransactions = () => {
     setTransactions([]);
+    localStorage.removeItem("ceamis_transactions");
   };
 
   return (
-    <TransactionContext.Provider value={{ transactions, addTransaction, clearTransactions }}>
+    <TransactionContext.Provider
+      value={{ transactions, isLoading, addTransaction, clearTransactions, refreshTransactions, summary }}
+    >
       {children}
     </TransactionContext.Provider>
   );

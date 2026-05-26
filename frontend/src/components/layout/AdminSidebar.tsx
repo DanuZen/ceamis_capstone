@@ -130,7 +130,7 @@ export default function AdminSidebar({ isOpen = true }: { isOpen?: boolean }) {
 
       {/* Footer */}
       <div className="sidebar__footer" style={{ padding: "1rem 1rem 1.5rem 1rem", borderTop: "2px dashed rgba(255, 255, 255, 0.1)" }}>
-        <Link href="/auth" style={{ textDecoration: "none" }}>
+        <Link href="/" style={{ textDecoration: "none" }}>
           <button
             className="btn-brutal"
             style={{

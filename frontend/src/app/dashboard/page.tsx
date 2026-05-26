@@ -12,60 +12,72 @@ import {
   ShieldAlert,
   TrendingUp,
   Target,
-  BarChart3
+  BarChart3,
+  Lock
 } from "lucide-react";
 import { useTransactions } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
+import { useLanguage } from "@/context/LanguageContext";
 
-const featureCards = [
-  {
-    href: "/dashboard/transactions",
-    title: "Pencatatan Transaksi",
-    desc: "Catat pemasukan & pengeluaran harian. Rapi, cepat, dan terorganisir.",
-    color: "purple",
-    icon: Wallet
-  },
-  {
-    href: "/dashboard",
-    title: "AI Insight & XAI",
-    desc: "Insight keuangan otomatis dari AI. Pahami kenapa AI merekomendasikan itu.",
-    color: "lime",
-    icon: Sparkles
-  },
-  {
-    href: "/dashboard/warnings",
-    title: "Warning System",
-    desc: "Notifikasi sarkas kalau kebanyakan impulsif. Dijamin mikir dua kali!",
-    color: "orange",
-    icon: Flame
-  },
-  {
-    href: "/dashboard/chatbot",
-    title: "Chatbot AI",
-    desc: "Konsultasi keuangan dengan chatbot yang paham bahasa Gen-Z.",
-    color: "purple",
-    icon: Bot
-  },
-  {
-    href: "/dashboard/education",
-    title: "Edukasi Adaptif",
-    desc: "Materi finansial yang menyesuaikan kebutuhan dan level kamu.",
-    color: "lime",
-    icon: BookOpen
-  },
-  {
-    href: "/dashboard/profile",
-    title: "Profil & Pencapaian",
-    desc: "Lihat badge, streak, dan statistik pencapaian finansialmu.",
-    color: "orange",
-    icon: User
-  },
-];
+interface FeatureCard {
+  href: string;
+  title: string;
+  desc: string;
+  color: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>;
+  warningOnly?: boolean; // hanya muncul/aktif jika warningTriggered
+}
 
 export default function DashboardPage() {
   const { transactions } = useTransactions();
   const { userData } = useUser();
-  // Dynamic label from AI cluster — will come from API/context
+  const { t } = useLanguage();
+
+  const featureCards: FeatureCard[] = [
+    {
+      href: "/dashboard/transactions",
+      title: t("dashboard.transactions.title"),
+      desc: t("dashboard.transactions.desc"),
+      color: "purple",
+      icon: Wallet
+    },
+    {
+      href: "/dashboard",
+      title: t("landing.feature2Title"),
+      desc: t("landing.feature2Desc"),
+      color: "lime",
+      icon: Sparkles
+    },
+    {
+      href: "/dashboard/warnings",
+      title: t("dashboard.warnings.title"),
+      desc: t("dashboard.warnings.desc"),
+      color: "orange",
+      icon: Flame,
+      warningOnly: true,
+    },
+    {
+      href: "/dashboard/chatbot",
+      title: t("landing.feature5Title"),
+      desc: t("landing.feature5Desc"),
+      color: "purple",
+      icon: Bot
+    },
+    {
+      href: "/dashboard/education",
+      title: t("dashboard.education.title"),
+      desc: t("dashboard.education.desc"),
+      color: "lime",
+      icon: BookOpen
+    },
+    {
+      href: "/dashboard/profile",
+      title: t("landing.feature3Title"),
+      desc: t("landing.feature3Desc"),
+      color: "orange",
+      icon: User
+    },
+  ];
 
   const totalPemasukan = transactions
     .filter(tx => tx.type === "pemasukan")
@@ -94,10 +106,10 @@ export default function DashboardPage() {
             color: "var(--color-navy)"
           }}
         >
-          Halo, <span style={{ color: "var(--color-purple)" }}>{userData.name.split(" ")[0]}!</span>
+          {t("dashboard.greeting")}, <span style={{ color: "var(--color-purple)" }}>{userData.name.split(" ")[0]}!</span>
         </h1>
         <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", maxWidth: "600px", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          Siap untuk mengontrol keuanganmu hari ini?
+          {t("dashboard.ready")}
           <span className="badge-brutal badge-brutal--lime" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.6rem", fontSize: "0.75rem" }}>
             {userData.label}
           </span>
@@ -119,8 +131,8 @@ export default function DashboardPage() {
             <Flame size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>{userData.streak} Hari</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Streak Aktif</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>{userData.streak} {t("dashboard.streakDays")}</div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.streakActive")}</div>
           </div>
         </div>
         
@@ -130,17 +142,46 @@ export default function DashboardPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp {(sisaSaldo/1000).toLocaleString("id-ID")}k</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Saldo Bulan Ini</div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.balance")}</div>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div className="landing-feature-card__icon-box" style={{ background: "var(--color-orange)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+        <div 
+          className="card-brutal" 
+          style={{ 
+            display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem",
+            border: userData.warningTriggered ? "3px solid var(--color-pink)" : undefined,
+            boxShadow: userData.warningTriggered ? "4px 4px 0px var(--color-pink)" : undefined,
+            animation: userData.warningTriggered ? "pulse-border 1.5s ease-in-out infinite" : undefined,
+          }}
+        >
+          <div className="landing-feature-card__icon-box" style={{ 
+            background: userData.warningTriggered 
+              ? "var(--color-pink)" 
+              : userData.healthScore < 65 
+                ? "var(--color-orange)" 
+                : "var(--color-lime)",
+            width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", 
+            justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", 
+            border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" 
+          }}>
             <Target size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>78/100</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Skor Kesehatan</div>
+            <div style={{ 
+              fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem",
+              color: userData.warningTriggered ? "var(--color-danger)" : "var(--color-navy)"
+            }}>
+              {userData.healthScore.toFixed(0)}/100
+            </div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>
+              {t("dashboard.healthScore")} {userData.warningTriggered 
+                ? <span style={{ color: "var(--color-danger)", fontWeight: 700 }}>{t("dashboard.healthCritical")}</span>
+                : userData.healthScore < 65
+                  ? <span style={{ color: "var(--color-orange)", fontWeight: 700 }}>{t("dashboard.healthWarning")}</span>
+                  : <span style={{ color: "green", fontWeight: 700 }}>{t("dashboard.healthSafe")}</span>
+              }
+            </div>
           </div>
         </div>
 
@@ -150,7 +191,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>{transactions.length}</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Transaksi Bulan Ini</div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.transactionsMonth")}</div>
           </div>
         </div>
       </div>
@@ -167,15 +208,15 @@ export default function DashboardPage() {
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
                   <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: 0, color: "var(--color-navy)" }}>
-                    AI Insight Hari Ini
+                    {t("dashboard.insightTitle")}
                   </h3>
                   <div className="badge-brutal badge-brutal--purple" style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}>Confidence: 89%</div>
                 </div>
                 <p style={{ fontSize: "1.0625rem", lineHeight: 1.6, marginBottom: "1.25rem", color: "var(--color-navy)", fontWeight: 600 }}>
-                  &ldquo;Pengeluaran F&amp;B kamu naik 23% minggu ini. Kayaknya kopi-kopi hits itu perlu di-review, bestie! Coba bawa tumbler dari rumah, bisa hemat Rp 150rb/minggu.&rdquo;
+                  {t("dashboard.insightDesc")}
                 </p>
                 <button className="btn-brutal btn-brutal--sm" style={{ background: "var(--color-navy)", color: "var(--color-white)", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
-                  Lihat Detail <ArrowRight size={16} />
+                  {t("dashboard.viewDetails")} <ArrowRight size={16} />
                 </button>
               </div>
             </div>
@@ -194,7 +235,7 @@ export default function DashboardPage() {
                 margin: 0
               }}
             >
-              Jelajahi Fitur
+              {t("dashboard.exploreFeatures")}
             </h2>
           </div>
           
@@ -206,28 +247,110 @@ export default function DashboardPage() {
               gap: "1.25rem",
             }}
           >
-            {featureCards.map((card) => (
-              <Link key={card.href} href={card.href} style={{ textDecoration: "none" }}>
-                <div className={`landing-feature-card card-brutal landing-feature-card--${card.color}`} style={{ height: "100%", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  <div className="landing-feature-card__icon-box" style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", background: `var(--color-${card.color})` }}>
-                    <card.icon size={28} strokeWidth={2.5} color="var(--color-navy)" />
-                  </div>
-                  <div>
-                    <h3
+            {featureCards.map((card) => {
+              const isWarning   = card.warningOnly;
+              const isTriggered = userData.warningTriggered;
+              const isLocked    = isWarning && !isTriggered;
+
+              // Warning card — locked state (score >= 40)
+              if (isLocked) {
+                return (
+                  <div
+                    key={card.href}
+                    title={`${t("dashboard.warnings.lockedPrefix")} ${userData.healthScore.toFixed(0)}/100)`}
+                    style={{
+                      textDecoration: "none",
+                      cursor: "not-allowed",
+                      opacity: 0.45,
+                      userSelect: "none",
+                    }}
+                  >
+                    <div
+                      className="card-brutal"
                       style={{
-                        fontFamily: "var(--font-heading)",
-                        fontSize: "1.25rem",
-                        marginBottom: "0.5rem",
-                        color: "var(--color-navy)"
+                        height: "100%", padding: "1.5rem", display: "flex",
+                        flexDirection: "column", gap: "1.25rem",
+                        border: "3px dashed rgba(10,25,47,0.3)",
+                        boxShadow: "none",
+                        background: "rgba(10,25,47,0.04)",
                       }}
                     >
-                      {card.title}
-                    </h3>
-                    <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", margin: 0 }}>{card.desc}</p>
+                      <div style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px dashed rgba(10,25,47,0.3)", background: "rgba(10,25,47,0.06)" }}>
+                        <Lock size={28} strokeWidth={2.5} color="rgba(10,25,47,0.4)" />
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, color: "rgba(10,25,47,0.5)" }}>
+                            {card.title}
+                          </h3>
+                          <span style={{ fontSize: "0.65rem", fontWeight: 800, background: "rgba(10,25,47,0.08)", border: "1px solid rgba(10,25,47,0.2)", borderRadius: "100px", padding: "0.1rem 0.5rem", color: "rgba(10,25,47,0.4)" }}>
+                            {t("dashboard.locked")}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "rgba(10,25,47,0.4)", margin: 0 }}>
+                          {t("dashboard.lockedDesc")}{userData.healthScore.toFixed(0)}/100 ✓
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                );
+              }
+
+              // Warning card — active state (score < 40, warning triggered)
+              if (isWarning && isTriggered) {
+                return (
+                  <Link key={card.href} href={card.href} style={{ textDecoration: "none" }}>
+                    <div
+                      className="card-brutal animate-shake"
+                      style={{
+                        height: "100%", padding: "1.5rem", display: "flex",
+                        flexDirection: "column", gap: "1.25rem",
+                        background: "var(--color-pink)",
+                        border: "4px solid var(--color-navy)",
+                        boxShadow: "6px 6px 0px var(--color-navy)",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", background: "var(--color-white)" }}>
+                          <card.icon size={28} strokeWidth={2.5} color="var(--color-pink)" />
+                        </div>
+                        <span className="animate-pulse" style={{ width: "12px", height: "12px", borderRadius: "50%", background: "var(--color-navy)" }} />
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, color: "var(--color-navy)" }}>
+                            {card.title}
+                          </h3>
+                          <span style={{ fontSize: "0.65rem", fontWeight: 900, background: "var(--color-navy)", borderRadius: "100px", padding: "0.1rem 0.5rem", color: "var(--color-pink)" }}>
+                            {t("dashboard.active")}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-navy)", margin: 0, fontWeight: 600 }}>
+                          {t("dashboard.activeDesc")}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              }
+
+              // Normal cards
+              return (
+                <Link key={card.href} href={card.href} style={{ textDecoration: "none" }}>
+                  <div className={`landing-feature-card card-brutal landing-feature-card--${card.color}`} style={{ height: "100%", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                    <div className="landing-feature-card__icon-box" style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", background: `var(--color-${card.color})` }}>
+                      <card.icon size={28} strokeWidth={2.5} color="var(--color-navy)" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
+                        {card.title}
+                      </h3>
+                      <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", margin: 0 }}>{card.desc}</p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -235,7 +358,7 @@ export default function DashboardPage() {
         <div style={{ flex: "1 1 30%", minWidth: "280px" }}>
           <div className="card-brutal" style={{ padding: "1.5rem", height: "100%", display: "flex", flexDirection: "column", background: "var(--color-white)" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <TrendingUp size={24} color="var(--color-purple)" /> Aktivitas Terakhir
+              <TrendingUp size={24} color="var(--color-purple)" /> {t("dashboard.recentActivity")}
             </h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1 }}>
@@ -270,12 +393,12 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )) : (
-                <div style={{ textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.875rem", padding: "1rem" }}>Belum ada aktivitas.</div>
+                <div style={{ textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.875rem", padding: "1rem" }}>{t("dashboard.noActivity")}</div>
               )}
             </div>
 
             <Link href="/dashboard/transactions" className="btn-brutal btn-brutal--secondary" style={{ marginTop: "1.5rem", textAlign: "center", display: "block", width: "100%" }}>
-              Lihat Semua Transaksi
+              {t("dashboard.viewAllTrx")}
             </Link>
           </div>
         </div>

@@ -2,15 +2,24 @@
 
 import { useState } from "react";
 import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function HistoryPage() {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
   const [filter, setFilter] = useState<"semua" | "pemasukan" | "pengeluaran">("semua");
   const { transactions } = useTransactions();
+  const { t } = useLanguage();
 
   const filteredTransactions = transactions.filter(tx => {
-    if (filter === "semua") return true;
-    return tx.type === filter;
+    if (filter !== "semua" && tx.type !== filter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return (tx.desc?.toLowerCase() || "").includes(q) || (tx.category?.toLowerCase() || "").includes(q);
+    }
+    return true;
   });
 
   const totalPemasukan = transactions
@@ -43,10 +52,10 @@ export default function HistoryPage() {
         </div>
         <div>
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            Riwayat Transaksi
+            {t("dashboard.history.title")}
           </h1>
           <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-            Pantau semua pergerakan uangmu di sini. Jangan kaget kalau banyakan merahnya!
+            {t("dashboard.history.desc")}
           </p>
         </div>
       </div>
@@ -60,7 +69,7 @@ export default function HistoryPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(totalPemasukan/1000).toLocaleString("id-ID")}k</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Pemasukan</div>
+            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.income")}</div>
           </div>
         </div>
         
@@ -70,7 +79,7 @@ export default function HistoryPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(totalPengeluaran/1000).toLocaleString("id-ID")}k</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Pengeluaran</div>
+            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.expense")}</div>
           </div>
         </div>
 
@@ -80,7 +89,7 @@ export default function HistoryPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {(sisaSaldo/1000).toLocaleString("id-ID")}k</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Sisa Saldo</div>
+            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.balance")}</div>
           </div>
         </div>
 
@@ -90,7 +99,7 @@ export default function HistoryPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{transactions.length} Trx</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Total Bulan Ini</div>
+            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.totalMonth")}</div>
           </div>
         </div>
       </div>
@@ -103,7 +112,7 @@ export default function HistoryPage() {
             {/* Header List & Filters */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
               <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 900 }}>
-                <Filter size={24} /> DAFTAR TRANSAKSI
+                <Filter size={24} /> {searchQuery ? `${t("dashboard.history.search")}"${searchQuery}"` : t("dashboard.history.transactionList")}
               </h2>
               
               <div style={{ display: "flex", gap: "0.25rem", background: "var(--color-bg)", padding: "0.4rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
@@ -123,7 +132,7 @@ export default function HistoryPage() {
                       textTransform: "capitalize"
                     }}
                   >
-                    {type}
+                    {t(`dashboard.history.${type === "semua" ? "all" : type === "pemasukan" ? "income" : "expense"}`)}
                   </button>
                 ))}
               </div>
@@ -188,7 +197,7 @@ export default function HistoryPage() {
                 ))
               ) : (
                 <div style={{ padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", color: "var(--color-text-muted)", fontWeight: 700 }}>
-                  Tidak ada data transaksi.
+                  {searchQuery ? `${t("dashboard.history.noSearchData")} "${searchQuery}".` : t("dashboard.history.noData")}
                 </div>
               )}
             </div>
@@ -199,14 +208,14 @@ export default function HistoryPage() {
         <div style={{ flex: "1 1 25%", minWidth: "280px" }}>
           <div className="card-brutal" style={{ padding: "1.5rem", background: "var(--color-white)", height: "100%" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 900 }}>
-              <TrendingUp size={24} color="var(--color-purple)" /> KATEGORI TERBANYAK
+              <TrendingUp size={24} color="var(--color-purple)" /> {t("dashboard.history.topCategories")}
             </h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               {[
-                { name: "F&B (Makan/Minum)", count: 12, color: "var(--color-lime)" },
-                { name: "Transportasi", count: 8, color: "var(--color-orange)" },
-                { name: "Digital & Game", count: 5, color: "var(--color-purple)" },
+                { name: t("dashboard.history.mockCat1"), count: 12, color: "var(--color-lime)" },
+                { name: t("dashboard.history.mockCat2"), count: 8, color: "var(--color-orange)" },
+                { name: t("dashboard.history.mockCat3"), count: 5, color: "var(--color-purple)" },
               ].map((cat, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -219,9 +228,9 @@ export default function HistoryPage() {
             </div>
 
             <div style={{ marginTop: "2rem", padding: "1.25rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
-              <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: 900 }}>INSIGHT AI:</h4>
+              <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: 900 }}>{t("dashboard.history.aiInsight")}</h4>
               <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.4, fontWeight: 500 }}>
-                "Kamu paling sering jajan di kategori F&B. Coba batasi 1 kopi sehari untuk hemat Rp 200rb bulan depan!"
+                {t("dashboard.history.mockInsight")}
               </p>
             </div>
           </div>

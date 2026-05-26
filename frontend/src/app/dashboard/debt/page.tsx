@@ -6,6 +6,8 @@ import {
   Calendar, User, AlertTriangle, CheckCircle2,
   X, Clock, Filter
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
 type DebtType = "utang" | "piutang";
 type DebtStatus = "belum_lunas" | "lunas" | "jatuh_tempo";
@@ -24,6 +26,9 @@ interface DebtEntry {
 const DEFAULT_DATA: DebtEntry[] = [];
 
 export default function DebtPage() {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
+  const { t } = useLanguage();
   const [entries, setEntries] = useState<DebtEntry[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "utang" | "piutang">("all");
@@ -52,13 +57,38 @@ export default function DebtPage() {
     }
   }, [entries, isLoaded]);
 
-  const filteredEntries = entries.filter(e =>
-    activeTab === "all" ? true : e.type === activeTab
-  );
+  const filteredEntries = entries.filter(e => {
+    if (activeTab !== "all" && e.type !== activeTab) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return e.person.toLowerCase().includes(q) || e.description.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   const totalUtang = entries.filter(e => e.type === "utang" && e.status !== "lunas").reduce((sum, e) => sum + e.amount, 0);
   const totalPiutang = entries.filter(e => e.type === "piutang" && e.status !== "lunas").reduce((sum, e) => sum + e.amount, 0);
-  const jatuhTempo = entries.filter(e => e.status === "jatuh_tempo").length;
+  
+  // Use local date for comparison instead of UTC string
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const parseDateLocal = (dateStr: string) => {
+    // Expected format: YYYY-MM-DD
+    if (!dateStr) return new Date(NaN);
+    const parts = dateStr.split("-");
+    if (parts.length !== 3) return new Date(dateStr);
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  };
+
+  const isJatuhTempo = (dueDate: string, status: DebtStatus) => {
+    if (status === "lunas") return false;
+    const due = parseDateLocal(dueDate);
+    if (isNaN(due.getTime())) return false;
+    return due <= today;
+  };
+  
+  const jatuhTempo = entries.filter(e => isJatuhTempo(e.dueDate, e.status)).length;
 
   const formatRupiah = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
 
@@ -91,12 +121,16 @@ export default function DebtPage() {
     setEntries(entries.filter(e => e.id !== id));
   };
 
-  const getStatusBadge = (status: DebtStatus) => {
-    switch (status) {
-      case "lunas": return { label: "Lunas", color: "lime", icon: CheckCircle2 };
-      case "jatuh_tempo": return { label: "Jatuh Tempo", color: "orange", icon: AlertTriangle };
-      default: return { label: "Belum Lunas", color: "purple", icon: Clock };
-    }
+  const getStatusBadge = (status: DebtStatus, dueDate: string) => {
+    if (status === "lunas") return { label: t("dashboard.debt.paid"), color: "lime", icon: CheckCircle2 };
+    if (isJatuhTempo(dueDate, status)) return { label: t("dashboard.debt.overdue"), color: "orange", icon: AlertTriangle };
+    return { label: t("dashboard.debt.unpaid"), color: "purple", icon: Clock };
+  };
+
+  const displayDate = (dateStr: string) => {
+    const d = parseDateLocal(dateStr);
+    if (isNaN(d.getTime())) return t("dashboard.debt.formatError");
+    return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   };
 
   return (
@@ -114,10 +148,10 @@ export default function DebtPage() {
           </div>
           <div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-              Utang & Piutang
+              {t("dashboard.debt.title")}
             </h1>
             <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-              Catat dan kelola utang-piutangmu dengan rapi. Jangan sampai lupa!
+              {t("dashboard.debt.desc")}
             </p>
           </div>
         </div>
@@ -131,7 +165,7 @@ export default function DebtPage() {
             boxShadow: "4px 4px 0px var(--color-navy)",
           }}
         >
-          {showForm ? <><X size={18} /> Batal</> : <><Plus size={18} /> Tambah Baru</>}
+          {showForm ? <><X size={18} /> {t("dashboard.debt.cancel")}</> : <><Plus size={18} /> {t("dashboard.debt.addEntry")}</>}
         </button>
       </div>
 
@@ -148,7 +182,7 @@ export default function DebtPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{formatRupiah(totalUtang)}</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Total Utang</div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.debt.totalDebt")}</div>
           </div>
         </div>
 
@@ -163,7 +197,7 @@ export default function DebtPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{formatRupiah(totalPiutang)}</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Total Piutang</div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.debt.totalLoan")}</div>
           </div>
         </div>
 
@@ -178,7 +212,7 @@ export default function DebtPage() {
           </div>
           <div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{jatuhTempo}</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>Jatuh Tempo</div>
+            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.debt.overdue")}</div>
           </div>
         </div>
       </div>
@@ -187,7 +221,7 @@ export default function DebtPage() {
       {showForm && (
         <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2rem", background: "var(--color-bg)", border: "3px solid var(--color-navy)", boxShadow: "6px 6px 0px var(--color-purple)" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Plus size={20} /> Tambah Entri Baru
+            <Plus size={20} /> {t("dashboard.debt.addNewEntry")}
           </h3>
 
           <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
@@ -197,7 +231,7 @@ export default function DebtPage() {
               color: newEntry.type === "utang" ? "var(--color-white)" : "var(--color-navy)",
               display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
             }}>
-              <ArrowDownLeft size={16} /> Saya Berutang
+              <ArrowDownLeft size={16} /> {t("dashboard.debt.iOwe")}
             </button>
             <button onClick={() => setNewEntry({ ...newEntry, type: "piutang" })} className="btn-brutal" style={{
               flex: 1, padding: "0.85rem", fontWeight: 800,
@@ -205,14 +239,14 @@ export default function DebtPage() {
               color: "var(--color-navy)",
               display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
             }}>
-              <ArrowUpRight size={16} /> Saya Meminjamkan
+              <ArrowUpRight size={16} /> {t("dashboard.debt.iLend")}
             </button>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
             <div>
               <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.4rem", color: "var(--color-navy)" }}>
-                {newEntry.type === "utang" ? "NAMA PEMBERI PINJAMAN" : "NAMA PEMINJAM"}
+                {newEntry.type === "utang" ? t("dashboard.debt.lenderName") : t("dashboard.debt.borrowerName")}
               </label>
               <input
                 value={newEntry.person}
@@ -224,7 +258,7 @@ export default function DebtPage() {
             </div>
             <div>
               <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.4rem", color: "var(--color-navy)" }}>
-                NOMINAL (RP)
+                {t("dashboard.debt.amount")}
               </label>
               <input
                 value={newEntry.amount}
@@ -240,7 +274,7 @@ export default function DebtPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
             <div>
               <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.4rem", color: "var(--color-navy)" }}>
-                KETERANGAN
+                {t("dashboard.debt.descLabel")}
               </label>
               <input
                 value={newEntry.description}
@@ -252,7 +286,7 @@ export default function DebtPage() {
             </div>
             <div>
               <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.4rem", color: "var(--color-navy)" }}>
-                JATUH TEMPO
+                {t("dashboard.debt.dueDate")}
               </label>
               <input
                 value={newEntry.dueDate}
@@ -270,7 +304,7 @@ export default function DebtPage() {
             display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
             boxShadow: "4px 4px 0px var(--color-lime)",
           }}>
-            <Plus size={18} /> Simpan
+            <Plus size={18} /> {t("dashboard.debt.save")}
           </button>
         </div>
       )}
@@ -278,9 +312,9 @@ export default function DebtPage() {
       {/* Filter Tabs */}
       <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
         {[
-          { id: "all" as const, label: "Semua", icon: Filter },
-          { id: "utang" as const, label: "Utang Saya", icon: ArrowDownLeft },
-          { id: "piutang" as const, label: "Piutang Saya", icon: ArrowUpRight },
+          { id: "all" as const, label: t("dashboard.debt.filterAll"), icon: Filter },
+          { id: "utang" as const, label: t("dashboard.debt.filterDebt"), icon: ArrowDownLeft },
+          { id: "piutang" as const, label: t("dashboard.debt.filterLoan"), icon: ArrowUpRight },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="btn-brutal" style={{
             padding: "0.65rem 1.25rem", fontWeight: 800,
@@ -300,13 +334,15 @@ export default function DebtPage() {
         {filteredEntries.length === 0 && (
           <div className="card-brutal" style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
             <HandCoins size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
-            <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>Belum ada data</p>
-            <p style={{ fontSize: "0.9rem" }}>Klik &quot;Tambah Baru&quot; untuk menambahkan entri utang/piutang.</p>
+            <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
+              {searchQuery ? `${t("dashboard.debt.noMatch1")}${searchQuery}${t("dashboard.debt.noMatch2")}` : t("dashboard.debt.noData")}
+            </p>
+            {!searchQuery && <p style={{ fontSize: "0.9rem" }}>{t("dashboard.debt.addHint")}</p>}
           </div>
         )}
 
         {filteredEntries.map((entry) => {
-          const statusInfo = getStatusBadge(entry.status);
+          const statusInfo = getStatusBadge(entry.status, entry.dueDate);
           const StatusIcon = statusInfo.icon;
           return (
             <div key={entry.id} className="card-brutal" style={{
@@ -331,7 +367,7 @@ export default function DebtPage() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.35rem", flexWrap: "wrap" }}>
                   <span style={{ fontWeight: 800, fontSize: "1.0625rem", color: "var(--color-navy)" }}>
-                    {entry.type === "utang" ? `Utang ke ${entry.person}` : `Piutang dari ${entry.person}`}
+                    {entry.type === "utang" ? `${t("dashboard.debt.debtTo")} ${entry.person}` : `${t("dashboard.debt.loanFrom")} ${entry.person}`}
                   </span>
                   <div className={`badge-brutal badge-brutal--${statusInfo.color}`} style={{
                     display: "inline-flex", alignItems: "center", gap: "0.25rem",
@@ -343,7 +379,7 @@ export default function DebtPage() {
                 <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
                   <span>{entry.description}</span>
                   <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                    <Calendar size={12} /> Tenggat: {new Date(entry.dueDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    <Calendar size={12} /> {t("dashboard.debt.dueDateShort")}: {displayDate(entry.dueDate)}
                   </span>
                 </div>
               </div>
@@ -364,7 +400,7 @@ export default function DebtPage() {
                   alignItems: "center", justifyContent: "center",
                   background: entry.status === "lunas" ? "var(--color-lime)" : "var(--color-white)",
                   boxShadow: "2px 2px 0px var(--color-navy)",
-                }} title={entry.status === "lunas" ? "Tandai belum lunas" : "Tandai lunas"}>
+                }} title={entry.status === "lunas" ? t("dashboard.debt.markUnpaid") : t("dashboard.debt.markPaid")}>
                   <CheckCircle2 size={16} color="var(--color-navy)" />
                 </button>
                 <button onClick={() => deleteEntry(entry.id)} className="btn-brutal" style={{
@@ -372,7 +408,7 @@ export default function DebtPage() {
                   alignItems: "center", justifyContent: "center",
                   background: "var(--color-white)",
                   boxShadow: "2px 2px 0px var(--color-navy)",
-                }} title="Hapus">
+                }} title={t("dashboard.debt.delete")}>
                   <X size={16} color="var(--color-navy)" />
                 </button>
               </div>
