@@ -12,51 +12,32 @@ from typing import Optional, List, Dict
 # ═══════════════════════════════════════════════════
 
 class HealthScoreRequest(BaseModel):
-    """
-    Input fitur agregat bulanan per user.
-    Semua rasio dalam rentang 0.0 – 1.0 kecuali yang tercantum.
-    """
-    # Behavioral features
-    pct_late_night:       float = Field(..., ge=0, le=1, description="Rasio transaksi larut malam")
-    pct_weekend:          float = Field(..., ge=0, le=1, description="Rasio transaksi saat weekend")
-    pct_unbudgeted:       float = Field(..., ge=0, le=1, description="Rasio transaksi di luar budget")
-    pct_risky_category:   float = Field(..., ge=0, le=1, description="Rasio kategori berisiko")
-    pct_binge_spending:   float = Field(..., ge=0, le=1, description="Rasio binge spending")
-    avg_hourly_txn_count: float = Field(..., ge=0,       description="Rata-rata transaksi per jam")
-    transaction_count:    int   = Field(..., ge=0,       description="Total transaksi bulan ini")
-
-    # Financial ratios
-    saving_rate_raw:     float = Field(..., ge=0, le=1, description="Rasio tabungan = (income - expense) / income")
-    wants_ratio_raw:     float = Field(..., ge=0, le=1, description="Rasio keinginan / income")
-    investment_rate_raw: float = Field(..., ge=0, le=1, description="Rasio investasi / income")
-    dti_ratio:           float = Field(..., ge=0, le=1, description="Debt-to-income ratio")
-    segment_enc:         int   = Field(..., ge=0, le=1, description="Segmen DTI: 1=B(aman), 0=lainnya")
+    segmen          : str    # "A" | "B" | "C"
+    saving_rate     : float  # 0-1
+    wants_ratio     : float  # 0-1
+    dti_ratio       : float  # 0-1
+    impulsive_ratio : float  # 0-1
+    budget_adherence: float  # 0-1
 
     class Config:
         json_schema_extra = {
             "example": {
-                "pct_late_night": 0.15,
-                "pct_weekend": 0.30,
-                "pct_unbudgeted": 0.45,
-                "pct_risky_category": 0.40,
-                "pct_binge_spending": 0.05,
-                "avg_hourly_txn_count": 2.3,
-                "transaction_count": 42,
-                "saving_rate_raw": 0.20,
-                "wants_ratio_raw": 0.35,
-                "investment_rate_raw": 0.10,
-                "dti_ratio": 0.25,
-                "segment_enc": 1
+                "segmen"          : "A",
+                "saving_rate"     : 0.17,
+                "wants_ratio"     : 0.28,
+                "dti_ratio"       : 0.0,
+                "impulsive_ratio" : 0.08,
+                "budget_adherence": 0.85
             }
         }
 
-
 class HealthScoreResponse(BaseModel):
-    health_score:      float = Field(..., description="Skor kesehatan finansial (0-100)")
-    health_label:      str   = Field(..., description="Excellent | Sehat | Cukup | Waspada | Kritis")
-    warning_triggered: bool  = Field(..., description="True jika health_score < 40")
-    xai_factors:       dict  = Field(..., description="Kontribusi tiap fitur (explainable AI)")
-    message:           str   = Field(..., description="Pesan Gen-Z berdasarkan kondisi finansial")
+    health_score    : float
+    health_label    : str
+    explanation     : list
+    component_scores: dict
+    segmen          : str
+    is_mock         : bool = False
 
 
 # ═══════════════════════════════════════════════════
