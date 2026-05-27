@@ -41,15 +41,14 @@ async def lifespan(app: FastAPI):
         print(f"⚠️  Model 3 tidak bisa di-load: {e}")
 
     # Model 1 — Health Score
-    # Tidak perlu load model karena pakai formula langsung
     print("✅ Model 1 (Health Score) ready — formula based")
 
-    # Model 2 — Spending Cluster (nanti setelah training)
-    # try:
-    #     load_cluster_artifacts()
-    #     print("✅ Model 2 (Spending Cluster) ready")
-    # except Exception as e:
-    #     print(f"⚠️  Model 2 tidak bisa di-load: {e}")
+    # Model 2 — Spending Cluster (Kini Sudah Ready!)
+    try:
+        from app.services.persona_predictor import persona_predictor
+        print(f"✅ Model 2 (Spending Cluster) ready — Loaded {len(persona_predictor.features)} features")
+    except Exception as e:
+        print(f"⚠️  Model 2 tidak bisa di-load: {e}")
 
     yield
     print("👋 Shutting down CEAMIS AI Service...")
@@ -127,7 +126,7 @@ async def root():
         "status": "running",
         "models": {
             "model_1_health_score":     "real ✅" if health_score else "fallback (TF not loaded)",
-            "model_2_spending_cluster": "rule-based ✅",
+            "model_2_spending_cluster": "real ✅ (K-Means Clustering)",
             "model_3_risk_profile":     "real ✅ (97.91% acc)",
             "model_4_chatbot":          "real ✅ (Gemini + Groq)",
             "education":                "real ✅ (GenAI)",
