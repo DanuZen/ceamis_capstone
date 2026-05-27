@@ -31,17 +31,28 @@ except Exception:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[START] Starting CEAMIS AI Service v0.2.1...")
+    print("🚀 Starting CEAMIS AI Service...")
 
-    if _load_risk:
-        try:
-            _load_risk()
-            print("[OK] Model 3 (Risk Profile) ready")
-        except Exception as e:
-            print(f"[WARN] Model 3 tidak bisa di-load: {e}")
+    # Model 3 — Risk Profile (real model)
+    try:
+        load_risk_artifacts()
+        print("✅ Model 3 (Risk Profile) ready")
+    except Exception as e:
+        print(f"⚠️  Model 3 tidak bisa di-load: {e}")
+
+    # Model 1 — Health Score
+    # Tidak perlu load model karena pakai formula langsung
+    print("✅ Model 1 (Health Score) ready — formula based")
+
+    # Model 2 — Spending Cluster (nanti setelah training)
+    # try:
+    #     load_cluster_artifacts()
+    #     print("✅ Model 2 (Spending Cluster) ready")
+    # except Exception as e:
+    #     print(f"⚠️  Model 2 tidak bisa di-load: {e}")
 
     yield
-    print("[STOP] Shutting down CEAMIS AI Service...")
+    print("👋 Shutting down CEAMIS AI Service...")
 
 
 app = FastAPI(
@@ -68,7 +79,7 @@ app.add_middleware(
 
 # Register routers
 if health_score:
-    app.include_router(health_score.router, prefix="/api/v1", tags=["Model 1 - Health Score"])
+    app.include_router(health_score.router, prefix="/api/v1", tags=["Model 1 - Health Score ✅ Formula Based"])
 
 app.include_router(spending_cluster.router, prefix="/api/v1", tags=["Model 2 - Spending Cluster"])
 app.include_router(risk_profile.router,    prefix="/api/v1", tags=["Model 3 - Risk Profile ✅"])
