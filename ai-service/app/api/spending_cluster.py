@@ -9,7 +9,7 @@ def analyze_persona(payload: SpendingClusterRequest):
     try:
         # 1. Konversi payload masuk ke bentuk python dictionary
         input_data = payload.dict()
-        
+        user_id = input_data.pop("user_id")
         # 2. Ekstrak fitur kategori dinamis (jika ada) dan satukan ke level utama dictionary
         cat_features = input_data.pop("category_features") or {}
         input_data.update(cat_features)

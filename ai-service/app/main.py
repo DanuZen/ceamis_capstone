@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.api import (
-    spending_cluster, risk_profile, recommendation, chatbot, education
+    spending_cluster, risk_profile, recommendation, chatbot, education, dashboard_insight
 )
 
 # Lazy import health_score (butuh TF — skip jika tidak tersedia)
@@ -33,17 +33,18 @@ except Exception:
 async def lifespan(app: FastAPI):
     print("🚀 Starting CEAMIS AI Service...")
 
-    # Model 3 — Risk Profile (real model)
+    # Model 3 — Risk Profile (Memuat model riil langsung ke dalam cache RAM)
     try:
-        load_risk_artifacts()
-        print("✅ Model 3 (Risk Profile) ready")
+        from app.services.risk_predictor import risk_predictor
+        risk_predictor.load_model_to_memory()
+        print("✅ Model 3 (Risk Profile) ready — Cached in memory")
     except Exception as e:
         print(f"⚠️  Model 3 tidak bisa di-load: {e}")
 
     # Model 1 — Health Score
     print("✅ Model 1 (Health Score) ready — formula based")
 
-    # Model 2 — Spending Cluster (Kini Sudah Ready!)
+    # Model 2 — Spending Cluster
     try:
         from app.services.persona_predictor import persona_predictor
         print(f"✅ Model 2 (Spending Cluster) ready — Loaded {len(persona_predictor.features)} features")
@@ -82,6 +83,7 @@ if health_score:
 
 app.include_router(spending_cluster.router, prefix="/api/v1", tags=["Model 2 - Spending Cluster"])
 app.include_router(risk_profile.router,    prefix="/api/v1", tags=["Model 3 - Risk Profile ✅"])
+app.include_router(dashboard_insight.router, prefix="/api/v1", tags=["LLM-Powered XAI Insights 🌟"])
 app.include_router(recommendation.router,  prefix="/api/v1", tags=["Recommendation"])
 app.include_router(chatbot.router,         prefix="/api/v1", tags=["Chatbot CAMI ✅"])
 app.include_router(education.router,       prefix="/api/v1", tags=["Education ✅"])

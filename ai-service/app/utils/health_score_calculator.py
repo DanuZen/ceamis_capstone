@@ -82,6 +82,16 @@ def normalize_budget_adherence(budget_adherence: float,
     elif budget_adherence >= 0.50: return 0.25
     else:                          return 0.0
 
+def get_genz_message(label: str) -> str:
+    """Generate pesan Gen-Z sarkas berdasarkan kondisi finansial."""
+    messages = {
+        "Excellent": "Bestie, kamu tuh kayak CFO-nya diri sendiri! Finansialmu literally goals banget. Keep it up! 🔥",
+        "Sehat":     "Oke sip, finansialmu cukup sehat nih. Tapi jangan santai-santai dulu, tetap pantau pengeluaranmu ya!",
+        "Cukup":     "Hmm, masih oke tapi ada ruang buat improve. Coba kurangin yang 'sekali-kali' itu — sekali-kali kamu tau sendiri berapa kali. 👀",
+        "Waspada":   "Sis/bro, dompetmu mulai kirim sinyal SOS nih. Waktunya evaluasi dan cut pengeluaran yang nggak perlu! ⚠️",
+        "Kritis":    "Bro/sis, ini darurat keuangan. Dompetmu udah nangis bombay. Warning System diaktifkan — tolong dengerin AI-nya kali ini! 🚨",
+    }
+    return messages.get(label, "Tetap pantau kondisi keuanganmu ya!")
 
 def calculate_health_score(
     segmen           : str,    # "A" | "B" | "C"
@@ -118,15 +128,16 @@ def calculate_health_score(
             ba_score  * 0.20
         )
     elif segmen == "B":
-        raw_score = (
+        # Total bobot aktif adalah 0.85. Dibagi 0.85 agar skor maksimal kembali menjadi 1.0
+        base_score = (
             sr_score  * 0.20 +
             wr_score  * 0.20 +
             dti_score * 0.25 +
-            0.0       * 0.15 +  # investment = 0 (tidak ada di web)
             imp_score * 0.10 +
             ba_score  * 0.10
         )
-    else:  # Segmen C — hybrid
+        raw_score = base_score / 0.85 
+    else:  # Segmen C
         score_a = (
             sr_score  * 0.30 +
             wr_score  * 0.25 +
@@ -137,10 +148,9 @@ def calculate_health_score(
             sr_score  * 0.20 +
             wr_score  * 0.20 +
             dti_score * 0.25 +
-            0.0       * 0.15 +
             imp_score * 0.10 +
             ba_score  * 0.10
-        )
+        ) / 0.85
         raw_score = (0.4 * score_a) + (0.6 * score_b)
 
     health_score = round(raw_score * 100, 2)
@@ -223,10 +233,13 @@ def calculate_health_score(
         },
     }
 
+
+
     return {
         "health_score"    : health_score,
         "health_label"    : label,
         "explanation"     : explanation,
+        "message"         : get_genz_message(label),
         "component_scores": component_scores,
         "segmen"          : segmen,
     }

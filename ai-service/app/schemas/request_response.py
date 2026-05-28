@@ -45,6 +45,7 @@ class HealthScoreResponse(BaseModel):
 # ═══════════════════════════════════════════════════
 
 class SpendingClusterRequest(BaseModel):
+    user_id: str = Field(..., description="ID unik pengguna dari Supabase Authentication")
     is_late_night: float = Field(..., description="Rata-rata transaksi malam hari (0-1)")
     is_weekend: float = Field(..., description="Rata-rata transaksi akhir pekan (0-1)")
     is_unbudgeted: float = Field(..., description="Rata-rata transaksi di luar anggaran (0-1)")
@@ -61,6 +62,7 @@ class SpendingClusterRequest(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
+                "user_id": "user-123",
                 "is_late_night": 0.29,
                 "is_weekend": 0.43,
                 "is_unbudgeted": 0.68,
@@ -160,13 +162,20 @@ class RiskProfileRequest(BaseModel):
         }
 
 
+class BudgetAllocation(BaseModel):
+    needs: str                  # "50%"
+    wants: str                  # "20%"
+    savings_investment: str     # "30%"
+    primary_instruments: str    # "Dana Darurat, Deposito, Reksadana Pasar Uang"
+
 class RiskProfileResponse(BaseModel):
-    risk_profile:  str    # "Konservatif" | "Moderat" | "Agresif"
-    confidence:    float
+    risk_profile: str
+    confidence: float
     probabilities: dict
-    description:   str
-    suggestion:    str
-    is_mock:       bool = False
+    description: str
+    suggestion: str
+    budget_allocation: BudgetAllocation 
+    is_mock: bool = False
 
 
 # ═══════════════════════════════════════════════════
@@ -303,6 +312,49 @@ class InsightResponse(BaseModel):
     challenge:      str
     motivation:     str
     is_mock:        bool = True
+
+
+# ═══════════════════════════════════════════════════
+# LLM-POWERED XAI DASHBOARD INSIGHT
+# ═══════════════════════════════════════════════════
+
+class DashboardInsightRequest(BaseModel):
+    user_id: str
+    # Data dari Model 1 (Health Score)
+    health_score: float
+    health_label: str
+    saving_rate: float
+    wants_ratio: float
+    dti_ratio: float
+    budget_adherence: float
+    
+    # Data dari Model 2 (Spending Cluster Persona)
+    persona: str  # "Si Hemat" | "Si Impulsif" | "Si Minimalis"
+    most_spent_category: str  # e.g., "F&B (Kopi)", "Hobi"
+    
+    # Data dari Model 3 (Risk Profile)
+    risk_profile: str  # "Konservatif" | "Moderat" | "Agresif"
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "user_id": "user-123",
+                "health_score": 52.5,
+                "health_label": "Waspada",
+                "saving_rate": 0.08,
+                "wants_ratio": 0.44,
+                "dti_ratio": 0.20,
+                "budget_adherence": 0.65,
+                "persona": "Si Impulsif",
+                "most_spent_category": "F&B (Kopi Kekinian)",
+                "risk_profile": "Agresif"
+            }
+        }
+
+class DashboardInsightResponse(BaseModel):
+    status: str
+    user_id: str
+    ai_insight: str  # Narasi XAI dinamis dari LLM
 
 
 # ═══════════════════════════════════════════════════
