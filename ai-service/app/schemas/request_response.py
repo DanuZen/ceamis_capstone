@@ -12,88 +12,92 @@ from typing import Optional, List, Dict
 # ═══════════════════════════════════════════════════
 
 class HealthScoreRequest(BaseModel):
-    """
-    Input fitur agregat bulanan per user.
-    Semua rasio dalam rentang 0.0 – 1.0 kecuali yang tercantum.
-    """
-    # Behavioral features
-    pct_late_night:       float = Field(..., ge=0, le=1, description="Rasio transaksi larut malam")
-    pct_weekend:          float = Field(..., ge=0, le=1, description="Rasio transaksi saat weekend")
-    pct_unbudgeted:       float = Field(..., ge=0, le=1, description="Rasio transaksi di luar budget")
-    pct_risky_category:   float = Field(..., ge=0, le=1, description="Rasio kategori berisiko")
-    pct_binge_spending:   float = Field(..., ge=0, le=1, description="Rasio binge spending")
-    avg_hourly_txn_count: float = Field(..., ge=0,       description="Rata-rata transaksi per jam")
-    transaction_count:    int   = Field(..., ge=0,       description="Total transaksi bulan ini")
-
-    # Financial ratios
-    saving_rate_raw:     float = Field(..., ge=0, le=1, description="Rasio tabungan = (income - expense) / income")
-    wants_ratio_raw:     float = Field(..., ge=0, le=1, description="Rasio keinginan / income")
-    investment_rate_raw: float = Field(..., ge=0, le=1, description="Rasio investasi / income")
-    dti_ratio:           float = Field(..., ge=0, le=1, description="Debt-to-income ratio")
-    segment_enc:         int   = Field(..., ge=0, le=1, description="Segmen DTI: 1=B(aman), 0=lainnya")
+    segmen          : str    # "A" | "B" | "C"
+    saving_rate     : float  # 0-1
+    wants_ratio     : float  # 0-1
+    dti_ratio       : float  # 0-1
+    impulsive_ratio : float  # 0-1
+    budget_adherence: float  # 0-1
 
     class Config:
         json_schema_extra = {
             "example": {
-                "pct_late_night": 0.15,
-                "pct_weekend": 0.30,
-                "pct_unbudgeted": 0.45,
-                "pct_risky_category": 0.40,
-                "pct_binge_spending": 0.05,
-                "avg_hourly_txn_count": 2.3,
-                "transaction_count": 42,
-                "saving_rate_raw": 0.20,
-                "wants_ratio_raw": 0.35,
-                "investment_rate_raw": 0.10,
-                "dti_ratio": 0.25,
-                "segment_enc": 1
+                "segmen"          : "A",
+                "saving_rate"     : 0.17,
+                "wants_ratio"     : 0.28,
+                "dti_ratio"       : 0.0,
+                "impulsive_ratio" : 0.08,
+                "budget_adherence": 0.85
             }
         }
 
-
 class HealthScoreResponse(BaseModel):
-    health_score:      float = Field(..., description="Skor kesehatan finansial (0-100)")
-    health_label:      str   = Field(..., description="Excellent | Sehat | Cukup | Waspada | Kritis")
-    warning_triggered: bool  = Field(..., description="True jika health_score < 40")
-    xai_factors:       dict  = Field(..., description="Kontribusi tiap fitur (explainable AI)")
-    message:           str   = Field(..., description="Pesan Gen-Z berdasarkan kondisi finansial")
+    health_score    : float
+    health_label    : str
+    explanation     : list
+    component_scores: dict
+    segmen          : str
+    is_mock         : bool = False
 
 
 # ═══════════════════════════════════════════════════
-# MODEL 2 — SPENDING CLUSTER
+# MODEL 2 — SPENDING CLUSTER SCHEMAS
 # ═══════════════════════════════════════════════════
 
 class SpendingClusterRequest(BaseModel):
-    user_id:            str
-    category_breakdown: Dict[str, float] = Field(..., description="{'makan': 500000, 'hiburan': 200000, ...}")
-    total_transactions: Optional[int] = 0
+    user_id: str = Field(..., description="ID unik pengguna dari Supabase Authentication")
+    is_late_night: float = Field(..., description="Rata-rata transaksi malam hari (0-1)")
+    is_weekend: float = Field(..., description="Rata-rata transaksi akhir pekan (0-1)")
+    is_unbudgeted: float = Field(..., description="Rata-rata transaksi di luar anggaran (0-1)")
+    is_risky_category: float = Field(..., description="Rata-rata transaksi kategori berisiko (0-1)")
+    is_binge_spending: float = Field(..., description="Rata-rata pengeluaran berlebih spontan (0-1)")
+    hourly_txn_count: float = Field(..., description="Rata-rata jumlah transaksi per jam")
+    transaction_count: float = Field(..., description="Total frekuensi transaksi dalam sebulan")
+    saving_rate_raw: float = Field(..., description="Rasio tabungan mentah terhadap pendapatan")
+    wants_ratio_raw: float = Field(..., description="Rasio pengeluaran keinginan terhadap pendapatan")
+    investment_rate_raw: float = Field(..., description="Rasio investasi terhadap pendapatan")
+    dti_ratio_raw: float = Field(..., description="Debt to Income Ratio mentah")
+    category_features: Optional[Dict[str, float]] = Field(None, description="Proporsi kategori transaksi, ex: {'cat_hobi': 0.1}")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "user_id": "user-123",
-                "category_breakdown": {
-                    "Makan & Minum": 800000,
-                    "Hiburan & Streaming": 500000,
-                    "Transportasi": 200000,
-                    "Belanja Online": 600000
-                },
-                "total_transactions": 35
+                "is_late_night": 0.29,
+                "is_weekend": 0.43,
+                "is_unbudgeted": 0.68,
+                "is_risky_category": 0.43,
+                "is_binge_spending": 0.15,
+                "hourly_txn_count": 1.8,
+                "transaction_count": 24.0,
+                "saving_rate_raw": 0.35,
+                "wants_ratio_raw": 0.19,
+                "investment_rate_raw": 0.05,
+                "dti_ratio_raw": 0.20,
+                "category_features": {
+                    "cat_hobi": 0.12,
+                    "cat_hiburan": 0.08,
+                    "cat_f&b": 0.35
+                }
             }
         }
 
+class ClusterMetricsSummary(BaseModel):
+    saving_rate: float
+    wants_ratio: float
+    unbudgeted_ratio: float
+    avg_transactions: float
+
+class ClusterDataResult(BaseModel):
+    cluster_id: int
+    persona: str
+    description: str
+    metrics_summary: ClusterMetricsSummary
 
 class SpendingClusterResponse(BaseModel):
-    user_id:            str
-    cluster_id:         int
-    cluster_label:      str     # "Si Boros" | "Si Hemat" | "Si Impulsif"
-    dominant_category:  str
-    insight:            str
-    needs_ratio:        Optional[float] = None
-    wants_ratio:        Optional[float] = None
-    savings_ratio:      Optional[float] = None
-    trend:              Optional[str] = "stable"
-    is_mock:            bool = True
+    status: str
+    message: str
+    data: ClusterDataResult
 
 
 # ═══════════════════════════════════════════════════
@@ -158,13 +162,20 @@ class RiskProfileRequest(BaseModel):
         }
 
 
+class BudgetAllocation(BaseModel):
+    needs: str                  # "50%"
+    wants: str                  # "20%"
+    savings_investment: str     # "30%"
+    primary_instruments: str    # "Dana Darurat, Deposito, Reksadana Pasar Uang"
+
 class RiskProfileResponse(BaseModel):
-    risk_profile:  str    # "Konservatif" | "Moderat" | "Agresif"
-    confidence:    float
+    risk_profile: str
+    confidence: float
     probabilities: dict
-    description:   str
-    suggestion:    str
-    is_mock:       bool = False
+    description: str
+    suggestion: str
+    budget_allocation: BudgetAllocation 
+    is_mock: bool = False
 
 
 # ═══════════════════════════════════════════════════
@@ -301,6 +312,49 @@ class InsightResponse(BaseModel):
     challenge:      str
     motivation:     str
     is_mock:        bool = True
+
+
+# ═══════════════════════════════════════════════════
+# LLM-POWERED XAI DASHBOARD INSIGHT
+# ═══════════════════════════════════════════════════
+
+class DashboardInsightRequest(BaseModel):
+    user_id: str
+    # Data dari Model 1 (Health Score)
+    health_score: float
+    health_label: str
+    saving_rate: float
+    wants_ratio: float
+    dti_ratio: float
+    budget_adherence: float
+    
+    # Data dari Model 2 (Spending Cluster Persona)
+    persona: str  # "Si Hemat" | "Si Impulsif" | "Si Minimalis"
+    most_spent_category: str  # e.g., "F&B (Kopi)", "Hobi"
+    
+    # Data dari Model 3 (Risk Profile)
+    risk_profile: str  # "Konservatif" | "Moderat" | "Agresif"
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "user_id": "user-123",
+                "health_score": 52.5,
+                "health_label": "Waspada",
+                "saving_rate": 0.08,
+                "wants_ratio": 0.44,
+                "dti_ratio": 0.20,
+                "budget_adherence": 0.65,
+                "persona": "Si Impulsif",
+                "most_spent_category": "F&B (Kopi Kekinian)",
+                "risk_profile": "Agresif"
+            }
+        }
+
+class DashboardInsightResponse(BaseModel):
+    status: str
+    user_id: str
+    ai_insight: str  # Narasi XAI dinamis dari LLM
 
 
 # ═══════════════════════════════════════════════════

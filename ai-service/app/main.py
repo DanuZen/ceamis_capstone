@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.api import (
-    spending_cluster, risk_profile, recommendation, chatbot, education
+    spending_cluster, risk_profile, recommendation, chatbot, education, dashboard_insight
 )
 
 # Lazy import health_score (butuh TF — skip jika tidak tersedia)
@@ -31,17 +31,28 @@ except Exception:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[START] Starting CEAMIS AI Service v0.2.1...")
+    print("🚀 Starting CEAMIS AI Service...")
 
-    if _load_risk:
-        try:
-            _load_risk()
-            print("[OK] Model 3 (Risk Profile) ready")
-        except Exception as e:
-            print(f"[WARN] Model 3 tidak bisa di-load: {e}")
+    # Model 3 — Risk Profile (Memuat model riil langsung ke dalam cache RAM)
+    try:
+        from app.services.risk_predictor import risk_predictor
+        risk_predictor.load_model_to_memory()
+        print("✅ Model 3 (Risk Profile) ready — Cached in memory")
+    except Exception as e:
+        print(f"⚠️  Model 3 tidak bisa di-load: {e}")
+
+    # Model 1 — Health Score
+    print("✅ Model 1 (Health Score) ready — formula based")
+
+    # Model 2 — Spending Cluster
+    try:
+        from app.services.persona_predictor import persona_predictor
+        print(f"✅ Model 2 (Spending Cluster) ready — Loaded {len(persona_predictor.features)} features")
+    except Exception as e:
+        print(f"⚠️  Model 2 tidak bisa di-load: {e}")
 
     yield
-    print("[STOP] Shutting down CEAMIS AI Service...")
+    print("👋 Shutting down CEAMIS AI Service...")
 
 
 app = FastAPI(
@@ -68,10 +79,11 @@ app.add_middleware(
 
 # Register routers
 if health_score:
-    app.include_router(health_score.router, prefix="/api/v1", tags=["Model 1 - Health Score"])
+    app.include_router(health_score.router, prefix="/api/v1", tags=["Model 1 - Health Score ✅ Formula Based"])
 
 app.include_router(spending_cluster.router, prefix="/api/v1", tags=["Model 2 - Spending Cluster"])
 app.include_router(risk_profile.router,    prefix="/api/v1", tags=["Model 3 - Risk Profile ✅"])
+app.include_router(dashboard_insight.router, prefix="/api/v1", tags=["LLM-Powered XAI Insights 🌟"])
 app.include_router(recommendation.router,  prefix="/api/v1", tags=["Recommendation"])
 app.include_router(chatbot.router,         prefix="/api/v1", tags=["Chatbot CAMI ✅"])
 app.include_router(education.router,       prefix="/api/v1", tags=["Education ✅"])
@@ -116,7 +128,7 @@ async def root():
         "status": "running",
         "models": {
             "model_1_health_score":     "real ✅" if health_score else "fallback (TF not loaded)",
-            "model_2_spending_cluster": "rule-based ✅",
+            "model_2_spending_cluster": "real ✅ (K-Means Clustering)",
             "model_3_risk_profile":     "real ✅ (97.91% acc)",
             "model_4_chatbot":          "real ✅ (Gemini + Groq)",
             "education":                "real ✅ (GenAI)",

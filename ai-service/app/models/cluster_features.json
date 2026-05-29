@@ -1,0 +1,23 @@
+[
+    "is_late_night",
+    "is_weekend",
+    "is_unbudgeted",
+    "is_risky_category",
+    "is_binge_spending",
+    "hourly_txn_count",
+    "transaction_count",
+    "saving_rate_raw",
+    "wants_ratio_raw",
+    "investment_rate_raw",
+    "dti_ratio_raw",
+    "cat_f&b",
+    "cat_elektronik",
+    "cat_fashion",
+    "cat_hiburan",
+    "cat_hobi",
+    "cat_kebutuhan_pokok",
+    "cat_kesehatan",
+    "cat_pendidikan",
+    "cat_tagihan",
+    "cat_transportasi"
+]
