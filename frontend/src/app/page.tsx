@@ -21,7 +21,8 @@ import {
   UserPlus,
   PenLine,
   BrainCircuit,
-  Rocket
+  Rocket,
+  ArrowUp
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -179,10 +180,20 @@ export default function LandingPage() {
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="landing-page">
@@ -217,7 +228,11 @@ export default function LandingPage() {
               minWidth: "72px", justifyContent: "center"
             }}
           >
-            <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{language === "id" ? "🇮🇩" : "🇬🇧"}</span>
+            <img 
+              src={language === "id" ? "https://flagcdn.com/w20/id.png" : "https://flagcdn.com/w20/gb.png"} 
+              alt={language === "id" ? "Indonesian Flag" : "English Flag"} 
+              style={{ width: "20px", height: "auto", borderRadius: "2px", border: "1px solid rgba(0,0,0,0.1)" }} 
+            />
             <span>{language === "id" ? "ID" : "EN"}</span>
           </button>
           <Link href="/auth" className="btn-brutal btn-brutal--secondary btn-brutal--sm">
@@ -266,10 +281,10 @@ export default function LandingPage() {
             />
             {/* Floating Badges */}
             <div className="landing-hero__float landing-hero__float--1">
-              <Zap size={18} strokeWidth={3} /> Level 12 Reached
+              <Zap size={18} strokeWidth={3} /> Level 12 Unlocked
             </div>
             <div className="landing-hero__float landing-hero__float--2">
-              <TrendingUp size={18} strokeWidth={3} /> 15 Day Streak
+              <TrendingUp size={18} strokeWidth={3} /> 15-Day Streak
             </div>
             <div className="landing-hero__float landing-hero__float--3">
               <Target size={18} strokeWidth={3} /> Rp 500k Saved
@@ -545,6 +560,7 @@ export default function LandingPage() {
             <div>
               <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.125rem", color: "var(--color-white)" }}>CEAMIS</div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.5)" }}>Control Every Awful Money Impulse System</div>
+
             </div>
           </div>
           <div className="landing-footer__copy">
@@ -553,6 +569,49 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: "fixed",
+            bottom: "2rem",
+            right: "2rem",
+            padding: "0.75rem 1.5rem",
+            borderRadius: "100px",
+            background: "rgba(15, 23, 42, 0.85)", /* var(--color-navy) with opacity */
+            color: "var(--color-white)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(204, 255, 0, 0.4)", /* lime outer glow */
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            zIndex: 999,
+            cursor: "pointer",
+            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+            fontWeight: 800,
+            fontSize: "0.85rem",
+            letterSpacing: "0.5px",
+            textTransform: "uppercase"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-8px)";
+            e.currentTarget.style.boxShadow = "0 15px 40px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(204, 255, 0, 0.8)";
+            e.currentTarget.style.background = "rgba(15, 23, 42, 1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(204, 255, 0, 0.4)";
+            e.currentTarget.style.background = "rgba(15, 23, 42, 0.85)";
+          }}
+          aria-label="Scroll to top"
+        >
+          <ArrowUp size={18} strokeWidth={3} color="var(--color-lime)" className="animate-bounce" style={{ animationDuration: "2s" }} />
+          <span>Ke Atas</span>
+        </button>
+      )}
     </div>
   );
 }

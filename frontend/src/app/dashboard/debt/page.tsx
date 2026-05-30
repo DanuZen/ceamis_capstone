@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
+import { useToast } from "@/components/ui/Toast";
+import { useTransactions } from "@/context/TransactionContext";
 
 type DebtType = "utang" | "piutang";
 type DebtStatus = "belum_lunas" | "lunas" | "jatuh_tempo";
@@ -29,6 +31,8 @@ export default function DebtPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
   const { t } = useLanguage();
+  const { showToast } = useToast();
+  const { addTransaction } = useTransactions();
   const [entries, setEntries] = useState<DebtEntry[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "utang" | "piutang">("all");
@@ -107,9 +111,23 @@ export default function DebtPage() {
     setEntries([entry, ...entries]);
     setNewEntry({ type: "utang", person: "", amount: "", description: "", dueDate: "" });
     setShowForm(false);
+    showToast(t("dashboard.debt.save") + " Berhasil!", "success");
   };
 
   const toggleStatus = (id: number) => {
+    const entry = entries.find(e => e.id === id);
+    if (!entry) return;
+
+    if (entry.status !== "lunas") {
+      addTransaction({
+        amount: entry.amount,
+        type: entry.type === "utang" ? "pengeluaran" : "pemasukan",
+        category: entry.type === "utang" ? "Utang" : "Pemasukan Lainnya",
+        description: `${entry.type === "utang" ? "Membayar utang ke" : "Pelunasan piutang dari"} ${entry.person}`,
+      });
+      showToast("Tercatat otomatis di Riwayat Transaksi!", "success");
+    }
+
     setEntries(entries.map(e =>
       e.id === id
         ? { ...e, status: e.status === "lunas" ? "belum_lunas" : "lunas" }

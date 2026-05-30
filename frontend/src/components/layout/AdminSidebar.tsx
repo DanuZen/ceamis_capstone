@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  LayoutDashboard, Users, BookOpen, Trophy, Server, Settings, LogOut
+  LayoutDashboard, BookOpen, Trophy, LogOut, FileQuestion
 } from "lucide-react";
 
 // ── Admin Navigation Groups ──────────────────────
@@ -29,16 +29,9 @@ const adminNavGroups: NavGroup[] = [
   {
     title: "MANAJEMEN",
     items: [
-      { href: "/admin/users", label: "Manajemen User", icon: Users, color: "orange" },
-      { href: "/admin/content", label: "Konten & Banner", icon: Server, color: "purple" },
       { href: "/admin/education", label: "Modul Edukasi", icon: BookOpen, color: "lime" },
+      { href: "/admin/quizzes", label: "Kuis Edukasi", icon: FileQuestion, color: "purple" },
       { href: "/admin/gamification", label: "Gamifikasi", icon: Trophy, color: "orange" },
-    ],
-  },
-  {
-    title: "SISTEM",
-    items: [
-      { href: "/admin/settings", label: "Pengaturan", icon: Settings, color: "purple" },
     ],
   },
 ];

@@ -56,22 +56,6 @@ export default function AuthPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (oauthError) {
-      setError(oauthError.message);
-      setIsLoading(false);
-    }
-  };
 
   const handleRegister = async () => {
     if (!email || !password) {
@@ -226,12 +210,41 @@ export default function AuthPage() {
         </div>
       )}
       {/* ── LEFT PANEL: CEAMIS Info (Hidden on Mobile) ── */}
+      <style>{`
+        @keyframes float {
+          0% { transform: translateY(0px) rotate(-15deg); }
+          50% { transform: translateY(-30px) rotate(-10deg); }
+          100% { transform: translateY(0px) rotate(-15deg); }
+        }
+        @keyframes pulseGlow {
+          0% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.4); }
+          70% { box-shadow: 0 0 0 15px rgba(204, 255, 0, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0); }
+        }
+        .feature-card {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .feature-card:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          transform: translateX(10px) translateY(-5px);
+          box-shadow: 0 15px 35px 0 rgba(0, 0, 0, 0.2);
+        }
+        .logo-container {
+          animation: pulseGlow 3s infinite;
+        }
+      `}</style>
       <div 
         className="hidden md:flex"
         style={{
           flex: 1,
-          background: "var(--color-purple)",
-          borderRight: "4px solid var(--color-navy)",
+          background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)",
+          borderRight: "1px solid rgba(255, 255, 255, 0.1)",
           padding: "5rem",
           flexDirection: "column",
           justifyContent: "space-between",
@@ -241,52 +254,69 @@ export default function AuthPage() {
         }}
       >
         <div style={{ position: "relative", zIndex: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "3rem" }}>
-            <div style={{
-              width: 52, height: 52, background: "var(--color-lime)",
-              border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "3rem" }}>
+            <div className="logo-container" style={{ 
+              width: "64px", height: "64px", background: "var(--color-white)",
+              borderRadius: "16px",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "1.75rem", fontFamily: "var(--font-heading)", fontWeight: 900, color: "var(--color-navy)",
-              boxShadow: "4px 4px 0px var(--color-navy)"
+              overflow: "hidden"
             }}>
-              C
+              <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "80%", height: "80%", objectFit: "contain" }} />
             </div>
-            <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "2rem" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "2.5rem", letterSpacing: "-1px", background: "linear-gradient(90deg, #FFFFFF, var(--color-lime))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               CEAMIS
             </span>
           </div>
 
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "4rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem", color: "var(--color-white)" }}>
-            Control Every<br/>Money-Issue<br/>Simply.
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "4rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem", color: "var(--color-white)", textShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+            Control Every<br/>
+            <span style={{ color: "var(--color-lime)" }}>Awful Money</span><br/>
+            Impulse System
           </h2>
-          <p style={{ fontSize: "1.125rem", fontWeight: 600, lineHeight: 1.6, maxWidth: "85%", marginBottom: "3rem", color: "var(--color-white)" }}>
+          <p style={{ fontSize: "1.2rem", fontWeight: 500, lineHeight: 1.6, maxWidth: "90%", marginBottom: "3rem", color: "rgba(255, 255, 255, 0.85)" }}>
             {t("auth.leftDesc")}
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "90%" }}>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
-                <div style={{ background: "var(--color-lime)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><Zap size={20} /></div>
-                {t("auth.feat1")}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "95%" }}>
+             <div className="feature-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", padding: "1.25rem 1.5rem", borderRadius: "16px", color: "var(--color-white)" }}>
+                <div style={{ background: "linear-gradient(135deg, var(--color-lime), #84cc00)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "0 4px 12px rgba(204, 255, 0, 0.3)", flexShrink: 0 }}><Zap size={24} strokeWidth={2.5} /></div>
+                <div>
+                  <div style={{ color: "var(--color-lime)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>Smart Analytics</div>
+                  <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{t("auth.feat1")}</div>
+                </div>
              </div>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
-                <div style={{ background: "var(--color-orange)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><ShieldCheck size={20} /></div>
-                {t("auth.feat2")}
+             
+             <div className="feature-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", padding: "1.25rem 1.5rem", borderRadius: "16px", color: "var(--color-white)" }}>
+                <div style={{ background: "linear-gradient(135deg, var(--color-orange), #e66c00)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-white)", boxShadow: "0 4px 12px rgba(255, 122, 0, 0.3)", flexShrink: 0 }}><ShieldCheck size={24} strokeWidth={2.5} /></div>
+                <div>
+                  <div style={{ color: "var(--color-orange)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>Protection</div>
+                  <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{t("auth.feat2")}</div>
+                </div>
              </div>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
-                <div style={{ background: "var(--color-white)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><User size={20} /></div>
-                {t("auth.feat3")}
+             
+             <div className="feature-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", padding: "1.25rem 1.5rem", borderRadius: "16px", color: "var(--color-white)" }}>
+                <div style={{ background: "linear-gradient(135deg, #FFFFFF, #E2E8F0)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "0 4px 12px rgba(255, 255, 255, 0.2)", flexShrink: 0 }}><User size={24} strokeWidth={2.5} /></div>
+                <div>
+                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>AI Assistant</div>
+                  <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{t("auth.feat3")}</div>
+                </div>
              </div>
           </div>
         </div>
         
-        <div style={{ position: "relative", zIndex: 10, fontSize: "0.85rem", fontWeight: 700, opacity: 0.7, marginTop: "3rem", color: "var(--color-text-light)" }}>
+        <div style={{ position: "relative", zIndex: 10, fontSize: "0.85rem", fontWeight: 600, opacity: 0.6, marginTop: "3rem", color: "var(--color-white)" }}>
           &copy; 2026 CEAMIS Capstone Project
         </div>
         
         {/* Background Decor */}
-        <div style={{ position: "absolute", bottom: "-10%", right: "-10%", opacity: 0.05, transform: "rotate(-15deg)" }}>
-           <Zap size={600} />
+        <div style={{ position: "absolute", bottom: "-5%", right: "-10%", opacity: 0.08, animation: "float 8s ease-in-out infinite" }}>
+           <Zap size={600} color="var(--color-white)" />
         </div>
+        <div style={{ position: "absolute", top: "-10%", left: "-10%", opacity: 0.03, animation: "float 10s ease-in-out infinite reverse" }}>
+           <ShieldCheck size={400} color="var(--color-white)" />
+        </div>
+        {/* Soft glowing orb in the background */}
+        <div style={{ position: "absolute", top: "20%", left: "40%", width: "400px", height: "400px", background: "var(--color-lime)", borderRadius: "50%", filter: "blur(150px)", opacity: 0.15, zIndex: 0 }}></div>
       </div>
 
       {/* ── RIGHT PANEL: Login Form ── */}
@@ -314,19 +344,19 @@ export default function AuthPage() {
                 textDecoration: "none",
               }}
             >
-            <div
-              style={{
+            <img 
+              src="/images/logo_ceamis.png" 
+              alt="CEAMIS Logo" 
+              style={{ 
                 width: 52, height: 52,
-                background: "var(--color-primary)",
-                border: "var(--border-width) solid var(--color-border)",
+                background: "var(--color-white)",
+                border: "3px solid var(--color-navy)",
                 borderRadius: "var(--radius-brutal-sm)",
-                boxShadow: "var(--shadow-brutal-sm)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "1.5rem", fontFamily: "var(--font-heading)", fontWeight: 700,
-              }}
-            >
-              C
-            </div>
+                boxShadow: "3px 3px 0px var(--color-navy)",
+                objectFit: "contain",
+                padding: "4px"
+              }} 
+            />
             <span
               style={{
                 fontFamily: "var(--font-heading)", fontWeight: 700,
@@ -440,23 +470,6 @@ export default function AuthPage() {
                   </span>
                   <div style={{ flex: 1, height: 2, background: "var(--color-border)" }} />
                 </div>
-
-                {/* Google Login */}
-                <button
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                  className="btn-brutal"
-                  style={{
-                    width: "100%", padding: "0.75rem", fontWeight: 800,
-                    background: "var(--color-white)", color: "var(--color-navy)",
-                    border: "2px solid var(--color-navy)", cursor: isLoading ? "wait" : "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem",
-                    boxShadow: "3px 3px 0px var(--color-navy)", marginBottom: "0.75rem",
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                  {t("auth.googleLogin")}
-                </button>
 
                 {/* Other Options */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>

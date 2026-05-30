@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTransactions, TransactionType } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useToast } from "@/components/ui/Toast";
 
 // ── Tipe response Model 2 (Spending Pattern Clustering) ──────────────────────
 interface SpendingClusterResult {
@@ -92,9 +93,10 @@ const CustomSelect = ({ value, onChange, options }: { value: string, onChange: (
 };
 
 export default function TransactionsPage() {
+  const { t } = useLanguage();
+  const { showToast } = useToast();
   const { addTransaction, transactions } = useTransactions();
   const { userData, updateUserData } = useUser();
-  const { t } = useLanguage();
 
   const [desc, setDesc]       = useState("");
   const [amount, setAmount]   = useState("");
@@ -438,7 +440,7 @@ export default function TransactionsPage() {
                 e.preventDefault();
                 if (!desc || !amount) return;
                 addTransaction({ description: desc, amount: parseFloat(amount), type, category, tag });
-                alert(t("dashboard.transactions.savedSuccess"));
+                showToast(t("dashboard.transactions.savedSuccess") || "Transaksi aman tersimpan, cuy!", "success");
                 setDesc(""); setAmount("");
               }}
               style={{ display: "flex", flexDirection: "column", gap: "1.5rem", flex: 1 }}

@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import { TransactionProvider } from "@/context/TransactionContext";
 import { UserProvider, useUser } from "@/context/UserContext";
 import { GuestProvider, useGuest } from "@/context/GuestContext";
+import { ToastProvider } from "@/components/ui/Toast";
 import { onboardingApi } from "@/lib/api";
 
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
@@ -57,15 +58,17 @@ export default function DashboardLayout({
     <GuestProvider>
       <UserProvider>
         <TransactionProvider>
-          <OnboardingGuard>
-            <div className={`dashboard-layout ${isSidebarOpen ? "" : "dashboard-layout--collapsed"}`}>
-              <Sidebar isOpen={isSidebarOpen} />
-              <div className="dashboard-content">
-                <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isOpen={isSidebarOpen} />
-                <main className="dashboard-main">{children}</main>
+          <ToastProvider>
+            <OnboardingGuard>
+              <div className={`dashboard-layout ${isSidebarOpen ? "" : "dashboard-layout--collapsed"}`}>
+                <Sidebar isOpen={isSidebarOpen} />
+                <div className="dashboard-content">
+                  <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isOpen={isSidebarOpen} />
+                  <main className="dashboard-main">{children}</main>
+                </div>
               </div>
-            </div>
-          </OnboardingGuard>
+            </OnboardingGuard>
+          </ToastProvider>
         </TransactionProvider>
       </UserProvider>
     </GuestProvider>
