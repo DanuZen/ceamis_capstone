@@ -32,7 +32,7 @@ export default function DebtPage() {
   const searchQuery = searchParams.get("search") || "";
   const { t } = useLanguage();
   const { showToast } = useToast();
-  const { addTransaction } = useTransactions();
+  const { addTransaction, transactions } = useTransactions();
   const [entries, setEntries] = useState<DebtEntry[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "utang" | "piutang">("all");
@@ -46,14 +46,80 @@ export default function DebtPage() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    let savedEntries: DebtEntry[] = [];
     const saved = localStorage.getItem("ceamis_debts");
-    if (saved) {
-      setEntries(JSON.parse(saved));
-    } else {
-      setEntries(DEFAULT_DATA);
+    if (saved) savedEntries = JSON.parse(saved);
+
+    let hasChanges = false;
+    const currentEntries = [...savedEntries];
+
+    // Sinkronisasi: jika ada transaksi utang/piutang di riwayat tapi tidak ada di layar ini 
+    // (misal login dari device baru atau di-input manual di laman Transaksi), kita restore!
+    const sortedTx = [...transactions].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    
+    sortedTx.forEach(tx => {
+      let type: DebtType | null = null;
+      let person = "";
+      let isPelunasan = false;
+      const desc = tx.desc || tx.description || ""; // fallback
+      
+      if (tx.category === "Pinjaman Masuk") { type = "utang"; person = desc.replace("Terima pinjaman dari ", ""); }
+      else if (tx.category === "Piutang Keluar") { type = "piutang"; person = desc.replace("Beri pinjaman ke ", ""); }
+      else if (tx.category === "Utang" && desc.startsWith("Membayar utang ke ")) { type = "utang"; person = desc.replace("Membayar utang ke ", ""); isPelunasan = true; }
+      else if (tx.category === "Pemasukan Lainnya" && desc.startsWith("Pelunasan piutang dari ")) { type = "piutang"; person = desc.replace("Pelunasan piutang dari ", ""); isPelunasan = true; }
+
+      if (type && person) {
+        const existingIdx = currentEntries.findIndex(e => e.type === type && e.person === person);
+        
+        if (!isPelunasan) {
+          if (existingIdx === -1) {
+            // Restore missing debt!
+            const createdDate = new Date(tx.created_at || Date.now());
+            const defaultDueDate = new Date(createdDate.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+            currentEntries.unshift({
+              id: createdDate.getTime() + Math.random(),
+              type,
+              person,
+              amount: Math.abs(tx.amount),
+              description: desc,
+              dueDate: defaultDueDate,
+              status: "belum_lunas",
+              createdAt: tx.date
+            });
+            hasChanges = true;
+          }
+        } else {
+          // Sync lunas status
+          if (existingIdx !== -1 && currentEntries[existingIdx].status !== "lunas") {
+            currentEntries[existingIdx].status = "lunas";
+            hasChanges = true;
+          } else if (existingIdx === -1) {
+            // Jika ada transaksi pelunasan tapi data utang awalnya hilang/tidak ada,
+            // kita tetap memulihkannya sebagai utang yang sudah "lunas" agar muncul di riwayat.
+            const createdDate = new Date(tx.created_at || Date.now());
+            currentEntries.unshift({
+              id: createdDate.getTime() + Math.random(),
+              type,
+              person,
+              amount: Math.abs(tx.amount), // Estimasi amount dari pelunasan
+              description: desc,
+              dueDate: tx.date, // Set tanggal lunas
+              status: "lunas",
+              createdAt: tx.date
+            });
+            hasChanges = true;
+          }
+        }
+      }
+    });
+
+    if (hasChanges || !isLoaded) {
+      setEntries(currentEntries);
+      if (hasChanges) localStorage.setItem("ceamis_debts", JSON.stringify(currentEntries));
     }
-    setIsLoaded(true);
-  }, []);
+    if (!isLoaded) setIsLoaded(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactions.length]);
 
   useEffect(() => {
     if (isLoaded) {

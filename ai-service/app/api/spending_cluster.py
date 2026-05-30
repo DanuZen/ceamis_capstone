@@ -5,9 +5,6 @@ import pandas as pd  # Pastikan Pandas sudah terinstall untuk kebutuhan kalkulas
 
 router = APIRouter()
 
-<<<<<<< HEAD
-@router.post("/predict/spending-cluster", response_model=SpendingClusterResponse)
-=======
 def hitung_feature_engineering_dari_db(user_id: str) -> dict:
     """
     Fungsi internal untuk menarik data transaksi mentah dari Supabase
@@ -44,8 +41,7 @@ def hitung_feature_engineering_dari_db(user_id: str) -> dict:
     return calculated_features
 
 
-@router.post("/analyze", response_model=SpendingClusterResponse)
->>>>>>> 97242135cf75228ce6b113da7490f8621daad746
+@router.post("/predict/spending-cluster", response_model=SpendingClusterResponse)
 def analyze_persona(payload: SpendingClusterRequest):
     try:
         # 1. Ambil user_id dari payload masuk (bawaan dari frontend/Node.js)

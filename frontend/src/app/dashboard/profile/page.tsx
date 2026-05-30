@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useTransactions } from "@/context/TransactionContext";
 import React from "react";
 
 // Badge definitions (static metadata)
@@ -31,32 +32,31 @@ const stats = [
 
 export default function ProfilePage() {
   const { userData, updateUserData } = useUser();
+  const { transactions } = useTransactions();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"badges" | "stats">("badges");
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [txCount, setTxCount] = useState(0);
-  const [biggestExpense, setBiggestExpense] = useState("Tidak ada data");
   const [eduDone, setEduDone] = useState(0);
 
   React.useEffect(() => {
-    try {
-      const tx = JSON.parse(localStorage.getItem("ceamis_transactions") || "[]");
-      setTxCount(tx.length);
-      const expenses = tx.filter((t: any) => t.type === "expense");
-      if (expenses.length > 0) {
-        const maxExpense = expenses.reduce((prev: any, current: any) => (prev.amount > current.amount) ? prev : current);
-        setBiggestExpense(`${maxExpense.category} — Rp ${maxExpense.amount.toLocaleString("id-ID")}`);
-      }
-    } catch {}
-
     let doneCount = 0;
     for (let i = 1; i <= 6; i++) {
       if (localStorage.getItem(`ceamis_module_${i}_progress`) === "100") doneCount++;
     }
     setEduDone(doneCount);
   }, []);
+
+  const txCount = transactions.length;
+  const biggestExpense = React.useMemo(() => {
+    const expenses = transactions.filter(t => t.type === "pengeluaran");
+    if (expenses.length > 0) {
+      const maxExpense = expenses.reduce((prev, current) => (prev.amount > current.amount) ? prev : current);
+      return `${maxExpense.category} — Rp ${maxExpense.amount.toLocaleString("id-ID")}`;
+    }
+    return "Tidak ada data";
+  }, [transactions]);
 
   const stats = [
     { label: t("dashboard.profile.totalTransactions"), value: txCount.toString(), icon: TrendingUp, color: "purple" },

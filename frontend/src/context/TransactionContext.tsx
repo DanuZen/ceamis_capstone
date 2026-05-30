@@ -124,9 +124,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
     if (!userId) {
       // Guest mode: update state + localStorage immediately
-      const updated = [localTx, ...transactions];
-      setTransactions(updated);
-      localStorage.setItem("ceamis_transactions", JSON.stringify(updated));
+      setTransactions(prev => {
+        const updated = [localTx, ...prev];
+        localStorage.setItem("ceamis_transactions", JSON.stringify(updated));
+        return updated;
+      });
       return;
     }
 

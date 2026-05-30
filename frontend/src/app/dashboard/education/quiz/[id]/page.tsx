@@ -239,7 +239,7 @@ export default function QuizDetailPage() {
 
               <div style={{ flex: 1, position: "relative", overflowY: "auto", paddingBottom: "2rem" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  {questions[currentQuestion].options.map((opt, i) => (
+                  {questions[currentQuestion].options.map((opt: string, i: number) => (
                     <button
                       key={i}
                       onClick={() => handleSelectAnswer(i)}
