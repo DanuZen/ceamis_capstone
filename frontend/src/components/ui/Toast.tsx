@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { CheckCircle2, XCircle, AlertTriangle, X } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 
 export type ToastType = "success" | "error" | "warning" | "info";
 
@@ -21,25 +21,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
   const showToast = useCallback((message: string, type: ToastType = "success") => {
-    // If user chose "Jangan Tampilkan Lagi" for success, we can skip it.
-    // For now we apply it globally to all "success" toasts if they clicked it.
-    if (type === "success" && localStorage.getItem("ceamis_hide_success_toast") === "true") {
-      return;
-    }
-
     const id = Math.random().toString(36).substr(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
   }, []);
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  const handleDontShowAgain = (id: string, type: ToastType) => {
-    if (type === "success") {
-      localStorage.setItem("ceamis_hide_success_toast", "true");
-    }
-    removeToast(id);
   };
 
   return (
@@ -58,7 +45,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          backgroundColor: "rgba(0, 0, 0, 0.55)",
           pointerEvents: toasts.length > 0 ? "auto" : "none",
         }}
       >
@@ -101,24 +88,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 background: bg,
                 border: `4px solid ${borderColor}`,
                 boxShadow: `8px 8px 0px ${shadowColor}`,
-                padding: "2rem",
+                padding: "2.5rem 2rem",
                 borderRadius: "var(--radius-brutal)",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 gap: "1.5rem",
                 minWidth: "350px",
-                maxWidth: "500px",
+                maxWidth: "480px",
                 textAlign: "center",
-                marginBottom: "1rem"
               }}
             >
-              <div style={{ 
-                background: "var(--color-white)", 
-                borderRadius: "50%", 
-                padding: "1rem", 
+              <div style={{
+                background: "var(--color-white)",
+                borderRadius: "50%",
+                padding: "1rem",
                 border: "3px solid var(--color-navy)",
-                boxShadow: "4px 4px 0px var(--color-navy)" 
+                boxShadow: "4px 4px 0px var(--color-navy)"
               }}>
                 <Icon size={48} color={iconColor} strokeWidth={2.5} />
               </div>
@@ -126,42 +112,29 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 style={{
                   fontFamily: "var(--font-heading)",
                   fontWeight: 800,
-                  fontSize: "1.25rem",
+                  fontSize: "1.2rem",
                   color: "var(--color-navy)",
+                  lineHeight: 1.4,
                 }}
               >
                 {toast.message}
               </div>
-              <div style={{ display: "flex", gap: "1rem", width: "100%", marginTop: "0.5rem" }}>
-                <button
-                  onClick={() => removeToast(toast.id)}
-                  className="btn-brutal"
-                  style={{
-                    flex: 1,
-                    background: "var(--color-navy)",
-                    color: "var(--color-white)",
-                    padding: "0.75rem",
-                    fontWeight: 800,
-                    boxShadow: "4px 4px 0px var(--color-white)"
-                  }}
-                >
-                  OK, Paham!
-                </button>
-                <button
-                  onClick={() => handleDontShowAgain(toast.id, toast.type)}
-                  className="btn-brutal"
-                  style={{
-                    flex: 1,
-                    background: "var(--color-white)",
-                    color: "var(--color-navy)",
-                    padding: "0.75rem",
-                    fontWeight: 800,
-                    boxShadow: "4px 4px 0px var(--color-navy)"
-                  }}
-                >
-                  Jangan Munculkan Lagi
-                </button>
-              </div>
+              <button
+                onClick={() => removeToast(toast.id)}
+                className="btn-brutal"
+                style={{
+                  width: "100%",
+                  background: "var(--color-navy)",
+                  color: "var(--color-white)",
+                  padding: "0.85rem",
+                  fontWeight: 900,
+                  fontSize: "1rem",
+                  boxShadow: "4px 4px 0px rgba(255,255,255,0.5)",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                OK, Paham!
+              </button>
             </div>
           );
         })}

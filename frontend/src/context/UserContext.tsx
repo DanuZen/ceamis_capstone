@@ -106,8 +106,33 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await usersApi.getProfile(user.id);
       const mapped = mapApiToUserData(profile);
+
+      // Merge API badges with any locally persisted badges to avoid race-condition overwrite
+      const localRaw = localStorage.getItem("ceamis_user");
+      if (localRaw) {
+        try {
+          const local = JSON.parse(localRaw);
+          if (local.id === user.id) {
+            // Merge badges (union)
+            if (Array.isArray(local.unlockedBadges)) {
+              const merged = Array.from(new Set([...mapped.unlockedBadges, ...local.unlockedBadges]));
+              mapped.unlockedBadges = merged;
+            }
+            // Take the higher XP/level (local may have unsync'd gains)
+            if (typeof local.xp === "number" && typeof local.level === "number") {
+              const localTotal = local.level * 1000 + local.xp;
+              const apiTotal = mapped.level * 1000 + mapped.xp;
+              if (localTotal > apiTotal) {
+                mapped.xp = local.xp;
+                mapped.level = local.level;
+              }
+            }
+          }
+        } catch { /* ignore */ }
+      }
+
       setUserData(mapped);
-      // Cache dengan user ID untuk validasi berikutnya
+      // Cache with merged data
       localStorage.setItem("ceamis_user", JSON.stringify(mapped));
     } catch {
       // Fallback: gunakan localStorage HANYA jika milik user yang sama
@@ -155,30 +180,38 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (!userData.id) return;
     try {
       const result = await usersApi.addXp(userData.id, amount);
-      setUserData(prev => ({
-        ...prev,
-        xp: result.xp,
-        level: result.level,
-      }));
+      setUserData(prev => {
+        const updated = { ...prev, xp: result.xp, level: result.level };
+        localStorage.setItem("ceamis_user", JSON.stringify(updated));
+        return updated;
+      });
     } catch {
-      // Fallback local
+      // Fallback local — optimistically update state AND persist to localStorage
       setUserData(prev => {
         const newXp = prev.xp + amount;
         const nextLevelXp = prev.level * 1000;
-        if (newXp >= nextLevelXp) {
-          return { ...prev, xp: newXp - nextLevelXp, level: prev.level + 1 };
-        }
-        return { ...prev, xp: newXp };
+        const updated = newXp >= nextLevelXp
+          ? { ...prev, xp: newXp - nextLevelXp, level: prev.level + 1 }
+          : { ...prev, xp: newXp };
+        localStorage.setItem("ceamis_user", JSON.stringify(updated));
+        return updated;
       });
     }
   };
 
   const unlockBadge = (badgeId: string) => {
     setUserData(prev => {
-      if (!prev.unlockedBadges.includes(badgeId)) {
-        return { ...prev, unlockedBadges: [...prev.unlockedBadges, badgeId] };
+      if (prev.unlockedBadges.includes(badgeId)) return prev; // already unlocked
+      const updated = { ...prev, unlockedBadges: [...prev.unlockedBadges, badgeId] };
+      // Persist to localStorage immediately
+      localStorage.setItem("ceamis_user", JSON.stringify(updated));
+      // Sync to API in background (best-effort)
+      if (prev.id) {
+        usersApi.updateProfile(prev.id, {
+          unlocked_badges: updated.unlockedBadges,
+        } as any).catch(() => {/* silently ignore if API unavailable */});
       }
-      return prev;
+      return updated;
     });
   };
 

@@ -82,10 +82,11 @@ export default function EducationPage() {
   const overallProgress = Math.round(((modulesProgressSum + quizzesProgressSum) / (totalItems * 100)) * 100);
 
   useEffect(() => {
-    if (totalModulesCompleted >= 3) {
-      unlockBadge("Bookworm");
+    // Unlock Bookworm when combined modules+quizzes >= 3 (matches the UI badge message)
+    if (totalCompleted >= 3) {
+      unlockBadge("bookworm");
     }
-  }, [totalModulesCompleted, unlockBadge]);
+  }, [totalCompleted, unlockBadge]);
 
   const getLevelBadge = (level: string) => {
     switch (level) {
@@ -334,10 +335,10 @@ export default function EducationPage() {
                       <span style={{ fontSize: "0.8125rem", color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
                         <Clock size={14} /> 2 menit
                       </span>
-                      {mod.progress === 100 ? (
-                        <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>Selesai</span>
+                      {completedQuizzes.includes(mod.id) ? (
+                        <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>SELESAI</span>
                       ) : (
-                        <span className="badge-brutal" style={{ background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>Mulai Kuis</span>
+                        <span className="badge-brutal" style={{ background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>MULAI KUIS</span>
                       )}
                     </div>
                   </div>

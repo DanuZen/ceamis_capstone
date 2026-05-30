@@ -125,7 +125,7 @@ export default function DebtPage() {
         category: entry.type === "utang" ? "Utang" : "Pemasukan Lainnya",
         description: `${entry.type === "utang" ? "Membayar utang ke" : "Pelunasan piutang dari"} ${entry.person}`,
       });
-      showToast("Tercatat otomatis di Riwayat Transaksi!", "success");
+      showToast("Berhasil! Transaksi tercatat otomatis di Riwayat.", "success");
     }
 
     setEntries(entries.map(e =>

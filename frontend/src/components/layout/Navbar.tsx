@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { 
   Search, Calendar, Star, Flame, Bell, ChevronDown, 
   User, LogOut, Target, Users, Zap, PanelLeft, UserPlus
@@ -438,18 +438,28 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                       </div>
                     ) : (
                       <>
-                        {[
-                          { icon: Target, bg: "lime" }, 
-                          { icon: Flame, bg: "orange" }, 
-                          { icon: Zap, bg: "purple" }
-                        ].slice(0, userData.unlockedBadges.length).map((badge, i) => (
-                          <div key={i} style={{ 
-                            width: "40px", height: "40px", borderRadius: "50%", background: `var(--color-${badge.bg})`, 
-                            border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center" 
-                          }}>
-                            <badge.icon size={20} color="var(--color-navy)" />
-                          </div>
-                        ))}
+                        {userData.unlockedBadges.slice(0, 3).map((badgeId, i) => {
+                          const badgeMap: Record<string, { icon: React.ElementType; bg: string }> = {
+                            firstStep: { icon: Target, bg: "lime" },
+                            onFire: { icon: Flame, bg: "orange" },
+                            consistent: { icon: Zap, bg: "purple" },
+                            champion: { icon: Star, bg: "orange" },
+                            aiExplorer: { icon: Star, bg: "lime" },
+                            hematMaster: { icon: Zap, bg: "purple" },
+                            bookworm: { icon: Star, bg: "lime" },
+                            legendary: { icon: Star, bg: "orange" },
+                          };
+                          const b = badgeMap[badgeId] || { icon: Star, bg: "lime" };
+                          const IconComp = b.icon;
+                          return (
+                            <div key={i} title={badgeId} style={{ 
+                              width: "40px", height: "40px", borderRadius: "50%", background: `var(--color-${b.bg})`, 
+                              border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center" 
+                            }}>
+                              <IconComp size={20} color="var(--color-navy)" />
+                            </div>
+                          );
+                        })}
                         {userData.unlockedBadges.length > 3 && (
                           <div style={{ 
                             width: "40px", height: "40px", borderRadius: "50%", background: "var(--color-bg)", 

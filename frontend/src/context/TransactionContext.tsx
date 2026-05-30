@@ -111,22 +111,27 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const addTransaction = async (
     transaction: Omit<Transaction, "id" | "date" | "desc" | "created_at">
   ) => {
+    // Build a local transaction object immediately for optimistic UI update
+    const localTx: Transaction = {
+      ...transaction,
+      id: Math.random().toString(36).substring(2, 9),
+      created_at: new Date().toISOString(),
+      date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+      desc: transaction.description,
+    };
+
     const userId = await getUserId();
 
     if (!userId) {
-      // Fallback: save to localStorage for guest
-      const newTx: Transaction = {
-        ...transaction,
-        id: Math.random().toString(36).substring(2, 9),
-        created_at: new Date().toISOString(),
-        date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
-        desc: transaction.description,
-      };
-      const updated = [newTx, ...transactions];
+      // Guest mode: update state + localStorage immediately
+      const updated = [localTx, ...transactions];
       setTransactions(updated);
       localStorage.setItem("ceamis_transactions", JSON.stringify(updated));
       return;
     }
+
+    // Authenticated: optimistically update the UI right away
+    setTransactions(prev => [localTx, ...prev]);
 
     try {
       const created = await transactionsApi.create({
@@ -137,7 +142,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         category: transaction.category,
         tag: transaction.tag,
       });
-      setTransactions(prev => [mapApiToLocal(created), ...prev]);
+      // Replace the optimistic entry with the real one from the API
+      setTransactions(prev => [
+        mapApiToLocal(created),
+        ...prev.filter(t => t.id !== localTx.id),
+      ]);
       // Refresh summary
       const summaryRes = await transactionsApi.getSummary(userId);
       setSummary({
@@ -148,7 +157,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         category_breakdown: summaryRes.category_breakdown,
       });
     } catch (err) {
-      console.error("Failed to save transaction to API:", err);
+      console.error("Failed to save transaction to API, keeping optimistic entry:", err);
+      // Persist the optimistic tx to localStorage as fallback backup
+      const saved = localStorage.getItem("ceamis_transactions");
+      const existing: Transaction[] = saved ? JSON.parse(saved) : [];
+      localStorage.setItem("ceamis_transactions", JSON.stringify([localTx, ...existing]));
     }
   };
 
