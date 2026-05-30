@@ -1,21 +1,45 @@
 "use client";
 
-import { Trophy, Flame, Star, Medal, Zap, Target } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Trophy, Flame, Star, Medal, Zap, Target, Shield } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+
+const INITIAL_BADGES = [
+  { id: 1, name: "Pencatat Setia", icon: "Target", color: "lime", xp: 100, requirement: "Catat 30 transaksi berturut-turut", unlocked: true },
+  { id: 2, name: "Si Hemat", icon: "Shield", color: "purple", xp: 150, requirement: "Pengeluaran di bawah target 4 minggu berturut", unlocked: true },
+  { id: 3, name: "Api Semangat", icon: "Flame", color: "orange", xp: 75, requirement: "Login 7 hari berturut-turut (Streak)", unlocked: true },
+  { id: 4, name: "Kilat Cerdas", icon: "Zap", color: "lime", xp: 200, requirement: "Selesaikan 5 modul edukasi", unlocked: false },
+  { id: 5, name: "Bintang Emas", icon: "Star", color: "orange", xp: 500, requirement: "Mencapai Level 10", unlocked: false },
+];
+
+const renderIcon = (iconName: string, size: number) => {
+  switch (iconName) {
+    case "Target": return <Target size={size} strokeWidth={2.5} />;
+    case "Shield": return <Shield size={size} strokeWidth={2.5} />;
+    case "Flame": return <Flame size={size} strokeWidth={2.5} />;
+    case "Zap": return <Zap size={size} strokeWidth={2.5} />;
+    case "Star": return <Star size={size} strokeWidth={2.5} />;
+    case "Medal": return <Medal size={size} strokeWidth={2.5} />;
+    case "Trophy": return <Trophy size={size} strokeWidth={2.5} />;
+    default: return <Star size={size} strokeWidth={2.5} />;
+  }
+};
 
 export default function GamificationPage() {
   const { t } = useLanguage();
+  const [badges, setBadges] = useState(INITIAL_BADGES);
 
-  const badges = [
-    { icon: Target, name: t("dashboard.gamification.badges.firstStep.name"), desc: t("dashboard.gamification.badges.firstStep.desc"), unlocked: true, color: "lime" },
-    { icon: Flame, name: t("dashboard.gamification.badges.onFire.name"), desc: t("dashboard.gamification.badges.onFire.desc"), unlocked: true, color: "orange" },
-    { icon: Zap, name: t("dashboard.gamification.badges.consistent.name"), desc: t("dashboard.gamification.badges.consistent.desc"), unlocked: true, color: "purple" },
-    { icon: Trophy, name: t("dashboard.gamification.badges.champion.name"), desc: t("dashboard.gamification.badges.champion.desc"), unlocked: false, color: "orange" },
-    { icon: Star, name: t("dashboard.gamification.badges.aiExplorer.name"), desc: t("dashboard.gamification.badges.aiExplorer.desc"), unlocked: true, color: "lime" },
-    { icon: Medal, name: t("dashboard.gamification.badges.hematMaster.name"), desc: t("dashboard.gamification.badges.hematMaster.desc"), unlocked: false, color: "purple" },
-    { icon: Star, name: t("dashboard.gamification.badges.bookworm.name"), desc: t("dashboard.gamification.badges.bookworm.desc"), unlocked: false, color: "lime" },
-    { icon: Trophy, name: t("dashboard.gamification.badges.legendary.name"), desc: t("dashboard.gamification.badges.legendary.desc"), unlocked: false, color: "orange" },
-  ];
+  useEffect(() => {
+    const saved = localStorage.getItem("ceamis_badges");
+    if (saved) {
+      // Map saved badges. Note: unlocked state is mock for now
+      const parsed = JSON.parse(saved).map((b: any, index: number) => ({
+        ...b,
+        unlocked: index < 3 // Mock unlocking first 3
+      }));
+      setBadges(parsed);
+    }
+  }, []);
 
   return (
     <div style={{ paddingBottom: "2rem" }}>
@@ -128,13 +152,13 @@ export default function GamificationPage() {
                   boxShadow: badge.unlocked ? "3px 3px 0px var(--color-navy)" : "none",
                   color: badge.unlocked ? (badge.color === "lime" ? "var(--color-navy)" : "var(--color-white)") : "var(--color-text-light)"
                 }}>
-                  <badge.icon size={32} strokeWidth={2.5} />
+                  {renderIcon(badge.icon as string, 32)}
                 </div>
                 <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.125rem", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
                   {badge.name}
                 </div>
                 <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.5 }}>
-                  {badge.desc}
+                  {badge.requirement || (badge as any).desc}
                 </div>
               </div>
             ))}

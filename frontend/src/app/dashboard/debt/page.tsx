@@ -98,17 +98,29 @@ export default function DebtPage() {
 
   const handleAdd = () => {
     if (!newEntry.person || !newEntry.amount || !newEntry.dueDate) return;
+    const amt = parseInt(newEntry.amount);
     const entry: DebtEntry = {
       id: Date.now(),
       type: newEntry.type,
       person: newEntry.person,
-      amount: parseInt(newEntry.amount),
+      amount: amt,
       description: newEntry.description,
       dueDate: newEntry.dueDate,
       status: "belum_lunas",
       createdAt: new Date().toISOString().split("T")[0],
     };
     setEntries([entry, ...entries]);
+
+    // Catat transaksi saat utang/piutang dibuat:
+    // Utang (kita pinjam) → duit kita BERTAMBAH (pemasukan dari pemberi pinjaman)
+    // Piutang (kita pinjamkan) → duit kita BERKURANG (pengeluaran ke peminjam)
+    addTransaction({
+      amount: amt,
+      type: newEntry.type === "utang" ? "pemasukan" : "pengeluaran",
+      category: newEntry.type === "utang" ? "Pinjaman Masuk" : "Piutang Keluar",
+      description: `${newEntry.type === "utang" ? "Terima pinjaman dari" : "Beri pinjaman ke"} ${newEntry.person}`,
+    });
+
     setNewEntry({ type: "utang", person: "", amount: "", description: "", dueDate: "" });
     setShowForm(false);
     showToast(t("dashboard.debt.save") + " Berhasil!", "success");
@@ -321,9 +333,10 @@ export default function DebtPage() {
 
           <button onClick={handleAdd} className="btn-brutal" style={{
             width: "100%", padding: "1rem", fontWeight: 900, fontSize: "1rem",
-            background: "var(--color-navy)", color: "var(--color-white)",
+            background: "var(--color-purple)", color: "var(--color-white)",
             display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-            boxShadow: "4px 4px 0px var(--color-lime)",
+            border: "3px solid var(--color-navy)",
+            boxShadow: "4px 4px 0px var(--color-navy)",
           }}>
             <Plus size={18} /> {t("dashboard.debt.save")}
           </button>

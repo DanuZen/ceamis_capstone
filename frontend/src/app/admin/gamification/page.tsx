@@ -1,14 +1,27 @@
 "use client";
 
-import { Trophy, Star, Flame, Zap, Target, Shield, Edit } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Trophy, Star, Flame, Zap, Target, Shield, Edit, Plus, X } from "lucide-react";
 
-const BADGES = [
-  { name: "Pencatat Setia", icon: Target, color: "lime", xp: 100, requirement: "Catat 30 transaksi berturut-turut" },
-  { name: "Si Hemat", icon: Shield, color: "purple", xp: 150, requirement: "Pengeluaran di bawah target 4 minggu berturut" },
-  { name: "Api Semangat", icon: Flame, color: "orange", xp: 75, requirement: "Login 7 hari berturut-turut (Streak)" },
-  { name: "Kilat Cerdas", icon: Zap, color: "lime", xp: 200, requirement: "Selesaikan 5 modul edukasi" },
-  { name: "Bintang Emas", icon: Star, color: "orange", xp: 500, requirement: "Mencapai Level 10" },
+// Convert icon references to string names for localStorage compatibility
+const INITIAL_BADGES = [
+  { id: 1, name: "Pencatat Setia", icon: "Target", color: "lime", xp: 100, requirement: "Catat 30 transaksi berturut-turut" },
+  { id: 2, name: "Si Hemat", icon: "Shield", color: "purple", xp: 150, requirement: "Pengeluaran di bawah target 4 minggu berturut" },
+  { id: 3, name: "Api Semangat", icon: "Flame", color: "orange", xp: 75, requirement: "Login 7 hari berturut-turut (Streak)" },
+  { id: 4, name: "Kilat Cerdas", icon: "Zap", color: "lime", xp: 200, requirement: "Selesaikan 5 modul edukasi" },
+  { id: 5, name: "Bintang Emas", icon: "Star", color: "orange", xp: 500, requirement: "Mencapai Level 10" },
 ];
+
+const renderIcon = (iconName: string, size: number, color: string) => {
+  switch (iconName) {
+    case "Target": return <Target size={size} color={color} />;
+    case "Shield": return <Shield size={size} color={color} />;
+    case "Flame": return <Flame size={size} color={color} />;
+    case "Zap": return <Zap size={size} color={color} />;
+    case "Star": return <Star size={size} color={color} />;
+    default: return <Star size={size} color={color} />;
+  }
+};
 
 const LEVEL_CONFIG = [
   { level: 1, xpMin: 0, xpMax: 200, label: "Newbie" },
@@ -19,6 +32,38 @@ const LEVEL_CONFIG = [
 ];
 
 export default function AdminGamificationPage() {
+  const [badges, setBadgesState] = useState(INITIAL_BADGES);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("ceamis_badges");
+    if (saved) {
+      setBadgesState(JSON.parse(saved));
+    } else {
+      localStorage.setItem("ceamis_badges", JSON.stringify(INITIAL_BADGES));
+    }
+  }, []);
+
+  const setBadges = (newBadges: any[]) => {
+    setBadgesState(newBadges);
+    localStorage.setItem("ceamis_badges", JSON.stringify(newBadges));
+  };
+
+  const handleSaveBadge = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const newBadge = {
+      id: Date.now(),
+      name: formData.get("name") as string,
+      icon: formData.get("icon") as string,
+      color: formData.get("color") as string,
+      xp: Number(formData.get("xp")),
+      requirement: formData.get("requirement") as string,
+    };
+    setBadges([...badges, newBadge]);
+    setIsModalOpen(false);
+  };
+
   return (
     <div>
       <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", color: "var(--color-navy)", marginBottom: "0.5rem" }}>
@@ -60,16 +105,21 @@ export default function AdminGamificationPage() {
       </div>
 
       {/* Badges Grid */}
-      <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", marginBottom: "1rem" }}>Daftar Badge</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", margin: 0 }}>Daftar Badge</h2>
+        <button onClick={() => setIsModalOpen(true)} className="btn-brutal" style={{ background: "var(--color-purple)", color: "var(--color-white)", padding: "0.5rem 1rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "3px 3px 0px var(--color-navy)" }}>
+          <Plus size={16} /> Tambah Badge
+        </button>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.25rem" }}>
-        {BADGES.map((badge, i) => (
+        {badges.map((badge, i) => (
           <div key={i} className="card-brutal" style={{ padding: "1.5rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
             <div style={{
               width: "52px", height: "52px", borderRadius: "50%", background: `var(--color-${badge.color})`,
               border: "3px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
               boxShadow: "3px 3px 0px var(--color-navy)"
             }}>
-              <badge.icon size={24} color="var(--color-navy)" />
+              {renderIcon(badge.icon, 24, "var(--color-navy)")}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", marginBottom: "0.25rem" }}>{badge.name}</div>
@@ -79,6 +129,69 @@ export default function AdminGamificationPage() {
           </div>
         ))}
       </div>
+
+      {/* Add Badge Modal */}
+      {isModalOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 25, 47, 0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1rem" }}>
+          <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", width: "100%", maxWidth: "500px", position: "relative" }}>
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="btn-brutal"
+              style={{ position: "absolute", top: "1rem", right: "1rem", padding: "0.5rem", background: "var(--color-danger, #e74c3c)", boxShadow: "none" }}
+            >
+              <X size={16} color="var(--color-white)" />
+            </button>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Star size={24} color="var(--color-purple)" /> Tambah Badge
+            </h2>
+            
+            <form onSubmit={handleSaveBadge} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              <div className="input-group-brutal">
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Nama Badge</label>
+                <input name="name" required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Sang Juara" />
+              </div>
+              <div className="input-group-brutal">
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Persyaratan (Deskripsi)</label>
+                <input name="requirement" required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Capai level 5" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>XP Points</label>
+                  <input name="xp" type="number" defaultValue={100} required className="input-brutal" style={{ width: "100%" }} />
+                </div>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Warna Tema</label>
+                  <select name="color" className="input-brutal" style={{ width: "100%" }}>
+                    <option value="lime">Lime</option>
+                    <option value="purple">Purple</option>
+                    <option value="orange">Orange</option>
+                    <option value="pink">Pink</option>
+                  </select>
+                </div>
+              </div>
+              <div className="input-group-brutal">
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Ikon</label>
+                <select name="icon" className="input-brutal" style={{ width: "100%" }}>
+                  <option value="Star">Star</option>
+                  <option value="Target">Target</option>
+                  <option value="Shield">Shield</option>
+                  <option value="Flame">Flame</option>
+                  <option value="Zap">Zap</option>
+                </select>
+              </div>
+              
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1rem" }}>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-brutal" style={{ background: "var(--color-bg)", fontWeight: 700 }}>
+                  Batal
+                </button>
+                <button type="submit" className="btn-brutal btn-brutal--primary" style={{ fontWeight: 800, background: "var(--color-purple)", color: "var(--color-white)" }}>
+                  Simpan Badge
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

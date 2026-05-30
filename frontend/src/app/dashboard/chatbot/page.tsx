@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Bot, Send, MessageSquare, Sparkles, RefreshCw, Zap } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useTransactions } from "@/context/TransactionContext";
@@ -30,13 +30,86 @@ const INITIAL_MESSAGE: ChatMessage = {
 
 const AI_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000";
 
-// ── Markdown bold sederhana ───────────────────────────────────────────────────
-function renderMarkdown(text: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) =>
-    part.startsWith("**") && part.endsWith("**")
-      ? <strong key={i}>{part.slice(2, -2)}</strong>
-      : <span key={i}>{part}</span>
+// ── Inline markdown renderer ─────────────────────────────────────────────────
+function renderInline(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**"))
+      return <strong key={i} style={{ fontWeight: 800, color: "inherit" }}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2)
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    if (part.startsWith("`") && part.endsWith("`"))
+      return <code key={i} style={{ background: "rgba(255,255,255,0.15)", padding: "0.1rem 0.35rem", borderRadius: "4px", fontFamily: "monospace", fontSize: "0.85rem" }}>{part.slice(1, -1)}</code>;
+    return <span key={i}>{part}</span>;
+  });
+}
+
+// ── Block-level markdown renderer ────────────────────────────────────────────
+function renderMarkdown(text: string): React.ReactNode {
+  const blocks = text.split(/\n{2,}/);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+      {blocks.map((block, bi) => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
+
+        // Heading
+        if (trimmed.startsWith("### "))
+          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.95rem", color: "var(--color-lime)", marginTop: "0.25rem", letterSpacing: "0.5px" }}>{renderInline(trimmed.slice(4))}</div>;
+        if (trimmed.startsWith("## "))
+          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.05rem", color: "var(--color-lime)", borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: "0.25rem" }}>{renderInline(trimmed.slice(3))}</div>;
+        if (trimmed.startsWith("# "))
+          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.15rem", color: "var(--color-lime)" }}>{renderInline(trimmed.slice(2))}</div>;
+
+        // List items
+        const lines = trimmed.split("\n");
+        const isBulletList = lines.every(l => /^[-*•]\s/.test(l.trim()));
+        const isNumList    = lines.every(l => /^\d+\.\s/.test(l.trim()));
+
+        if (isBulletList)
+          return (
+            <ul key={bi} style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+              {lines.map((l, li) => (
+                <li key={li} style={{ fontSize: "0.9375rem", lineHeight: 1.55 }}>{renderInline(l.replace(/^[-*•]\s/, "").trim())}</li>
+              ))}
+            </ul>
+          );
+
+        if (isNumList)
+          return (
+            <ol key={bi} style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+              {lines.map((l, li) => (
+                <li key={li} style={{ fontSize: "0.9375rem", lineHeight: 1.55 }}>{renderInline(l.replace(/^\d+\.\s/, "").trim())}</li>
+              ))}
+            </ol>
+          );
+
+        // Mixed lines (some list, some text) — render line by line
+        const hasMixed = lines.some(l => /^[-*•\d]/.test(l.trim()));
+        if (hasMixed)
+          return (
+            <div key={bi} style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+              {lines.map((l, li) => {
+                const t2 = l.trim();
+                if (/^[-*•]\s/.test(t2))
+                  return <div key={li} style={{ display: "flex", gap: "0.5rem", fontSize: "0.9375rem", lineHeight: 1.55 }}><span style={{ flexShrink: 0, marginTop: "0.15rem" }}>•</span><span>{renderInline(t2.replace(/^[-*•]\s/, ""))}</span></div>;
+                if (/^\d+\.\s/.test(t2))
+                  return <div key={li} style={{ display: "flex", gap: "0.5rem", fontSize: "0.9375rem", lineHeight: 1.55 }}><span style={{ flexShrink: 0 }}>{t2.match(/^\d+/)![0]}.</span><span>{renderInline(t2.replace(/^\d+\.\s/, ""))}</span></div>;
+                return <p key={li} style={{ margin: 0, fontSize: "0.9375rem", lineHeight: 1.6 }}>{renderInline(t2)}</p>;
+              })}
+            </div>
+          );
+
+        // Regular paragraph
+        return (
+          <p key={bi} style={{ margin: 0, fontSize: "0.9375rem", lineHeight: 1.65 }}>
+            {lines.map((l, li) => (
+              <span key={li}>{renderInline(l)}{li < lines.length - 1 && <br />}</span>
+            ))}
+          </p>
+        );
+      })}
+    </div>
   );
 }
 
@@ -173,27 +246,32 @@ export default function ChatbotPage() {
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-          <div style={{
-            width: "72px", height: "72px", background: "var(--color-lime)",
-            borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
-            boxShadow: "4px 4px 0px var(--color-navy)", display: "flex",
-            alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
-            <Bot size={40} color="var(--color-navy)" strokeWidth={2.5} />
+          {/* Logo with status dot */}
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <div style={{
+              width: "72px", height: "72px", background: "var(--color-lime)",
+              borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
+              boxShadow: "4px 4px 0px var(--color-navy)", display: "flex",
+              alignItems: "center", justifyContent: "center",
+            }}>
+              <Bot size={40} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
+            {/* Status dot: hijau=online, merah=offline, kuning=connecting */}
+            <span style={{
+              position: "absolute", top: "-3px", right: "-3px",
+              width: "14px", height: "14px", borderRadius: "50%",
+              background: isConnected === null ? "#eab308" : isConnected ? "#22c55e" : "#ef4444",
+              border: "2.5px solid var(--color-white)",
+              boxShadow: "0 0 0 1.5px var(--color-navy)",
+              display: "inline-block",
+            }} className={isConnected ? "animate-pulse" : ""} />
           </div>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.25rem" }}>
-              <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", margin: 0, color: "var(--color-navy)", fontWeight: 800 }}>
-                {t("dashboard.chatbot.title")}
-              </h1>
-              {/* Status indicator */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.2rem 0.6rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: statusColor, display: "inline-block" }} className={isConnected ? "animate-pulse" : ""} />
-                <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--color-navy)" }}>{statusLabel}</span>
-              </div>
-            </div>
+            <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", margin: 0, color: "var(--color-navy)", fontWeight: 800 }}>
+              {t("dashboard.chatbot.title")}
+            </h1>
             <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", margin: 0, fontWeight: 500 }}>
-              {t("dashboard.chatbot.subtitle")}
+              AI Financial Assistant
             </p>
           </div>
         </div>
@@ -266,7 +344,7 @@ export default function ChatbotPage() {
                 )}
               </div>
             )}
-            <div style={{ fontSize: "0.9375rem", lineHeight: 1.6, fontFamily: "var(--font-body)" }}>
+            <div style={{ fontFamily: "var(--font-body)" }}>
               {renderMarkdown(msg.content)}
             </div>
           </div>

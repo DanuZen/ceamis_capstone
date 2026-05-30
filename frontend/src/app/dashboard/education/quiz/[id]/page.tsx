@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Award, CheckCircle, Lightbulb, XCircle } from "lucide-react";
@@ -87,10 +87,30 @@ export default function QuizDetailPage() {
   const { t } = useLanguage();
   const { showToast } = useToast();
   
-  const questions = getQuizForModule(id);
+  const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(new Array(questions.length).fill(null));
+  const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [showResult, setShowResult] = useState(false);
+
+  useEffect(() => {
+    const savedContent = localStorage.getItem(`ceamis_quiz_content_${id}`);
+    if (savedContent) {
+      const parsed = JSON.parse(savedContent);
+      setQuestions(parsed);
+      setAnswers(new Array(parsed.length).fill(null));
+    } else {
+      const fallback = getQuizForModule(id) || [{
+        question: "Belum ada pertanyaan untuk kuis ini.",
+        options: ["Pilih ini"],
+        correctAnswer: 0,
+        explanation: "Admin belum mengatur kuis ini."
+      }];
+      setQuestions(fallback);
+      setAnswers(new Array(fallback.length).fill(null));
+    }
+  }, [id]);
+
+  if (questions.length === 0) return null;
 
   const handleSelectAnswer = (optIndex: number) => {
     if (showResult) return;

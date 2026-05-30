@@ -124,12 +124,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 className="btn-brutal"
                 style={{
                   width: "100%",
-                  background: "var(--color-navy)",
-                  color: "var(--color-white)",
+                  background: "var(--color-white)",
+                  color: "var(--color-navy)",
+                  border: "3px solid var(--color-navy)",
                   padding: "0.85rem",
                   fontWeight: 900,
                   fontSize: "1rem",
-                  boxShadow: "4px 4px 0px rgba(255,255,255,0.5)",
+                  boxShadow: "4px 4px 0px var(--color-navy)",
                   letterSpacing: "0.5px",
                 }}
               >

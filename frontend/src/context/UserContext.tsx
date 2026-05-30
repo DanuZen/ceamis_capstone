@@ -127,8 +127,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 mapped.level = local.level;
               }
             }
+            // Preserve AI-generated label from localStorage.
+            // API hanya menyimpan label default "Pemula", sedangkan label
+            // seperti "Si Hemat" / "Si Impulsif" diset oleh analisis cluster lokal.
+            if (local.label && local.label !== defaultUser.label) {
+              mapped.label = local.label;
+            }
           }
         } catch { /* ignore */ }
+      }
+
+      // ── Restore AI-generated cluster label ────────────────────────────────
+      // Key ini hanya ditulis oleh analisis spending cluster di halaman Transaksi,
+      // TIDAK pernah ditimpa saat fetch dari API, sehingga label persisten lintas reload.
+      const clusterLabel = localStorage.getItem("ceamis_cluster_label");
+      if (clusterLabel) {
+        mapped.label = clusterLabel;
       }
 
       setUserData(mapped);
@@ -160,6 +174,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         // Hapus semua data saat logout
         localStorage.removeItem("ceamis_user");
         localStorage.removeItem("ceamis_transactions");
+        localStorage.removeItem("ceamis_cluster_label");
         setUserData(defaultUser);
       } else {
         refreshUser();

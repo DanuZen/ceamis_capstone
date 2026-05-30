@@ -99,7 +99,8 @@ export default function TransactionsPage() {
   const { userData, updateUserData } = useUser();
 
   const [desc, setDesc]       = useState("");
-  const [amount, setAmount]   = useState("");
+  const [amount, setAmount]   = useState("");  // stored as formatted string e.g. "100.000.000"
+  const [amountRaw, setAmountRaw] = useState(""); // unformatted for parse
   const [type, setType]       = useState<TransactionType>("pengeluaran");
   const [tag, setTag]         = useState<"needs" | "wants" | "save">("needs");
 
@@ -215,15 +216,19 @@ export default function TransactionsPage() {
         });
 
         // Update label user di seluruh aplikasi (Header & Dashboard)
-        if (rData.persona && userData.label !== rData.persona) {
+        if (rData.persona) {
           updateUserData({ label: rData.persona });
+          // Simpan di key terpisah agar tidak ditimpa saat refreshUser() fetch dari API
+          localStorage.setItem("ceamis_cluster_label", rData.persona);
         }
       } else {
         throw new Error("Invalid API format");
       }
     } catch {
-      // API belum ready → tetap pakai mock, tidak crash
+      // API belum ready → pakai mock, tetapi tetap update label
       setCluster(MOCK_CLUSTER);
+      updateUserData({ label: MOCK_CLUSTER.cluster_label });
+      localStorage.setItem("ceamis_cluster_label", MOCK_CLUSTER.cluster_label);
     } finally {
       setLoadingCluster(false);
     }
@@ -439,9 +444,9 @@ export default function TransactionsPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!desc || !amount) return;
-                addTransaction({ description: desc, amount: parseFloat(amount), type, category, tag });
+                addTransaction({ description: desc, amount: parseFloat(amountRaw.replace(/\./g, "")), type, category, tag });
                 showToast(t("dashboard.transactions.savedSuccess") || "Transaksi aman tersimpan, cuy!", "success");
-                setDesc(""); setAmount("");
+                setDesc(""); setAmount(""); setAmountRaw("");
               }}
               style={{ display: "flex", flexDirection: "column", gap: "1.5rem", flex: 1 }}
             >
@@ -471,9 +476,14 @@ export default function TransactionsPage() {
                     <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", fontSize: "1.125rem", fontWeight: 800, color: "var(--color-navy)" }}>Rp</span>
                     <input
                       value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, "");
+                        setAmountRaw(raw);
+                        setAmount(raw ? raw.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "");
+                      }}
                       className="input-brutal"
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       min="0"
                       placeholder="0"
                       style={{ border: "3px solid var(--color-navy)", padding: "1rem 1rem 1rem 3rem", fontSize: "1.125rem", width: "100%", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}

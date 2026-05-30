@@ -83,7 +83,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       "ceamis_risk_profile",
       "ceamis_debts",
       "ceamis_chat_history_v2",
-      "ceamis_read_notifs",
+      "ceamis_read_notifs_user",
     ];
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith("ceamis_module_")) {

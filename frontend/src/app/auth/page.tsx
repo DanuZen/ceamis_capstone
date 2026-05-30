@@ -281,28 +281,28 @@ export default function AuthPage() {
             {t("auth.leftDesc")}
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "95%" }}>
-             <div className="feature-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", padding: "1.25rem 1.5rem", borderRadius: "16px", color: "var(--color-white)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "95%" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
                 <div style={{ background: "linear-gradient(135deg, var(--color-lime), #84cc00)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "0 4px 12px rgba(204, 255, 0, 0.3)", flexShrink: 0 }}><Zap size={24} strokeWidth={2.5} /></div>
                 <div>
                   <div style={{ color: "var(--color-lime)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>Smart Analytics</div>
-                  <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{t("auth.feat1")}</div>
+                  <div style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--color-white)" }}>{t("auth.feat1")}</div>
                 </div>
              </div>
              
-             <div className="feature-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", padding: "1.25rem 1.5rem", borderRadius: "16px", color: "var(--color-white)" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
                 <div style={{ background: "linear-gradient(135deg, var(--color-orange), #e66c00)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-white)", boxShadow: "0 4px 12px rgba(255, 122, 0, 0.3)", flexShrink: 0 }}><ShieldCheck size={24} strokeWidth={2.5} /></div>
                 <div>
                   <div style={{ color: "var(--color-orange)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>Protection</div>
-                  <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{t("auth.feat2")}</div>
+                  <div style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--color-white)" }}>{t("auth.feat2")}</div>
                 </div>
              </div>
              
-             <div className="feature-card" style={{ display: "flex", alignItems: "center", gap: "1.25rem", padding: "1.25rem 1.5rem", borderRadius: "16px", color: "var(--color-white)" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
                 <div style={{ background: "linear-gradient(135deg, #FFFFFF, #E2E8F0)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "0 4px 12px rgba(255, 255, 255, 0.2)", flexShrink: 0 }}><User size={24} strokeWidth={2.5} /></div>
                 <div>
                   <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>AI Assistant</div>
-                  <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{t("auth.feat3")}</div>
+                  <div style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--color-white)" }}>{t("auth.feat3")}</div>
                 </div>
              </div>
           </div>

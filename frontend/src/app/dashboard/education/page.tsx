@@ -51,35 +51,57 @@ export default function EducationPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
   const [modules, setModules] = useState(initialModules);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
   const [completedQuizzes, setCompletedQuizzes] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"modules" | "quizzes">("modules");
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Load progress from localStorage
-    const updatedModules = initialModules.map(mod => {
+    // Load modules from localStorage
+    const savedModules = localStorage.getItem("ceamis_modules");
+    let baseModules = savedModules ? JSON.parse(savedModules).filter((m: any) => m.status === "published") : initialModules;
+    
+    // Add progress to modules
+    const updatedModules = baseModules.map((mod: any) => {
       const saved = localStorage.getItem(`ceamis_module_${mod.id}_progress`);
       return {
         ...mod,
+        level: mod.category || mod.level || "Beginner",
+        color: mod.color || ["lime", "purple", "orange"][mod.id % 3], // fallback color
         progress: saved ? parseInt(saved) : 0
       };
     });
     setModules(updatedModules);
 
-    const quizzesFinished = initialModules.filter(mod => {
+    // Get finished quizzes based on module IDs
+    const quizzesFinished = updatedModules.filter((mod: any) => {
       return localStorage.getItem(`ceamis_quiz_${mod.id}_completed`) === "true";
-    }).map(mod => mod.id);
+    }).map((mod: any) => mod.id);
     setCompletedQuizzes(quizzesFinished);
+
+    // Load quizzes from localStorage
+    const savedQuizzes = localStorage.getItem("ceamis_quizzes");
+    if (savedQuizzes) {
+      setQuizzes(JSON.parse(savedQuizzes).filter((q: any) => q.status === "active"));
+    } else {
+      // Fallback
+      setQuizzes([
+        { id: 1, moduleId: 1, question: "Apa tujuan utama dari pencatatan keuangan pribadi?", points: 150, status: "active" },
+        { id: 2, moduleId: 2, question: "Apa fungsi utama dari Dana Darurat?", points: 150, status: "active" },
+        { id: 3, moduleId: 3, question: "Manakah contoh dari 'Wants' (Keinginan) dalam budgeting?", points: 150, status: "active" },
+        { id: 4, moduleId: 4, question: "Instrumen investasi apa yang umumnya memiliki risiko paling rendah?", points: 150, status: "draft" }
+      ].filter(q => q.status === "active"));
+    }
   }, []);
 
   const totalModulesCompleted = modules.filter(m => m.progress === 100).length;
   const totalQuizzesCompleted = completedQuizzes.length;
   const totalCompleted = totalModulesCompleted + totalQuizzesCompleted;
-  const totalItems = initialModules.length * 2;
+  const totalItems = modules.length * 2; // Approximation if dynamic
   
   const modulesProgressSum = modules.reduce((acc, m) => acc + m.progress, 0);
   const quizzesProgressSum = totalQuizzesCompleted * 100;
-  const overallProgress = Math.round(((modulesProgressSum + quizzesProgressSum) / (totalItems * 100)) * 100);
+  const overallProgress = totalItems > 0 ? Math.round(((modulesProgressSum + quizzesProgressSum) / (totalItems * 100)) * 100) : 0;
 
   useEffect(() => {
     // Unlock Bookworm when combined modules+quizzes >= 3 (matches the UI badge message)
@@ -140,8 +162,8 @@ export default function EducationPage() {
             {t("dashboard.education.progressTitle")}
           </h3>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {initialModules.length} Kuis Selesai</span>
             <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} / {initialModules.length} Modul Selesai</span>
+            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {initialModules.length} Kuis Selesai</span>
           </div>
         </div>
         <div className="progress-brutal" style={{ height: "24px", border: "3px solid var(--color-navy)" }}>
@@ -250,15 +272,15 @@ export default function EducationPage() {
                   
                   <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", marginBottom: "0.5rem", fontWeight: 800 }}>
-                      {t(`dashboard.education.modules.${mod.id - 1}.title`)}
+                      {mod.title || (mod.id > 10 ? `Modul Kustom #${mod.id}` : t(`dashboard.education.modules.${mod.id - 1}.title`))}
                     </h3>
                     <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", marginBottom: "1.5rem", flex: 1, fontWeight: 500 }}>
-                      {t(`dashboard.education.modules.${mod.id - 1}.desc`)}
+                      {mod.desc || (mod.id > 10 ? "Deskripsi modul pembelajaran kustom. Pelajari materi penting untuk meningkatkan wawasan finansialmu." : t(`dashboard.education.modules.${mod.id - 1}.desc`))}
                     </p>
                     
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: "2px solid rgba(10, 25, 47, 0.05)" }}>
                       <span style={{ fontSize: "0.8125rem", color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                        <Clock size={14} /> {t(`dashboard.education.modules.${mod.id - 1}.duration`)}
+                        <Clock size={14} /> {mod.duration || (mod.id > 10 ? "5 menit" : t(`dashboard.education.modules.${mod.id - 1}.duration`))}
                       </span>
                       {mod.progress === 100 ? (
                         <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{t("dashboard.education.statusDone")}</span>
@@ -287,11 +309,12 @@ export default function EducationPage() {
               gap: "1.5rem",
             }}
           >
-            {filteredModules.map((mod, index) => {
+            {quizzes.map((quiz, index) => {
+              const mod = modules.find(m => m.id === quiz.moduleId) || { title: `Modul #${quiz.moduleId}` };
               return (
                 <Link 
-                  key={mod.id} 
-                  href={`/dashboard/education/quiz/${mod.id}`}
+                  key={quiz.id} 
+                  href={`/dashboard/education/quiz/${quiz.moduleId}`}
                   className="card-brutal module-card" 
                   style={{ 
                     cursor: "pointer", 
@@ -320,22 +343,22 @@ export default function EducationPage() {
                     }}>
                       <Award size={20} color="var(--color-navy)" strokeWidth={2.5} />
                     </div>
-                    <span className="badge-brutal" style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}>+150 XP</span>
+                    <span className="badge-brutal" style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}>+{quiz.points || 150} XP</span>
                   </div>
                   
                   <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", marginBottom: "0.5rem", fontWeight: 800 }}>
-                      Kuis: {t(`dashboard.education.modules.${mod.id - 1}.title`)}
+                      Kuis: {quiz.question || mod.title || (!mod.id || mod.id > 10 ? `Modul Kustom #${quiz.moduleId}` : t(`dashboard.education.modules.${mod.id - 1}.title`))}
                     </h3>
                     <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", marginBottom: "1.5rem", flex: 1, fontWeight: 500 }}>
-                      Uji pemahamanmu tentang materi {t(`dashboard.education.modules.${mod.id - 1}.title`)} dan dapatkan XP tambahan!
+                      Uji pemahamanmu tentang materi {mod.title || (!mod.id || mod.id > 10 ? `Modul Kustom #${quiz.moduleId}` : t(`dashboard.education.modules.${mod.id - 1}.title`))} dan dapatkan XP tambahan!
                     </p>
                     
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: "2px solid rgba(10, 25, 47, 0.05)" }}>
                       <span style={{ fontSize: "0.8125rem", color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
                         <Clock size={14} /> 2 menit
                       </span>
-                      {completedQuizzes.includes(mod.id) ? (
+                      {completedQuizzes.includes(quiz.moduleId) ? (
                         <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>SELESAI</span>
                       ) : (
                         <span className="badge-brutal" style={{ background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>MULAI KUIS</span>

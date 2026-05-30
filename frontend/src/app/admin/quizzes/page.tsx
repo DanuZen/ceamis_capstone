@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Edit, Trash2, Eye, X, FileQuestion } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, Eye, X, FileQuestion, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const INITIAL_QUIZZES = [
   { id: 1, moduleId: 1, question: "Apa tujuan utama dari pencatatan keuangan pribadi?", points: 150, status: "active" },
@@ -11,9 +12,26 @@ const INITIAL_QUIZZES = [
 ];
 
 export default function AdminQuizzesPage() {
-  const [quizzes, setQuizzes] = useState(INITIAL_QUIZZES);
+  const router = useRouter();
+  const [quizzes, setQuizzesState] = useState(INITIAL_QUIZZES);
+  const [popupMessage, setPopupMessage] = useState<{title: string, message: string, type: "success" | "error"} | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("ceamis_quizzes");
+    if (saved) {
+      setQuizzesState(JSON.parse(saved));
+    } else {
+      localStorage.setItem("ceamis_quizzes", JSON.stringify(INITIAL_QUIZZES));
+    }
+  }, []);
+
+  const setQuizzes = (newQuizzes: any[]) => {
+    setQuizzesState(newQuizzes);
+    localStorage.setItem("ceamis_quizzes", JSON.stringify(newQuizzes));
+  };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   const openAddModal = () => {
     setEditingItem(null);
@@ -26,8 +44,13 @@ export default function AdminQuizzesPage() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Yakin ingin menghapus kuis ini?")) {
-      setQuizzes(quizzes.filter(q => q.id !== id));
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmId !== null) {
+      setQuizzes(quizzes.filter(q => q.id !== deleteConfirmId));
+      setDeleteConfirmId(null);
     }
   };
 
@@ -45,10 +68,13 @@ export default function AdminQuizzesPage() {
     
     if (editingItem) {
       setQuizzes(quizzes.map(q => q.id === editingItem.id ? newItem : q));
+      setIsModalOpen(false);
     } else {
       setQuizzes([...quizzes, newItem]);
+      setIsModalOpen(false);
+      // Auto redirect to content editor
+      router.push(`/admin/quizzes/edit-quiz/${newItem.moduleId}`);
     }
-    setIsModalOpen(false);
   };
 
   return (
@@ -95,7 +121,10 @@ export default function AdminQuizzesPage() {
                   </td>
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                      <button onClick={() => openEditModal(quiz)} className="btn-brutal" title="Edit" style={{ padding: "0.4rem", background: "var(--color-purple)", cursor: "pointer", boxShadow: "none" }}>
+                      <button onClick={() => router.push(`/admin/quizzes/edit-quiz/${quiz.moduleId}`)} className="btn-brutal" title="Edit Konten" style={{ padding: "0.4rem", background: "var(--color-lime)", cursor: "pointer", boxShadow: "none" }}>
+                        <FileText size={16} color="var(--color-navy)" />
+                      </button>
+                      <button onClick={() => openEditModal(quiz)} className="btn-brutal" title="Edit Metadata" style={{ padding: "0.4rem", background: "var(--color-purple)", cursor: "pointer", boxShadow: "none" }}>
                         <Edit size={16} color="var(--color-white)" />
                       </button>
                       <button onClick={() => handleDelete(quiz.id)} className="btn-brutal" title="Hapus" style={{ padding: "0.4rem", background: "var(--color-danger, #e74c3c)", cursor: "pointer", boxShadow: "none" }}>
@@ -166,6 +195,57 @@ export default function AdminQuizzesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Modal */}
+      {popupMessage && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 25, 47, 0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1rem" }}>
+          <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", width: "100%", maxWidth: "400px", padding: "2rem", textAlign: "center", border: "3px solid var(--color-navy)" }}>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1rem", color: popupMessage.type === "error" ? "var(--color-danger, #e74c3c)" : "var(--color-navy)" }}>
+              {popupMessage.title}
+            </h2>
+            <p style={{ fontSize: "1.1rem", color: "var(--color-text-muted)", fontWeight: 500, marginBottom: "1.5rem" }}>
+              {popupMessage.message}
+            </p>
+            <button 
+              onClick={() => setPopupMessage(null)}
+              className="btn-brutal" 
+              style={{ padding: "0.75rem 2rem", background: "var(--color-lime)", color: "var(--color-navy)", fontWeight: 800, fontSize: "1.1rem" }}
+            >
+              OK, Mengerti
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 25, 47, 0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1rem" }}>
+          <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", width: "100%", maxWidth: "400px", padding: "2rem", textAlign: "center", border: "3px solid var(--color-navy)" }}>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1rem", color: "var(--color-danger, #e74c3c)" }}>
+              Hapus Kuis?
+            </h2>
+            <p style={{ fontSize: "1.1rem", color: "var(--color-navy)", fontWeight: 600, marginBottom: "1.5rem" }}>
+              Yakin ingin menghapus kuis ini? Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+              <button 
+                onClick={() => setDeleteConfirmId(null)}
+                className="btn-brutal" 
+                style={{ padding: "0.75rem 1.5rem", background: "var(--color-white)", color: "var(--color-navy)", fontWeight: 700 }}
+              >
+                Batal
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="btn-brutal" 
+                style={{ padding: "0.75rem 1.5rem", background: "var(--color-danger, #e74c3c)", color: "var(--color-white)", fontWeight: 800 }}
+              >
+                Hapus
+              </button>
+            </div>
           </div>
         </div>
       )}

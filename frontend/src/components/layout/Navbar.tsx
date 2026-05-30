@@ -43,7 +43,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
       "ceamis_risk_profile",
       "ceamis_debts",
       "ceamis_chat_history_v2",
-      "ceamis_read_notifs",
+      "ceamis_read_notifs_user",
     ];
     // Hapus juga progress modul edukasi (keys dinamis)
     Object.keys(localStorage).forEach(key => {
@@ -54,6 +54,32 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
     keysToRemove.forEach(key => localStorage.removeItem(key));
 
     router.push("/");
+  };
+
+  const handleSwitchAccount = async () => {
+    await supabase.auth.signOut();
+    setShowProfileMenu(false);
+
+    // Hapus semua data user-spesifik dari localStorage
+    const keysToRemove = [
+      "ceamis_role",
+      "ceamis_user",
+      "ceamis_transactions",
+      "ceamis_budget",
+      "ceamis_targets",
+      "ceamis_risk_profile",
+      "ceamis_debts",
+      "ceamis_chat_history_v2",
+      "ceamis_read_notifs",
+    ];
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith("ceamis_module_")) {
+        localStorage.removeItem(key);
+      }
+    });
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    router.push("/auth");
   };
 
   useEffect(() => {
@@ -74,7 +100,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
   }, []);
 
   useEffect(() => {
-    const hasRead = localStorage.getItem("ceamis_read_notifs");
+    const hasRead = localStorage.getItem("ceamis_read_notifs_user");
     if (!hasRead) {
       setHasNewNotifications(true);
     }
@@ -82,19 +108,30 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
 
   const markNotifsRead = () => {
     setHasNewNotifications(false);
-    localStorage.setItem("ceamis_read_notifs", "true");
+    localStorage.setItem("ceamis_read_notifs_user", "true");
   };
 
   const { t, language, setLanguage } = useLanguage();
   const { userData } = useUser();
   const { isGuest } = useGuest();
 
-  const today = new Date().toLocaleDateString(language === "id" ? "id-ID" : "en-US", { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
+  const getOrdinal = (n: number) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
+  const today = (() => {
+    const d = new Date();
+    if (language === "en") {
+      const weekday = d.toLocaleDateString("en-US", { weekday: "long" });
+      const day = getOrdinal(d.getDate());
+      const month = d.toLocaleDateString("en-US", { month: "long" });
+      const year = d.getFullYear();
+      return `${weekday}, ${day} ${month} ${year}`;
+    }
+    return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  })();
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -275,10 +312,18 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearch}
             placeholder={
+              pathname.includes("quiz") ? t("navbar.searchQuiz") :
               pathname.includes("education") ? t("navbar.searchEducation") :
               pathname.includes("planning") ? t("navbar.searchPlanning") :
               pathname.includes("debt") ? t("navbar.searchDebt") :
-              t("navbar.searchTransaction")
+              pathname.includes("history") ? t("navbar.searchHistory") :
+              pathname.includes("reports") ? t("navbar.searchReports") :
+              pathname.includes("chatbot") ? t("navbar.searchChatbot") :
+              pathname.includes("warnings") ? t("navbar.searchWarnings") :
+              pathname.includes("gamification") ? t("navbar.searchGamification") :
+              pathname.includes("profile") ? t("navbar.searchProfile") :
+              pathname.includes("transactions") ? t("navbar.searchTransaction") :
+              t("navbar.searchDefault")
             }
             className="input-brutal"
             style={{ 
@@ -485,7 +530,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                       <User size={18} /> {t("navbar.fullProfile")}
                     </div>
                   </Link>
-                  <button onClick={handleLogout} style={{ all: "unset", width: "100%", cursor: "pointer" }}>
+                  <button onClick={handleSwitchAccount} style={{ all: "unset", width: "100%", cursor: "pointer" }}>
                     <div className="btn-brutal" style={{ 
                       padding: "0.75rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", 
                       borderRadius: "var(--radius-brutal-sm)", display: "flex", alignItems: "center", gap: "0.6rem",

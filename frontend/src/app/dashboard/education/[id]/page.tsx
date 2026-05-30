@@ -21,19 +21,40 @@ export default function ModuleDetailPage() {
   const router = useRouter();
   const id = params.id as string;
   const { t } = useLanguage();
-  const moduleConfig = moduleData[id as keyof typeof moduleData] || moduleData["1"];
-  const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true }) || t(`dashboard.education.detail.moduleData.1`, { returnObjects: true });
-  
-  // @ts-ignore
-  const contentArray = Array.isArray(translatedContent) ? translatedContent : [];
-  
-  const module = {
-    ...moduleConfig,
-    title: t(`dashboard.education.modules.${parseInt(id) - 1}.title`),
-    content: contentArray,
-  };
-  
   const [currentPage, setCurrentPage] = useState(0);
+  const [content, setContent] = useState<any[]>([]);
+  const [moduleTitle, setModuleTitle] = useState("");
+
+  useEffect(() => {
+    // 1. Fetch title from modules
+    const savedModules = localStorage.getItem("ceamis_modules");
+    if (savedModules) {
+      const parsed = JSON.parse(savedModules);
+      const mod = parsed.find((m: any) => m.id.toString() === id);
+      if (mod && mod.title) {
+        setModuleTitle(mod.title);
+      } else {
+        setModuleTitle(t(`dashboard.education.modules.${parseInt(id) - 1}.title`));
+      }
+    } else {
+      setModuleTitle(t(`dashboard.education.modules.${parseInt(id) - 1}.title`));
+    }
+
+    // 2. Fetch content
+    const savedContent = localStorage.getItem(`ceamis_module_content_${id}`);
+    if (savedContent) {
+      setContent(JSON.parse(savedContent));
+    } else {
+      const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true }) || t(`dashboard.education.detail.moduleData.1`, { returnObjects: true });
+      const contentArray = Array.isArray(translatedContent) ? translatedContent : [];
+      setContent(contentArray);
+    }
+  }, [id, t]);
+
+  const module = {
+    title: moduleTitle,
+    content: content,
+  };
 
   const handleNext = () => {
     if (currentPage < module.content.length - 1) {
@@ -58,7 +79,9 @@ export default function ModuleDetailPage() {
     router.push("/dashboard/education");
   };
 
-  const currentProgress = Math.round(((currentPage + 1) / module.content.length) * 100);
+  const currentProgress = module.content.length > 0 ? Math.round(((currentPage + 1) / module.content.length) * 100) : 0;
+
+  if (module.content.length === 0) return null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--navbar-height) - 4rem)" }}>

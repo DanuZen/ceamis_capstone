@@ -1,19 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Edit, Trash2, Eye, X, BookOpen } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, Eye, X, BookOpen, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const INITIAL_MODULES = [
-  { id: 1, title: "Cara Membuat Anggaran Bulanan", category: "Dasar", reads: 342, status: "published" },
-  { id: 2, title: "Investasi Reksadana untuk Pemula", category: "Investasi", reads: 218, status: "published" },
-  { id: 3, title: "Mengelola Utang dengan Cerdas", category: "Utang", reads: 156, status: "published" },
-  { id: 4, title: "Cara Menabung ala Gen-Z", category: "Dasar", reads: 0, status: "draft" },
+  { id: 1, title: "Cara Membuat Anggaran Bulanan", category: "Dasar", reads: 342, status: "published", points: 200 },
+  { id: 2, title: "Investasi Reksadana untuk Pemula", category: "Investasi", reads: 218, status: "published", points: 200 },
+  { id: 3, title: "Mengelola Utang dengan Cerdas", category: "Utang", reads: 156, status: "published", points: 200 },
+  { id: 4, title: "Cara Menabung ala Gen-Z", category: "Dasar", reads: 0, status: "draft", points: 200 },
 ];
 
 export default function AdminEducationPage() {
-  const [modules, setModules] = useState(INITIAL_MODULES);
+  const router = useRouter();
+  const [modules, setModulesState] = useState(INITIAL_MODULES);
+  
+  useEffect(() => {
+    const saved = localStorage.getItem("ceamis_modules");
+    if (saved) {
+      setModulesState(JSON.parse(saved));
+    } else {
+      localStorage.setItem("ceamis_modules", JSON.stringify(INITIAL_MODULES));
+    }
+  }, []);
+
+  const setModules = (newModules: any[]) => {
+    setModulesState(newModules);
+    localStorage.setItem("ceamis_modules", JSON.stringify(newModules));
+  };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   const openAddModal = () => {
     setEditingItem(null);
@@ -26,8 +43,13 @@ export default function AdminEducationPage() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Yakin ingin menghapus modul ini?")) {
-      setModules(modules.filter(m => m.id !== id));
+    setDeleteConfirmId(id);
+  };
+  
+  const confirmDelete = () => {
+    if (deleteConfirmId !== null) {
+      setModules(modules.filter(m => m.id !== deleteConfirmId));
+      setDeleteConfirmId(null);
     }
   };
 
@@ -35,21 +57,36 @@ export default function AdminEducationPage() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const newItem = {
-      id: editingItem ? editingItem.id : Date.now(),
-      title: formData.get("title") as string,
-      category: formData.get("category") as string,
-      reads: editingItem ? editingItem.reads : 0,
-      status: formData.get("status") as string,
-    };
-    
     if (editingItem) {
-      setModules(modules.map(m => m.id === editingItem.id ? newItem : m));
+      const updatedItem = {
+        id: editingItem.id,
+        title: formData.get("title") as string,
+        category: formData.get("category") as string,
+        reads: editingItem.reads,
+        status: "published", // Default hardcoded for now since field is removed
+        points: Number(formData.get("points")) || 200,
+        desc: formData.get("desc") as string,
+        duration: formData.get("duration") as string,
+      };
+      setModules(modules.map(m => m.id === editingItem.id ? updatedItem : m));
+      setIsModalOpen(false);
     } else {
-      setModules([...modules, newItem]);
+      const newModule = {
+        id: Date.now(),
+        title: formData.get("title") as string,
+        category: formData.get("category") as string,
+        reads: 0,
+        status: "published", // Default hardcoded
+        points: Number(formData.get("points")) || 200,
+        desc: formData.get("desc") as string,
+        duration: formData.get("duration") as string,
+      };
+      setModules([...modules, newModule]);
+      setIsModalOpen(false);
+      
+      // Auto redirect to content editor
+      router.push(`/admin/education/edit-module/${newModule.id}`);
     }
-    
-    setIsModalOpen(false);
   };
 
   return (
@@ -73,9 +110,8 @@ export default function AdminEducationPage() {
               <tr style={{ background: "var(--color-bg)", borderBottom: "3px solid var(--color-navy)" }}>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Judul Modul</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Kategori</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Dibaca</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Status</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)", width: "120px", textAlign: "center" }}>Aksi</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>XP Points</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)", width: "160px", textAlign: "center" }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -85,18 +121,15 @@ export default function AdminEducationPage() {
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <span className="badge-brutal" style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem", background: "var(--color-bg)", boxShadow: "none" }}>{mod.category}</span>
                   </td>
-                  <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-text-muted)" }}>{mod.reads}x</td>
                   <td style={{ padding: "1rem 1.25rem" }}>
-                    <span className="badge-brutal" style={{
-                      padding: "0.25rem 0.75rem", fontSize: "0.75rem", boxShadow: "none",
-                      background: mod.status === "published" ? "var(--color-lime)" : "var(--color-orange)",
-                    }}>
-                      {mod.status === "published" ? "Published" : "Draft"}
-                    </span>
+                    <span className="badge-brutal" style={{ background: "var(--color-lime)", fontSize: "0.75rem", padding: "0.2rem 0.6rem", boxShadow: "none" }}>+{mod.points || 200} XP</span>
                   </td>
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                      <button onClick={() => openEditModal(mod)} className="btn-brutal" title="Edit" style={{ padding: "0.4rem", background: "var(--color-purple)", cursor: "pointer", boxShadow: "none" }}>
+                      <button onClick={() => router.push(`/admin/education/edit-module/${mod.id}`)} className="btn-brutal" title="Edit Konten" style={{ padding: "0.4rem", background: "var(--color-lime)", cursor: "pointer", boxShadow: "none" }}>
+                        <FileText size={16} color="var(--color-navy)" />
+                      </button>
+                      <button onClick={() => openEditModal(mod)} className="btn-brutal" title="Edit Metadata" style={{ padding: "0.4rem", background: "var(--color-purple)", cursor: "pointer", boxShadow: "none" }}>
                         <Edit size={16} color="var(--color-white)" />
                       </button>
                       <button onClick={() => handleDelete(mod.id)} className="btn-brutal" title="Hapus" style={{ padding: "0.4rem", background: "var(--color-danger, #e74c3c)", cursor: "pointer", boxShadow: "none" }}>
@@ -149,22 +182,57 @@ export default function AdminEducationPage() {
                 </select>
               </div>
               <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Status</label>
-                <select name="status" defaultValue={editingItem?.status || "draft"} className="input-brutal" style={{ width: "100%" }}>
-                  <option value="published">Published</option>
-                  <option value="draft">Draft</option>
-                </select>
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Deskripsi Singkat</label>
+                <input name="desc" defaultValue={editingItem?.desc || ""} required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Belajar cara mengelola uang..." />
+              </div>
+              <div className="input-group-brutal">
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Estimasi Waktu</label>
+                <input name="duration" defaultValue={editingItem?.duration || "5 menit"} required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: 5 menit" />
+              </div>
+              <div className="input-group-brutal">
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>XP Points</label>
+                <input name="points" type="number" defaultValue={editingItem?.points || 200} required className="input-brutal" style={{ width: "100%" }} />
               </div>
               
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1rem" }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-brutal" style={{ background: "var(--color-bg)", fontWeight: 700 }}>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-brutal" style={{ background: "var(--color-white)", fontWeight: 700 }}>
                   Batal
                 </button>
-                <button type="submit" className="btn-brutal btn-brutal--primary" style={{ fontWeight: 800, background: "var(--color-lime)" }}>
+                <button type="submit" className="btn-brutal btn-brutal--primary" style={{ fontWeight: 800, color: "var(--color-white)" }}>
                   Simpan Data
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 25, 47, 0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1rem" }}>
+          <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", width: "100%", maxWidth: "400px", padding: "2rem", textAlign: "center", border: "3px solid var(--color-navy)" }}>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1rem", color: "var(--color-danger, #e74c3c)" }}>
+              Hapus Modul?
+            </h2>
+            <p style={{ fontSize: "1.1rem", color: "var(--color-navy)", fontWeight: 600, marginBottom: "1.5rem" }}>
+              Yakin ingin menghapus modul ini? Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+              <button 
+                onClick={() => setDeleteConfirmId(null)}
+                className="btn-brutal" 
+                style={{ padding: "0.75rem 1.5rem", background: "var(--color-white)", color: "var(--color-navy)", fontWeight: 700 }}
+              >
+                Batal
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="btn-brutal" 
+                style={{ padding: "0.75rem 1.5rem", background: "var(--color-danger, #e74c3c)", color: "var(--color-white)", fontWeight: 800 }}
+              >
+                Hapus
+              </button>
+            </div>
           </div>
         </div>
       )}
