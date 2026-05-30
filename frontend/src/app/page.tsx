@@ -21,7 +21,8 @@ import {
   UserPlus,
   PenLine,
   BrainCircuit,
-  Rocket
+  Rocket,
+  ArrowUp
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -179,10 +180,20 @@ export default function LandingPage() {
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="landing-page">
@@ -217,7 +228,11 @@ export default function LandingPage() {
               minWidth: "72px", justifyContent: "center"
             }}
           >
-            <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{language === "id" ? "🇮🇩" : "🇬🇧"}</span>
+            <img 
+              src={language === "id" ? "https://flagcdn.com/w20/id.png" : "https://flagcdn.com/w20/gb.png"} 
+              alt={language === "id" ? "Indonesian Flag" : "British Flag"} 
+              style={{ width: "20px", height: "auto", borderRadius: "2px", border: "1px solid rgba(0,0,0,0.1)" }} 
+            />
             <span>{language === "id" ? "ID" : "EN"}</span>
           </button>
           <Link href="/auth" className="btn-brutal btn-brutal--secondary btn-brutal--sm">
@@ -266,10 +281,10 @@ export default function LandingPage() {
             />
             {/* Floating Badges */}
             <div className="landing-hero__float landing-hero__float--1">
-              <Zap size={18} strokeWidth={3} /> Level 12 Reached
+              <Zap size={18} strokeWidth={3} /> Level 12 Unlocked
             </div>
             <div className="landing-hero__float landing-hero__float--2">
-              <TrendingUp size={18} strokeWidth={3} /> 15 Day Streak
+              <TrendingUp size={18} strokeWidth={3} /> 15-Day Streak
             </div>
             <div className="landing-hero__float landing-hero__float--3">
               <Target size={18} strokeWidth={3} /> Rp 500k Saved
@@ -545,6 +560,7 @@ export default function LandingPage() {
             <div>
               <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.125rem", color: "var(--color-white)" }}>CEAMIS</div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.5)" }}>Control Every Awful Money Impulse System</div>
+
             </div>
           </div>
           <div className="landing-footer__copy">
@@ -553,6 +569,34 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="btn-brutal"
+          style={{
+            position: "fixed",
+            bottom: "2rem",
+            right: "2rem",
+            width: "50px",
+            height: "50px",
+            borderRadius: "50%",
+            background: "var(--color-lime)",
+            color: "var(--color-navy)",
+            border: "3px solid var(--color-navy)",
+            boxShadow: "4px 4px 0px var(--color-navy)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999,
+            cursor: "pointer",
+            transition: "all 0.2s ease"
+          }}
+          aria-label="Scroll to top"
+        >
+          <ArrowUp size={24} strokeWidth={3} />
+        </button>
+      )}
     </div>
   );
 }

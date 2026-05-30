@@ -419,7 +419,42 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "2rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
+        {/* Income Category Breakdown */}
+        <div className="card-brutal" style={{ padding: "2rem" }}>
+          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <PieChart size={22} color="var(--color-lime)" /> Pemasukan per Kategori
+          </h3>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {INCOME_CATEGORY_DATA.length === 0 && (
+              <div style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
+                Belum ada pemasukan di bulan ini.
+              </div>
+            )}
+            {INCOME_CATEGORY_DATA.map((cat) => (
+              <div key={cat.name}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{cat.name}</span>
+                  <span style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem" }}>
+                    {formatRupiah(cat.amount)}
+                  </span>
+                </div>
+                <div style={{ width: "100%", height: "16px", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
+                  <div style={{
+                    width: `${cat.percentage}%`, height: "100%",
+                    background: `var(--color-${cat.color})`, borderRadius: "100px",
+                    transition: "width 0.5s ease",
+                  }} />
+                </div>
+                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)", marginTop: "0.15rem" }}>
+                  {cat.percentage}%
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Category Breakdown */}
         <div className="card-brutal" style={{ padding: "2rem" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>

@@ -210,7 +210,7 @@ export default function DashboardPage() {
                   <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: 0, color: "var(--color-navy)" }}>
                     {t("dashboard.insightTitle")}
                   </h3>
-                  <div className="badge-brutal badge-brutal--purple" style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}>Confidence: 89%</div>
+                  <div className="badge-brutal badge-brutal--purple" style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}>AI Confidence: 89%</div>
                 </div>
                 <p style={{ fontSize: "1.0625rem", lineHeight: 1.6, marginBottom: "1.25rem", color: "var(--color-navy)", fontWeight: 600 }}>
                   {t("dashboard.insightDesc")}
