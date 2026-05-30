@@ -230,7 +230,7 @@ export default function LandingPage() {
           >
             <img 
               src={language === "id" ? "https://flagcdn.com/w20/id.png" : "https://flagcdn.com/w20/gb.png"} 
-              alt={language === "id" ? "Indonesian Flag" : "British Flag"} 
+              alt={language === "id" ? "Indonesian Flag" : "English Flag"} 
               style={{ width: "20px", height: "auto", borderRadius: "2px", border: "1px solid rgba(0,0,0,0.1)" }} 
             />
             <span>{language === "id" ? "ID" : "EN"}</span>

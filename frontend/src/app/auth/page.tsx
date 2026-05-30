@@ -80,22 +80,6 @@ export default function AuthPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (oauthError) {
-      setError(oauthError.message);
-      setIsLoading(false);
-    }
-  };
 
   const handleRegister = async () => {
     if (!email || !password) {
@@ -265,41 +249,50 @@ export default function AuthPage() {
         }}
       >
         <div style={{ position: "relative", zIndex: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "3rem" }}>
-            <img 
-              src="/images/logo_ceamis.png" 
-              alt="CEAMIS Logo" 
-              style={{ 
-                width: 52, height: 52, background: "var(--color-lime)",
-                border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
-                boxShadow: "4px 4px 0px var(--color-navy)", objectFit: "contain",
-                padding: "4px"
-              }} 
-            />
-            <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "2rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "3rem" }}>
+            <div style={{ 
+              width: "64px", height: "64px", background: "var(--color-white)",
+              border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal)",
+              boxShadow: "4px 4px 0px var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden"
+            }}>
+              <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "80%", height: "80%", objectFit: "contain" }} />
+            </div>
+            <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "2.5rem", letterSpacing: "-1px" }}>
               CEAMIS
             </span>
           </div>
 
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "4rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem", color: "var(--color-white)" }}>
-            Control Every<br/>Money-Issue<br/>Simply.
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "3.5rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem", color: "var(--color-lime)" }}>
+            Control Every<br/>Awful Money<br/>Impulse System
           </h2>
-          <p style={{ fontSize: "1.125rem", fontWeight: 600, lineHeight: 1.6, maxWidth: "85%", marginBottom: "3rem", color: "var(--color-white)" }}>
+          <p style={{ fontSize: "1.15rem", fontWeight: 600, lineHeight: 1.6, maxWidth: "90%", marginBottom: "3rem", color: "rgba(255, 255, 255, 0.9)" }}>
             {t("auth.leftDesc")}
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "90%" }}>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
-                <div style={{ background: "var(--color-lime)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><Zap size={20} /></div>
-                {t("auth.feat1")}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "95%" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(0, 0, 0, 0.2)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.1)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(10px)", transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)" }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateX(10px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateX(0)"}>
+                <div style={{ background: "var(--color-lime)", borderRadius: "12px", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", border: "2px solid var(--color-navy)", flexShrink: 0 }}><Zap size={24} strokeWidth={2.5} /></div>
+                <div>
+                  <div style={{ color: "var(--color-lime)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "0.25rem", fontWeight: 900 }}>Smart Analytics</div>
+                  {t("auth.feat1")}
+                </div>
              </div>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
-                <div style={{ background: "var(--color-orange)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><ShieldCheck size={20} /></div>
-                {t("auth.feat2")}
+             
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(0, 0, 0, 0.2)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.1)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(10px)", transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)" }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateX(10px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateX(0)"}>
+                <div style={{ background: "var(--color-orange)", borderRadius: "12px", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", border: "2px solid var(--color-navy)", flexShrink: 0 }}><ShieldCheck size={24} strokeWidth={2.5} /></div>
+                <div>
+                  <div style={{ color: "var(--color-orange)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "0.25rem", fontWeight: 900 }}>Protection</div>
+                  {t("auth.feat2")}
+                </div>
              </div>
-             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(255, 255, 255, 0.1)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.2)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(8px)" }}>
-                <div style={{ background: "var(--color-white)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)" }}><User size={20} /></div>
-                {t("auth.feat3")}
+             
+             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", background: "rgba(0, 0, 0, 0.2)", padding: "1.25rem 1.5rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255, 255, 255, 0.1)", color: "var(--color-white)", fontWeight: 700, fontSize: "1.05rem", backdropFilter: "blur(10px)", transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)" }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateX(10px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateX(0)"}>
+                <div style={{ background: "var(--color-white)", borderRadius: "12px", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", border: "2px solid var(--color-navy)", flexShrink: 0 }}><User size={24} strokeWidth={2.5} /></div>
+                <div>
+                  <div style={{ color: "var(--color-white)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "0.25rem", fontWeight: 900 }}>AI Assistant</div>
+                  {t("auth.feat3")}
+                </div>
              </div>
           </div>
         </div>

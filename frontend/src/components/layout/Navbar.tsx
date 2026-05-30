@@ -321,7 +321,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
           >
             <img 
               src={language === "id" ? "https://flagcdn.com/w20/id.png" : "https://flagcdn.com/w20/gb.png"} 
-              alt={language === "id" ? "Indonesian Flag" : "British Flag"} 
+              alt={language === "id" ? "Indonesian Flag" : "English Flag"} 
               style={{ width: "20px", height: "auto", borderRadius: "2px", border: "1px solid rgba(0,0,0,0.1)" }} 
             />
             <span>{language === "id" ? "ID" : "EN"}</span>
@@ -432,26 +432,34 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                     <Link href="/dashboard/profile" onClick={() => setShowProfileMenu(false)} style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-purple)", textDecoration: "none" }}>{t("navbar.viewAll")}</Link>
                   </div>
                   <div style={{ display: "flex", gap: "0.6rem" }}>
-                    {[
-                      { icon: Target, bg: "lime" }, 
-                      { icon: Flame, bg: "orange" }, 
-                      { icon: Zap, bg: "purple" }
-                    ].map((badge, i) => (
-                      <div key={i} style={{ 
-                        width: "40px", height: "40px", borderRadius: "50%", background: `var(--color-${badge.bg})`, 
-                        border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center" 
-                      }}>
-                        <badge.icon size={20} color="var(--color-navy)" />
+                    {!userData.unlockedBadges || userData.unlockedBadges.length === 0 ? (
+                      <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 600, fontStyle: "italic", padding: "0.2rem 0" }}>
+                        {language === "id" ? "Belum ada badge" : "No badges yet"}
                       </div>
-                    ))}
-                    {userData.unlockedBadges && userData.unlockedBadges.length > 3 && (
-                      <div style={{ 
-                        width: "40px", height: "40px", borderRadius: "50%", background: "var(--color-bg)", 
-                        border: "2px dashed var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)"
-                      }}>
-                        +{userData.unlockedBadges.length - 3}
-                      </div>
+                    ) : (
+                      <>
+                        {[
+                          { icon: Target, bg: "lime" }, 
+                          { icon: Flame, bg: "orange" }, 
+                          { icon: Zap, bg: "purple" }
+                        ].slice(0, userData.unlockedBadges.length).map((badge, i) => (
+                          <div key={i} style={{ 
+                            width: "40px", height: "40px", borderRadius: "50%", background: `var(--color-${badge.bg})`, 
+                            border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center" 
+                          }}>
+                            <badge.icon size={20} color="var(--color-navy)" />
+                          </div>
+                        ))}
+                        {userData.unlockedBadges.length > 3 && (
+                          <div style={{ 
+                            width: "40px", height: "40px", borderRadius: "50%", background: "var(--color-bg)", 
+                            border: "2px dashed var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)"
+                          }}>
+                            +{userData.unlockedBadges.length - 3}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
