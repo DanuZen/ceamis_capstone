@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Award, CheckCircle } from "lucide-react";
+import { ArrowLeft, Award, CheckCircle, Lightbulb } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -339,7 +339,9 @@ export default function QuizDetailPage() {
                                       </p>
                                     )}
                                     <div style={{ marginTop: "1rem", padding: "1rem", background: "var(--color-white)", border: "2px dashed var(--color-navy)", borderRadius: "8px" }}>
-                                      <p style={{ margin: 0, fontSize: "0.95rem", fontWeight: 600, color: "var(--color-navy)" }}>💡 Penjelasan: {q.explanation}</p>
+                                      <p style={{ margin: 0, fontSize: "0.95rem", fontWeight: 600, color: "var(--color-navy)", display: "flex", gap: "0.5rem" }}>
+                                        <Lightbulb size={16} style={{ flexShrink: 0, marginTop: "0.1rem" }} /> Penjelasan: {q.explanation}
+                                      </p>
                                     </div>
                                   </div>
                                 </div>

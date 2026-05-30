@@ -4,7 +4,7 @@ from app.services.persona_predictor import persona_predictor
 
 router = APIRouter()
 
-@router.post("/analyze", response_model=SpendingClusterResponse)
+@router.post("/predict/spending-cluster", response_model=SpendingClusterResponse)
 def analyze_persona(payload: SpendingClusterRequest):
     try:
         # 1. Konversi payload masuk ke bentuk python dictionary

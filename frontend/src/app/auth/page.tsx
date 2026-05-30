@@ -3,21 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { ShieldCheck, User, Eye, Zap, LogIn, ArrowLeft, Mail, X, ExternalLink } from "lucide-react";
+import { ShieldCheck, User, Eye, Zap, LogIn, ArrowLeft, Mail, X, ExternalLink, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/context/LanguageContext";
 
-// ── Quick Login Accounts ──────────────────────
-const QUICK_LOGINS = [
-  { label: "User Demo", email: "user@ceamis.com", password: "user123456", role: "user" as const, color: "purple", icon: User },
-  { label: "Admin Demo", email: "admin@ceamis.com", password: "admin123456", role: "admin" as const, color: "danger, #e74c3c", icon: ShieldCheck },
-];
+
 
 export default function AuthPage() {
   const router = useRouter();
   const supabase = createClient();
   const { t } = useLanguage();
-  const [roleTab, setRoleTab] = useState<"user" | "admin">("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +33,7 @@ export default function AuthPage() {
     setIsLoading(true);
     setError(null);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -49,31 +44,12 @@ export default function AuthPage() {
       return;
     }
 
-    localStorage.setItem("ceamis_role", "user");
-    if (roleTab === "admin") {
-      router.push("/admin/dashboard");
-    } else {
-      router.push("/dashboard");
-    }
-  };
-
-  const handleQuickLogin = async (account: typeof QUICK_LOGINS[number]) => {
-    setIsLoading(true);
-    setError(null);
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: account.email,
-      password: account.password,
-    });
-
-    if (signInError) {
-      setError(`${t("auth.quickLoginFailed")}${signInError.message}`);
-      setIsLoading(false);
-      return;
-    }
-
-    localStorage.setItem("ceamis_role", "user");
-    if (account.role === "admin") {
+    const role = data.user?.user_metadata?.role || "user";
+    const finalRole = (email === "admin@ceamis.com" || email === "admin@ceamis.id") ? "admin" : role;
+    
+    localStorage.setItem("ceamis_role", finalRole);
+    
+    if (finalRole === "admin") {
       router.push("/admin/dashboard");
     } else {
       router.push("/dashboard");
@@ -210,8 +186,8 @@ export default function AuthPage() {
               padding: "1rem",
               marginBottom: "1.5rem"
             }}>
-              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-navy)", fontWeight: 700, lineHeight: 1.5 }}>
-                📌 Klik link verifikasi di email untuk mengaktifkan akun kamu, lalu login seperti biasa.
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-navy)", fontWeight: 700, lineHeight: 1.5, display: "flex", gap: "0.5rem" }}>
+                <Info size={16} style={{ flexShrink: 0, marginTop: "0.1rem" }} /> Klik link verifikasi di email untuk mengaktifkan akun kamu, lalu login seperti biasa.
               </p>
               <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.8rem", color: "var(--color-text-muted)", fontWeight: 600 }}>
                 Tidak ada email? Cek folder <strong>Spam</strong> atau tunggu beberapa menit.
@@ -371,7 +347,7 @@ export default function AuthPage() {
                 fontWeight: 900
               }}
             >
-              {roleTab === "admin" ? t("auth.adminLogin") : t("auth.userLogin")}
+              {t("auth.userLogin")}
             </h1>
             <p
               style={{
@@ -379,9 +355,7 @@ export default function AuthPage() {
                 margin: 0, fontSize: "1rem", fontWeight: 500
               }}
             >
-              {roleTab === "admin"
-                ? t("auth.adminText")
-                : t("auth.readyText")}
+              {t("auth.readyText")}
             </p>
           </div>
 
@@ -421,7 +395,7 @@ export default function AuthPage() {
                 </label>
                 <input
                   type="email" className="input-brutal"
-                  placeholder={roleTab === "admin" ? "admin@ceamis.id" : t("auth.emailPlaceholder")}
+                  placeholder={t("auth.emailPlaceholder")}
                   value={email} onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
@@ -443,7 +417,7 @@ export default function AuthPage() {
                 style={{
                   width: "100%", marginTop: "0.5rem", padding: "0.85rem",
                   fontWeight: 800, fontSize: "1rem", cursor: isLoading ? "wait" : "pointer",
-                  background: roleTab === "admin" ? "var(--color-danger, #e74c3c)" : "var(--color-purple)",
+                  background: "var(--color-purple)",
                   color: "var(--color-white)", border: "3px solid var(--color-navy)",
                   boxShadow: isLoading ? "none" : "4px 4px 0px var(--color-navy)",
                   transform: isLoading ? "translate(4px, 4px)" : "none",
@@ -452,12 +426,11 @@ export default function AuthPage() {
                 }}
               >
                 <LogIn size={18} />
-                {isLoading ? t("auth.processing") : (roleTab === "admin" ? t("auth.loginAdminBtn") : t("auth.loginBtn"))}
+                {isLoading ? t("auth.processing") : t("auth.loginBtn")}
               </button>
             </form>
 
-            {/* Only show extra options for User role */}
-            {roleTab === "user" && (
+            {/* Extra options */}
               <>
                 {/* Divider */}
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem", margin: "1.5rem 0" }}>
@@ -510,7 +483,6 @@ export default function AuthPage() {
                   </button>
                 </div>
               </>
-            )}
           </div>
 
           <div style={{ marginTop: "1.5rem", display: "flex", justifyContent: "center" }}>
@@ -535,40 +507,6 @@ export default function AuthPage() {
             </button>
           </div>
 
-          <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
-            {/* Quick Demo Links */}
-            <div style={{ display: "flex", gap: "1rem", fontSize: "0.85rem", fontWeight: 700, alignItems: "center" }}>
-              <button 
-                onClick={() => handleQuickLogin(QUICK_LOGINS[0])} 
-                disabled={isLoading}
-                style={{ background: "none", border: "none", color: "var(--color-navy)", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit", fontWeight: 700 }}
-              >
-                {t("auth.demoUser")}
-              </button>
-              <span style={{ color: "var(--color-text-muted)" }}>•</span>
-              <button 
-                onClick={() => handleQuickLogin(QUICK_LOGINS[1])} 
-                disabled={isLoading}
-                style={{ background: "none", border: "none", color: "var(--color-danger, #e74c3c)", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit", fontWeight: 700 }}
-              >
-                {t("auth.demoAdmin")}
-              </button>
-            </div>
-
-            {/* Toggle Admin/User Role */}
-            <button 
-              onClick={() => setRoleTab(roleTab === "user" ? "admin" : "user")}
-              disabled={isLoading}
-              style={{ 
-                background: "none", border: "none", color: "var(--color-text-muted)", 
-                cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, fontFamily: "inherit",
-                display: "flex", alignItems: "center", gap: "0.4rem"
-              }}
-            >
-              {roleTab === "user" ? <ShieldCheck size={14} /> : <User size={14} />}
-              {roleTab === "user" ? t("auth.switchToAdmin") : t("auth.switchToUser")}
-            </button>
-          </div>
         </div>
       </div>
     </div>

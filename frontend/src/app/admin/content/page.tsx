@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, MapPin, Calendar } from "lucide-react";
 
 const CONTENT_DATA = [
   { id: 1, title: "Tips: Mulai Catat Pengeluaran Harian!", type: "Tips Harian", placement: "Dashboard Banner", status: "published", date: "1 Mei 2026" },
@@ -31,8 +31,12 @@ export default function AdminContentPage() {
               <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", marginBottom: "0.35rem" }}>{item.title}</div>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
                 <span style={{ fontSize: "0.75rem", fontWeight: 700, padding: "0.2rem 0.6rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", color: "var(--color-navy)" }}>{item.type}</span>
-                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)" }}>📍 {item.placement}</span>
-                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)" }}>📅 {item.date}</span>
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                  <MapPin size={12} /> {item.placement}
+                </span>
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                  <Calendar size={12} /> {item.date}
+                </span>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>

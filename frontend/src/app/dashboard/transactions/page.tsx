@@ -93,7 +93,7 @@ const CustomSelect = ({ value, onChange, options }: { value: string, onChange: (
 
 export default function TransactionsPage() {
   const { addTransaction, transactions } = useTransactions();
-  const { userData } = useUser();
+  const { userData, updateUserData } = useUser();
   const { t } = useLanguage();
 
   const [desc, setDesc]       = useState("");
@@ -154,7 +154,20 @@ export default function TransactionsPage() {
     transactions
       .filter(tx => tx.type === "pengeluaran")
       .forEach(tx => {
-        breakdown[tx.category] = (breakdown[tx.category] || 0) + tx.amount;
+        const catStr = tx.category.toLowerCase();
+        let mlCat = "cat_kebutuhan_pokok"; // default
+        
+        if (catStr.includes("makan") || catStr.includes("food") || catStr.includes("snack") || catStr.includes("cemil") || catStr.includes("minum")) mlCat = "cat_f&b";
+        else if (catStr.includes("transport") || catStr.includes("kendaraan") || catStr.includes("vehicle") || catStr.includes("bensin")) mlCat = "cat_transportasi";
+        else if (catStr.includes("sehat") || catStr.includes("health") || catStr.includes("medis") || catStr.includes("obat")) mlCat = "cat_kesehatan";
+        else if (catStr.includes("tagih") || catStr.includes("bill") || catStr.includes("listrik") || catStr.includes("air") || catStr.includes("home") || catStr.includes("rumah")) mlCat = "cat_tagihan";
+        else if (catStr.includes("hibur") || catStr.includes("entertain") || catStr.includes("holiday") || catStr.includes("libur")) mlCat = "cat_hiburan";
+        else if (catStr.includes("hobi") || catStr.includes("hobby")) mlCat = "cat_hobi";
+        else if (catStr.includes("belanja") || catStr.includes("shop") || catStr.includes("baju") || catStr.includes("fashion")) mlCat = "cat_fashion";
+        else if (catStr.includes("elektronik") || catStr.includes("gadget") || catStr.includes("hp")) mlCat = "cat_elektronik";
+        else if (catStr.includes("didik") || catStr.includes("school") || catStr.includes("sekolah") || catStr.includes("edu")) mlCat = "cat_pendidikan";
+        
+        breakdown[mlCat] = (breakdown[mlCat] || 0) + tx.amount;
       });
     return breakdown;
   }, [transactions]);
@@ -173,8 +186,8 @@ export default function TransactionsPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             user_id:            userData.id || "guest",
-            category_breakdown: breakdown,
-            total_transactions: transactions.filter(tx => tx.type === "pengeluaran").length,
+            category_features:  breakdown,
+            transaction_count:  transactions.filter(tx => tx.type === "pengeluaran").length,
           }),
         }
       );
@@ -182,16 +195,30 @@ export default function TransactionsPage() {
       const data = await res.json();
 
       // Map respons API → state lokal
-      setCluster({
-        cluster_label:      data.cluster_label   || data.cluster_label,
-        dominant_category:  data.dominant_category,
-        insight:            data.insight,
-        needs_ratio:        data.needs_ratio      ?? MOCK_CLUSTER.needs_ratio,
-        wants_ratio:        data.wants_ratio      ?? MOCK_CLUSTER.wants_ratio,
-        savings_ratio:      data.savings_ratio    ?? MOCK_CLUSTER.savings_ratio,
-        trend:              data.trend            ?? "stable",
-        is_mock:            data.is_mock          ?? true,
-      });
+      const rData = data.data;
+      if (rData) {
+        const topCategory = Object.keys(breakdown).length > 0 
+          ? Object.keys(breakdown).reduce((a, b) => breakdown[a] > breakdown[b] ? a : b) 
+          : "Lainnya";
+          
+        setCluster({
+          cluster_label:      rData.persona || MOCK_CLUSTER.cluster_label,
+          dominant_category:  topCategory,
+          insight:            rData.description || MOCK_CLUSTER.insight,
+          needs_ratio:        rData.metrics_summary?.wants_ratio !== undefined ? 100 - Math.round(rData.metrics_summary.wants_ratio * 100) - Math.round(rData.metrics_summary.saving_rate * 100) : MOCK_CLUSTER.needs_ratio,
+          wants_ratio:        rData.metrics_summary?.wants_ratio !== undefined ? Math.round(rData.metrics_summary.wants_ratio * 100) : MOCK_CLUSTER.wants_ratio,
+          savings_ratio:      rData.metrics_summary?.saving_rate !== undefined ? Math.round(rData.metrics_summary.saving_rate * 100) : MOCK_CLUSTER.savings_ratio,
+          trend:              "stable",
+          is_mock:            false,
+        });
+
+        // Update label user di seluruh aplikasi (Header & Dashboard)
+        if (rData.persona && userData.label !== rData.persona) {
+          updateUserData({ label: rData.persona });
+        }
+      } else {
+        throw new Error("Invalid API format");
+      }
     } catch {
       // API belum ready → tetap pakai mock, tidak crash
       setCluster(MOCK_CLUSTER);
@@ -252,18 +279,6 @@ export default function TransactionsPage() {
         border: "4px solid var(--color-navy)", boxShadow: "8px 8px 0px var(--color-navy)",
         position: "relative", overflow: "hidden",
       }}>
-        {/* Mock badge */}
-        {cluster.is_mock && (
-          <div style={{
-            position: "absolute", top: "0.75rem", right: "0.75rem",
-            fontSize: "0.6rem", fontWeight: 800, padding: "0.15rem 0.5rem",
-            background: "rgba(10,25,47,0.05)", border: "1px solid rgba(10,25,47,0.1)",
-            borderRadius: "100px", color: "var(--color-text-muted)",
-          }}>
-            {t("dashboard.transactions.demoData")}
-          </div>
-        )}
-
         <div style={{ display: "flex", alignItems: "center", gap: "2rem", flexWrap: "wrap" }}>
           {/* Cluster label + icon — tanpa skor bulat */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
@@ -277,22 +292,20 @@ export default function TransactionsPage() {
             }}>
               <Brain size={36} color="var(--color-navy)" strokeWidth={2.5} />
             </div>
-            <span style={{ fontSize: "0.65rem", fontWeight: 800, opacity: 0.6, textAlign: "center" }}>
-              {t("dashboard.transactions.aiPattern")}
-            </span>
           </div>
 
           {/* Main info */}
           <div style={{ flex: 1, minWidth: "200px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
               <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", fontWeight: 800 }}>
-                {t("dashboard.transactions.spendingPattern")} {loadingCluster ? "..." : (cluster.is_mock ? t("dashboard.transactions.mockClusterLabel") : cluster.cluster_label)}
+                {t("dashboard.transactions.spendingPattern")} {loadingCluster ? "..." : cluster.cluster_label}
               </span>
               {!loadingCluster && (
                 <div style={{
                   display: "flex", alignItems: "center", gap: "0.25rem",
                   padding: "0.2rem 0.5rem", background: trendColor,
-                  color: "var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+                  color: cluster.trend === "stable" ? "var(--color-white)" : "var(--color-navy)", 
+                  borderRadius: "var(--radius-brutal-sm)",
                   fontSize: "0.7rem", fontWeight: 800, border: "1.5px solid var(--color-navy)",
                 }}>
                   <TrendingUp size={10} /> {trendLabel}
@@ -301,22 +314,8 @@ export default function TransactionsPage() {
             </div>
 
             <p style={{ fontSize: "0.9rem", opacity: 0.85, margin: "0 0 0.75rem 0", lineHeight: 1.5 }}>
-              {loadingCluster ? t("dashboard.transactions.analyzing") : (cluster.is_mock ? t("dashboard.transactions.mockInsight") : cluster.insight)}
+              {loadingCluster ? t("dashboard.transactions.analyzing") : cluster.insight}
             </p>
-
-            {/* Dominant category badge */}
-            {!loadingCluster && cluster.dominant_category && (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.75rem" }}>
-                <span style={{ fontSize: "0.7rem", opacity: 0.6 }}>{t("dashboard.transactions.dominant")}</span>
-                <span style={{
-                  fontSize: "0.7rem", fontWeight: 800, padding: "0.15rem 0.5rem",
-                  background: clusterAccentColor, color: "var(--color-navy)",
-                  borderRadius: "100px", border: "1.5px solid var(--color-navy)",
-                }}>
-                  {cluster.is_mock ? t("dashboard.transactions.mockDominantCategory") : cluster.dominant_category}
-                </span>
-              </div>
-            )}
 
             {/* Needs / Wants / Savings bar */}
             <div style={{ display: "flex", height: "12px", borderRadius: "100px", border: "1.5px solid var(--color-navy)", overflow: "hidden" }}>
@@ -356,7 +355,7 @@ export default function TransactionsPage() {
               }}
             >
               <RefreshCw size={13} className={loadingCluster ? "animate-spin" : ""} />
-              {loadingCluster ? t("dashboard.transactions.analyzing") : t("dashboard.transactions.refreshInsight")}
+              {loadingCluster ? t("dashboard.transactions.analyzing") : "Analisis Lagi"}
             </button>
           </div>
         </div>

@@ -219,7 +219,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
           alignItems: "center",
           justifyContent: "center",
         }}>
-          <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <img src="/images/logo_white.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
         <div className="sidebar-text" style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontSize: "1.5rem", fontWeight: 900, letterSpacing: "2px", color: "var(--color-white)", lineHeight: 1 }}>CEAMIS</span>
