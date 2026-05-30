@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
+import React from "react";
 
 // Badge definitions (static metadata)
 const badgeDefinitions = [
@@ -35,10 +36,32 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [txCount, setTxCount] = useState(0);
+  const [biggestExpense, setBiggestExpense] = useState("Tidak ada data");
+  const [eduDone, setEduDone] = useState(0);
+
+  React.useEffect(() => {
+    try {
+      const tx = JSON.parse(localStorage.getItem("ceamis_transactions") || "[]");
+      setTxCount(tx.length);
+      const expenses = tx.filter((t: any) => t.type === "expense");
+      if (expenses.length > 0) {
+        const maxExpense = expenses.reduce((prev: any, current: any) => (prev.amount > current.amount) ? prev : current);
+        setBiggestExpense(`${maxExpense.category} — Rp ${maxExpense.amount.toLocaleString("id-ID")}`);
+      }
+    } catch {}
+
+    let doneCount = 0;
+    for (let i = 1; i <= 6; i++) {
+      if (localStorage.getItem(`ceamis_module_${i}_progress`) === "100") doneCount++;
+    }
+    setEduDone(doneCount);
+  }, []);
+
   const stats = [
-    { label: t("dashboard.profile.totalTransactions"), value: "127", icon: TrendingUp, color: "purple" },
-    { label: t("dashboard.profile.activeDays"), value: "34", icon: Calendar, color: "lime" },
-    { label: t("dashboard.profile.badgesEarned"), value: "4/8", icon: Award, color: "orange" },
+    { label: t("dashboard.profile.totalTransactions"), value: txCount.toString(), icon: TrendingUp, color: "purple" },
+    { label: t("dashboard.profile.activeDays"), value: userData.streak.toString(), icon: Calendar, color: "lime" },
+    { label: t("dashboard.profile.badgesEarned"), value: `${userData.unlockedBadges?.length || 0}/8`, icon: Award, color: "orange" },
   ];
 
   const [editForm, setEditForm] = useState({ ...userData });
@@ -508,10 +531,10 @@ export default function ProfilePage() {
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {[
-              { label: t("dashboard.profile.thisMonthTx"), value: `42 ${t("dashboard.profile.txLabel")}`, icon: TrendingUp, color: "purple" },
-              { label: t("dashboard.profile.biggestExpense"), value: "F&B — Rp 850rb", icon: Target, color: "orange" },
-              { label: t("dashboard.profile.longestStreak"), value: `12 ${t("dashboard.profile.daysLabel")}`, icon: Flame, color: "lime" },
-              { label: t("dashboard.profile.eduModulesDone"), value: `5 ${t("dashboard.profile.fromLabel")} 12`, icon: Star, color: "purple" },
+              { label: t("dashboard.profile.thisMonthTx"), value: `${txCount} ${t("dashboard.profile.txLabel")}`, icon: TrendingUp, color: "purple" },
+              { label: t("dashboard.profile.biggestExpense"), value: biggestExpense, icon: Target, color: "orange" },
+              { label: t("dashboard.profile.longestStreak"), value: `${userData.streak} ${t("dashboard.profile.daysLabel")}`, icon: Flame, color: "lime" },
+              { label: t("dashboard.profile.eduModulesDone"), value: `${eduDone} ${t("dashboard.profile.fromLabel")} 6`, icon: Star, color: "purple" },
             ].map((item) => (
               <div
                 key={item.label}

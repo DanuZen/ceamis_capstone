@@ -13,6 +13,7 @@ import autoTable from "jspdf-autotable";
 
 import { useTransactions } from "@/context/TransactionContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useToast } from "@/components/ui/Toast";
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -30,6 +31,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function ReportsPage() {
+  const { showToast } = useToast();
   const { transactions } = useTransactions();
   const { t, language } = useLanguage();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -250,7 +252,7 @@ export default function ReportsPage() {
     // Simulate sending email with attachments
     setTimeout(() => {
       setIsSending(false);
-      alert(`Sukses! Laporan Keuangan (berisi lampiran PDF & Excel) bulan ${MONTHS[selectedMonth]} ${selectedYear} telah dikirim ke email terdaftar Anda.`);
+      showToast(`Sukses! Laporan Keuangan (berisi lampiran PDF & Excel) bulan ${MONTHS[selectedMonth]} ${selectedYear} telah dikirim ke email terdaftar Anda.`, "success");
     }, 1500);
   };
 
@@ -307,14 +309,15 @@ export default function ReportsPage() {
       </div>
 
       {/* Month Selector */}
-      <div style={{ marginBottom: "2rem" }}>
+      <div style={{ marginBottom: "2.5rem" }}>
         <div style={{ 
           display: "flex", 
           overflowX: "auto", 
-          border: "3px solid var(--color-navy)", 
-          borderRadius: "var(--radius-brutal-sm)", 
-          boxShadow: "4px 4px 0px var(--color-navy)",
-          background: "var(--color-white)",
+          gap: "0.5rem",
+          padding: "0.5rem",
+          background: "rgba(0,0,0,0.03)", 
+          borderRadius: "100px", 
+          border: "1px solid rgba(0,0,0,0.05)",
           width: "max-content",
           maxWidth: "100%",
           scrollbarWidth: "none", /* Firefox */
@@ -322,23 +325,26 @@ export default function ReportsPage() {
         }} className="no-scrollbar">
           {MONTHS.map((month, idx) => (
             <button key={month} onClick={() => setSelectedMonth(idx)} style={{
-              padding: "0.75rem 1.25rem", 
+              padding: "0.6rem 1.5rem", 
               fontSize: "0.85rem", 
-              fontWeight: 800,
-              background: selectedMonth === idx ? "var(--color-purple)" : "transparent",
+              fontWeight: 700,
+              background: selectedMonth === idx ? "linear-gradient(135deg, var(--color-purple), #9333ea)" : "transparent",
               color: selectedMonth === idx ? "var(--color-white)" : "var(--color-navy)",
               border: "none",
-              borderRight: idx < MONTHS.length - 1 ? "3px solid var(--color-navy)" : "none",
+              borderRadius: "100px",
               cursor: "pointer",
-              transition: "all 0.2s ease",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: selectedMonth === idx ? "0 4px 12px rgba(124, 58, 237, 0.3)" : "none",
               flexShrink: 0,
-            }}>
+            }}
+            onMouseEnter={(e) => { if(selectedMonth !== idx) e.currentTarget.style.background = "rgba(0,0,0,0.05)" }}
+            onMouseLeave={(e) => { if(selectedMonth !== idx) e.currentTarget.style.background = "transparent" }}>
               {t(`dashboard.reports.months.${month}`).slice(0, 3)}
             </button>
           ))}
         </div>
-        <div style={{ marginTop: "0.75rem", fontSize: "0.875rem", fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Calendar size={14} /> {t("dashboard.reports.period")}: {t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}
+        <div style={{ marginTop: "1rem", fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.5rem", paddingLeft: "0.5rem" }}>
+          <Calendar size={16} color="var(--color-purple)" /> {t("dashboard.reports.period")}: <span style={{ color: "var(--color-navy)", fontWeight: 800 }}>{t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}</span>
         </div>
       </div>
 
@@ -419,7 +425,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2rem" }}>
         {/* Income Category Breakdown */}
         <div className="card-brutal" style={{ padding: "2rem" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>

@@ -51,6 +51,7 @@ export default function EducationPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
   const [modules, setModules] = useState(initialModules);
+  const [completedQuizzes, setCompletedQuizzes] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"modules" | "quizzes">("modules");
   const { t } = useLanguage();
 
@@ -64,16 +65,27 @@ export default function EducationPage() {
       };
     });
     setModules(updatedModules);
+
+    const quizzesFinished = initialModules.filter(mod => {
+      return localStorage.getItem(`ceamis_quiz_${mod.id}_completed`) === "true";
+    }).map(mod => mod.id);
+    setCompletedQuizzes(quizzesFinished);
   }, []);
 
-  const totalCompleted = modules.filter(m => m.progress === 100).length;
-  const overallProgress = Math.round((modules.reduce((acc, m) => acc + m.progress, 0) / (modules.length * 100)) * 100);
+  const totalModulesCompleted = modules.filter(m => m.progress === 100).length;
+  const totalQuizzesCompleted = completedQuizzes.length;
+  const totalCompleted = totalModulesCompleted + totalQuizzesCompleted;
+  const totalItems = initialModules.length * 2;
+  
+  const modulesProgressSum = modules.reduce((acc, m) => acc + m.progress, 0);
+  const quizzesProgressSum = totalQuizzesCompleted * 100;
+  const overallProgress = Math.round(((modulesProgressSum + quizzesProgressSum) / (totalItems * 100)) * 100);
 
   useEffect(() => {
-    if (totalCompleted >= 3) {
+    if (totalModulesCompleted >= 3) {
       unlockBadge("Bookworm");
     }
-  }, [totalCompleted, unlockBadge]);
+  }, [totalModulesCompleted, unlockBadge]);
 
   const getLevelBadge = (level: string) => {
     switch (level) {
@@ -126,7 +138,10 @@ export default function EducationPage() {
             <Award size={28} color="var(--color-orange)" strokeWidth={2.5} />
             {t("dashboard.education.progressTitle")}
           </h3>
-          <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "1rem", padding: "0.5rem 1rem" }}>{totalCompleted} / 6 {t("dashboard.education.modulesCompleted")}</span>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {initialModules.length} Kuis Selesai</span>
+            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} / {initialModules.length} Modul Selesai</span>
+          </div>
         </div>
         <div className="progress-brutal" style={{ height: "24px", border: "3px solid var(--color-navy)" }}>
           <div className="progress-brutal__fill" style={{ width: `${overallProgress}%`, background: "var(--color-orange)", borderRight: overallProgress > 0 ? "3px solid var(--color-navy)" : "none" }} />

@@ -573,28 +573,43 @@ export default function LandingPage() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="btn-brutal"
           style={{
             position: "fixed",
             bottom: "2rem",
             right: "2rem",
-            width: "50px",
-            height: "50px",
-            borderRadius: "50%",
-            background: "var(--color-lime)",
-            color: "var(--color-navy)",
-            border: "3px solid var(--color-navy)",
-            boxShadow: "4px 4px 0px var(--color-navy)",
+            padding: "0.75rem 1.5rem",
+            borderRadius: "100px",
+            background: "rgba(15, 23, 42, 0.85)", /* var(--color-navy) with opacity */
+            color: "var(--color-white)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(204, 255, 0, 0.4)", /* lime outer glow */
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            gap: "0.6rem",
             zIndex: 999,
             cursor: "pointer",
-            transition: "all 0.2s ease"
+            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+            fontWeight: 800,
+            fontSize: "0.85rem",
+            letterSpacing: "0.5px",
+            textTransform: "uppercase"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-8px)";
+            e.currentTarget.style.boxShadow = "0 15px 40px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(204, 255, 0, 0.8)";
+            e.currentTarget.style.background = "rgba(15, 23, 42, 1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(204, 255, 0, 0.4)";
+            e.currentTarget.style.background = "rgba(15, 23, 42, 0.85)";
           }}
           aria-label="Scroll to top"
         >
-          <ArrowUp size={24} strokeWidth={3} />
+          <ArrowUp size={18} strokeWidth={3} color="var(--color-lime)" className="animate-bounce" style={{ animationDuration: "2s" }} />
+          <span>Ke Atas</span>
         </button>
       )}
     </div>

@@ -1,0 +1,179 @@
+"use client";
+
+import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { CheckCircle2, XCircle, AlertTriangle, X } from "lucide-react";
+
+export type ToastType = "success" | "error" | "warning" | "info";
+
+interface ToastProps {
+  id: string;
+  message: string;
+  type: ToastType;
+}
+
+interface ToastContextType {
+  showToast: (message: string, type?: ToastType) => void;
+}
+
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ToastProps[]>([]);
+
+  const showToast = useCallback((message: string, type: ToastType = "success") => {
+    // If user chose "Jangan Tampilkan Lagi" for success, we can skip it.
+    // For now we apply it globally to all "success" toasts if they clicked it.
+    if (type === "success" && localStorage.getItem("ceamis_hide_success_toast") === "true") {
+      return;
+    }
+
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts((prev) => [...prev, { id, message, type }]);
+  }, []);
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const handleDontShowAgain = (id: string, type: ToastType) => {
+    if (type === "success") {
+      localStorage.setItem("ceamis_hide_success_toast", "true");
+    }
+    removeToast(id);
+  };
+
+  return (
+    <ToastContext.Provider value={{ showToast }}>
+      {children}
+      {/* Centered Modal-like Toast Container */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          display: toasts.length > 0 ? "flex" : "none",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          pointerEvents: toasts.length > 0 ? "auto" : "none",
+        }}
+      >
+        {toasts.map((toast) => {
+          let bg = "var(--color-white)";
+          let borderColor = "var(--color-navy)";
+          let iconColor = "var(--color-navy)";
+          let shadowColor = "var(--color-navy)";
+          let Icon = CheckCircle2;
+
+          switch (toast.type) {
+            case "success":
+              bg = "var(--color-lime)";
+              shadowColor = "var(--color-navy)";
+              Icon = CheckCircle2;
+              break;
+            case "error":
+              bg = "var(--color-pink)";
+              shadowColor = "var(--color-navy)";
+              Icon = XCircle;
+              break;
+            case "warning":
+              bg = "var(--color-orange)";
+              shadowColor = "var(--color-navy)";
+              Icon = AlertTriangle;
+              break;
+            case "info":
+            default:
+              bg = "var(--color-white)";
+              shadowColor = "var(--color-purple)";
+              Icon = CheckCircle2;
+              break;
+          }
+
+          return (
+            <div
+              key={toast.id}
+              className="animate-bounce-in"
+              style={{
+                background: bg,
+                border: `4px solid ${borderColor}`,
+                boxShadow: `8px 8px 0px ${shadowColor}`,
+                padding: "2rem",
+                borderRadius: "var(--radius-brutal)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "1.5rem",
+                minWidth: "350px",
+                maxWidth: "500px",
+                textAlign: "center",
+                marginBottom: "1rem"
+              }}
+            >
+              <div style={{ 
+                background: "var(--color-white)", 
+                borderRadius: "50%", 
+                padding: "1rem", 
+                border: "3px solid var(--color-navy)",
+                boxShadow: "4px 4px 0px var(--color-navy)" 
+              }}>
+                <Icon size={48} color={iconColor} strokeWidth={2.5} />
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-heading)",
+                  fontWeight: 800,
+                  fontSize: "1.25rem",
+                  color: "var(--color-navy)",
+                }}
+              >
+                {toast.message}
+              </div>
+              <div style={{ display: "flex", gap: "1rem", width: "100%", marginTop: "0.5rem" }}>
+                <button
+                  onClick={() => removeToast(toast.id)}
+                  className="btn-brutal"
+                  style={{
+                    flex: 1,
+                    background: "var(--color-navy)",
+                    color: "var(--color-white)",
+                    padding: "0.75rem",
+                    fontWeight: 800,
+                    boxShadow: "4px 4px 0px var(--color-white)"
+                  }}
+                >
+                  OK, Paham!
+                </button>
+                <button
+                  onClick={() => handleDontShowAgain(toast.id, toast.type)}
+                  className="btn-brutal"
+                  style={{
+                    flex: 1,
+                    background: "var(--color-white)",
+                    color: "var(--color-navy)",
+                    padding: "0.75rem",
+                    fontWeight: 800,
+                    boxShadow: "4px 4px 0px var(--color-navy)"
+                  }}
+                >
+                  Jangan Munculkan Lagi
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </ToastContext.Provider>
+  );
+}
+
+export function useToast() {
+  const context = useContext(ToastContext);
+  if (context === undefined) {
+    throw new Error("useToast must be used within a ToastProvider");
+  }
+  return context;
+}

@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Award, CheckCircle } from "lucide-react";
+import { ArrowLeft, Award, CheckCircle, Lightbulb, XCircle } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useToast } from "@/components/ui/Toast";
 
 const getQuizForModule = (moduleId: string) => {
   switch (moduleId) {
@@ -84,6 +85,7 @@ export default function QuizDetailPage() {
   const router = useRouter();
   const id = params.id as string;
   const { t } = useLanguage();
+  const { showToast } = useToast();
   
   const questions = getQuizForModule(id);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -111,7 +113,7 @@ export default function QuizDetailPage() {
 
   const handleFinishQuiz = () => {
     if (answers.includes(null)) {
-      alert("Harap jawab semua soal sebelum menyelesaikan kuis!");
+      showToast("Harap jawab semua soal sebelum menyelesaikan kuis!", "warning");
       return;
     }
     setShowResult(true);
@@ -309,37 +311,122 @@ export default function QuizDetailPage() {
                       {/* Breakdown */}
                       <div style={{ textAlign: "left", marginBottom: "3rem" }}>
                         <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem" }}>Review Jawaban:</h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
                           {questions.map((q, i) => {
                             const isCorrect = answers[i] === q.correctAnswer;
                             return (
-                              <div key={i} style={{ 
-                                padding: "1.5rem", 
-                                background: "var(--color-bg)", 
-                                border: `3px solid ${isCorrect ? "var(--color-success)" : "var(--color-danger)"}`,
-                                borderRadius: "var(--radius-brutal-sm)"
+                              <div key={i} className="card-brutal hover:-translate-y-2 transition-all duration-300" style={{ 
+                                padding: "0", 
+                                background: "var(--color-white)", 
+                                border: `3px solid var(--color-navy)`,
+                                overflow: "hidden",
+                                display: "flex",
+                                flexDirection: "column",
+                                animation: `slideUp 0.5s ease-out forwards`,
+                                animationDelay: `${i * 0.15}s`,
+                                opacity: 0,
+                                transform: "translateY(20px)"
                               }}>
-                                <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+                                <style dangerouslySetInnerHTML={{__html: `
+                                  @keyframes slideUp {
+                                    to { opacity: 1; transform: translateY(0); }
+                                  }
+                                `}} />
+                                {/* Banner header */}
+                                <div style={{
+                                  background: isCorrect ? "var(--color-lime)" : "var(--color-pink)",
+                                  padding: "1rem 1.5rem",
+                                  borderBottom: "3px solid var(--color-navy)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.75rem"
+                                }}>
                                   <div style={{ 
-                                    width: "32px", height: "32px", borderRadius: "50%", 
-                                    background: isCorrect ? "var(--color-success)" : "var(--color-danger)",
+                                    width: "36px", height: "36px", borderRadius: "50%", 
+                                    background: "var(--color-white)",
+                                    border: "2px solid var(--color-navy)",
                                     display: "flex", alignItems: "center", justifyContent: "center",
-                                    flexShrink: 0, marginTop: "0.25rem"
+                                    flexShrink: 0
                                   }}>
-                                    <span style={{ color: "var(--color-white)", fontWeight: 900 }}>{i + 1}</span>
+                                    {isCorrect ? <CheckCircle size={20} color="var(--color-navy)" /> : <XCircle size={20} color="var(--color-navy)" />}
                                   </div>
-                                  <div>
-                                    <p style={{ margin: "0 0 0.75rem 0", fontWeight: 700, fontSize: "1.1rem", color: "var(--color-navy)" }}>{q.question}</p>
-                                    <p style={{ margin: "0 0 0.5rem 0", color: isCorrect ? "var(--color-success)" : "var(--color-danger)", fontWeight: 600 }}>
-                                      Jawabanmu: {q.options[answers[i] as number]}
-                                    </p>
+                                  <h3 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1.2rem", color: "var(--color-navy)" }}>
+                                    Pertanyaan {i + 1}
+                                  </h3>
+                                  <span style={{ 
+                                    marginLeft: "auto", 
+                                    background: "var(--color-navy)", 
+                                    color: "var(--color-white)", 
+                                    padding: "0.25rem 0.75rem", 
+                                    borderRadius: "100px",
+                                    fontSize: "0.8rem",
+                                    fontWeight: 800
+                                  }}>
+                                    {isCorrect ? "+50 XP" : "0 XP"}
+                                  </span>
+                                </div>
+
+                                {/* Content */}
+                                <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                                  <p style={{ margin: 0, fontWeight: 800, fontSize: "1.25rem", color: "var(--color-navy)", lineHeight: 1.4 }}>
+                                    {q.question}
+                                  </p>
+                                  
+                                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                                    {/* User's Answer */}
+                                    <div style={{ 
+                                      display: "flex", alignItems: "center", gap: "0.75rem", 
+                                      padding: "1rem", borderRadius: "8px", 
+                                      background: isCorrect ? "rgba(46, 204, 113, 0.15)" : "rgba(231, 76, 60, 0.15)",
+                                      border: `2px solid ${isCorrect ? "var(--color-success)" : "var(--color-danger)"}`
+                                    }}>
+                                      <div style={{ fontWeight: 800, color: isCorrect ? "var(--color-success)" : "var(--color-danger)", minWidth: "120px" }}>
+                                        Jawaban Anda:
+                                      </div>
+                                      <div style={{ fontWeight: 700, color: "var(--color-navy)" }}>
+                                        {q.options[answers[i] as number]}
+                                      </div>
+                                    </div>
+
+                                    {/* Correct Answer if Wrong */}
                                     {!isCorrect && (
-                                      <p style={{ margin: "0 0 0.5rem 0", color: "var(--color-success)", fontWeight: 600 }}>
-                                        Kunci Jawaban: {q.options[q.correctAnswer]}
-                                      </p>
+                                      <div style={{ 
+                                        display: "flex", alignItems: "center", gap: "0.75rem", 
+                                        padding: "1rem", borderRadius: "8px", 
+                                        background: "rgba(46, 204, 113, 0.15)",
+                                        border: "2px solid var(--color-success)"
+                                      }}>
+                                        <div style={{ fontWeight: 800, color: "var(--color-success)", minWidth: "120px" }}>
+                                          Jawaban Benar:
+                                        </div>
+                                        <div style={{ fontWeight: 700, color: "var(--color-navy)" }}>
+                                          {q.options[q.correctAnswer]}
+                                        </div>
+                                      </div>
                                     )}
-                                    <div style={{ marginTop: "1rem", padding: "1rem", background: "var(--color-white)", border: "2px dashed var(--color-navy)", borderRadius: "8px" }}>
-                                      <p style={{ margin: 0, fontSize: "0.95rem", fontWeight: 600, color: "var(--color-navy)" }}>💡 Penjelasan: {q.explanation}</p>
+                                  </div>
+
+                                  {/* Explanation */}
+                                  <div style={{ 
+                                    marginTop: "0.5rem", padding: "1.25rem", 
+                                    background: "var(--color-bg)", 
+                                    border: "2px dashed var(--color-purple)", 
+                                    borderRadius: "8px", display: "flex", gap: "1rem", alignItems: "flex-start" 
+                                  }}>
+                                    <div style={{ 
+                                      width: "40px", height: "40px", borderRadius: "8px", 
+                                      background: "var(--color-purple)", border: "2px solid var(--color-navy)",
+                                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                                    }}>
+                                      <Lightbulb size={20} color="var(--color-white)" />
+                                    </div>
+                                    <div>
+                                      <h4 style={{ margin: "0 0 0.25rem 0", color: "var(--color-purple)", fontWeight: 800, fontSize: "0.9rem", textTransform: "uppercase" }}>
+                                        Penjelasan
+                                      </h4>
+                                      <p style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--color-navy)", lineHeight: 1.5 }}>
+                                        {q.explanation}
+                                      </p>
                                     </div>
                                   </div>
                                 </div>
