@@ -313,11 +313,8 @@ export default function ReportsPage() {
         <div style={{ 
           display: "flex", 
           overflowX: "auto", 
-          gap: "0.5rem",
+          gap: "0.75rem",
           padding: "0.5rem",
-          background: "rgba(0,0,0,0.03)", 
-          borderRadius: "100px", 
-          border: "1px solid rgba(0,0,0,0.05)",
           width: "max-content",
           maxWidth: "100%",
           scrollbarWidth: "none", /* Firefox */
@@ -325,26 +322,31 @@ export default function ReportsPage() {
         }} className="no-scrollbar">
           {MONTHS.map((month, idx) => (
             <button key={month} onClick={() => setSelectedMonth(idx)} style={{
-              padding: "0.6rem 1.5rem", 
-              fontSize: "0.85rem", 
-              fontWeight: 700,
-              background: selectedMonth === idx ? "linear-gradient(135deg, var(--color-purple), #9333ea)" : "transparent",
+              padding: "0.75rem 1.5rem", 
+              fontSize: "0.9rem", 
+              fontWeight: 800,
+              background: selectedMonth === idx ? "var(--color-purple)" : "var(--color-white)",
               color: selectedMonth === idx ? "var(--color-white)" : "var(--color-navy)",
-              border: "none",
-              borderRadius: "100px",
+              border: "3px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)",
               cursor: "pointer",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              boxShadow: selectedMonth === idx ? "0 4px 12px rgba(124, 58, 237, 0.3)" : "none",
+              boxShadow: selectedMonth === idx ? "none" : "3px 3px 0px var(--color-navy)",
+              transform: selectedMonth === idx ? "translate(3px, 3px)" : "none",
+              transition: "all 0.1s",
               flexShrink: 0,
+              textTransform: "uppercase"
             }}
-            onMouseEnter={(e) => { if(selectedMonth !== idx) e.currentTarget.style.background = "rgba(0,0,0,0.05)" }}
-            onMouseLeave={(e) => { if(selectedMonth !== idx) e.currentTarget.style.background = "transparent" }}>
+            onMouseEnter={(e) => { if(selectedMonth !== idx) { e.currentTarget.style.transform = "translate(-1px, -1px)"; e.currentTarget.style.boxShadow = "4px 4px 0px var(--color-navy)"; } }}
+            onMouseLeave={(e) => { if(selectedMonth !== idx) { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "3px 3px 0px var(--color-navy)"; } }}>
               {t(`dashboard.reports.months.${month}`).slice(0, 3)}
             </button>
           ))}
         </div>
-        <div style={{ marginTop: "1rem", fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "0.5rem", paddingLeft: "0.5rem" }}>
-          <Calendar size={16} color="var(--color-purple)" /> {t("dashboard.reports.period")}: <span style={{ color: "var(--color-navy)", fontWeight: 800 }}>{t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}</span>
+        <div style={{ marginTop: "1.5rem", fontSize: "1rem", fontWeight: 700, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", paddingLeft: "0.5rem" }}>
+          <div style={{ background: "var(--color-lime)", border: "2px solid var(--color-navy)", borderRadius: "4px", padding: "4px" }}>
+            <Calendar size={18} color="var(--color-navy)" />
+          </div>
+          {t("dashboard.reports.period")}: <span style={{ color: "var(--color-purple)", fontWeight: 900 }}>{t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}</span>
         </div>
       </div>
 

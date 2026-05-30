@@ -253,20 +253,24 @@ export default function AuthPage() {
           overflow: "hidden"
         }}
       >
+        {/* Logo Panel */}
         <div style={{ position: "relative", zIndex: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "3rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
             <div className="logo-container" style={{ 
-              width: "64px", height: "64px", background: "var(--color-white)",
-              borderRadius: "16px",
+              width: "64px", height: "64px",
               display: "flex", alignItems: "center", justifyContent: "center",
               overflow: "hidden"
             }}>
-              <img src="/images/logo_ceamis.png" alt="CEAMIS Logo" style={{ width: "80%", height: "80%", objectFit: "contain" }} />
+              <img src="/images/logo_white.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "2.5rem", letterSpacing: "-1px", background: "linear-gradient(90deg, #FFFFFF, var(--color-lime))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               CEAMIS
             </span>
           </div>
+        </div>
+
+        {/* Center Content */}
+        <div style={{ position: "relative", zIndex: 10, marginTop: "2rem" }}>
 
           <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "4rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem", color: "var(--color-white)", textShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
             Control Every<br/>
@@ -304,7 +308,7 @@ export default function AuthPage() {
           </div>
         </div>
         
-        <div style={{ position: "relative", zIndex: 10, fontSize: "0.85rem", fontWeight: 600, opacity: 0.6, marginTop: "3rem", color: "var(--color-white)" }}>
+        <div style={{ position: "relative", zIndex: 10, fontSize: "0.85rem", fontWeight: 600, opacity: 0.6, marginTop: "4rem", color: "var(--color-white)" }}>
           &copy; 2026 CEAMIS Capstone Project
         </div>
         
@@ -345,7 +349,7 @@ export default function AuthPage() {
               }}
             >
             <img 
-              src="/images/logo_ceamis.png" 
+              src="/images/logo_color.png" 
               alt="CEAMIS Logo" 
               style={{ 
                 width: 52, height: 52,

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_CLIENT } from '../supabase/supabase.module';
 import { SaveOnboardingDto } from './dto/save-onboarding.dto';
@@ -44,8 +44,10 @@ export class OnboardingService {
       .select()
       .single();
 
-    if (onboardingError)
-      throw new Error(`Onboarding save failed: ${onboardingError.message}`);
+    if (onboardingError) {
+      console.error(onboardingError);
+      throw new InternalServerErrorException(`Onboarding save failed: ${onboardingError.message}`);
+    }
 
     // 2. Upsert user profile with onboarding data
     await this.supabase.from('user_profiles').upsert(
