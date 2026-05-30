@@ -19,6 +19,7 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -443,6 +444,25 @@ export default function AuthPage() {
                   placeholder={t("auth.passwordPlaceholder")}
                   value={password} onChange={(e) => setPassword(e.target.value)}
                 />
+              </div>
+
+              {/* Remember Me Checkbox */}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.25rem" }}>
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  style={{
+                    width: "18px", height: "18px",
+                    accentColor: "var(--color-purple)",
+                    cursor: "pointer",
+                    border: "2px solid var(--color-navy)"
+                  }}
+                />
+                <label htmlFor="rememberMe" style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", cursor: "pointer" }}>
+                  Ingat saya
+                </label>
               </div>
 
               <button

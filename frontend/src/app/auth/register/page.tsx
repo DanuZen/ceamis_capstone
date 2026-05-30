@@ -43,7 +43,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError(null);
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -61,7 +61,14 @@ export default function RegisterPage() {
     }
 
     setIsLoading(false);
-    setShowSuccessModal(true);
+    
+    // Cek apakah Supabase langsung memberikan session (Email Confirm OFF)
+    if (data.session) {
+      router.push("/onboarding");
+    } else {
+      // Jika butuh konfirmasi email, tampilkan modal
+      setShowSuccessModal(true);
+    }
   };
 
   return (

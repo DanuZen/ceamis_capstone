@@ -162,8 +162,8 @@ export default function EducationPage() {
             {t("dashboard.education.progressTitle")}
           </h3>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} / {initialModules.length} Modul Selesai</span>
-            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {initialModules.length} Kuis Selesai</span>
+            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem", textTransform: "uppercase" }}>{totalModulesCompleted} Modul Selesai</span>
+            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem", textTransform: "uppercase" }}>{totalQuizzesCompleted} Kuis Selesai</span>
           </div>
         </div>
         <div className="progress-brutal" style={{ height: "24px", border: "3px solid var(--color-navy)" }}>
@@ -224,7 +224,7 @@ export default function EducationPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: "1.5rem",
             }}
           >
@@ -305,7 +305,7 @@ export default function EducationPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: "1.5rem",
             }}
           >

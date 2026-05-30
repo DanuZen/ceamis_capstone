@@ -63,7 +63,7 @@ export default function AdminEducationPage() {
         title: formData.get("title") as string,
         category: formData.get("category") as string,
         reads: editingItem.reads,
-        status: "published", // Default hardcoded for now since field is removed
+        status: formData.get("status") as string || "published",
         points: Number(formData.get("points")) || 200,
         desc: formData.get("desc") as string,
         duration: formData.get("duration") as string,
@@ -76,7 +76,7 @@ export default function AdminEducationPage() {
         title: formData.get("title") as string,
         category: formData.get("category") as string,
         reads: 0,
-        status: "published", // Default hardcoded
+        status: formData.get("status") as string || "published",
         points: Number(formData.get("points")) || 200,
         desc: formData.get("desc") as string,
         duration: formData.get("duration") as string,
@@ -110,6 +110,7 @@ export default function AdminEducationPage() {
               <tr style={{ background: "var(--color-bg)", borderBottom: "3px solid var(--color-navy)" }}>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Judul Modul</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Kategori</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Status</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>XP Points</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)", width: "160px", textAlign: "center" }}>Aksi</th>
               </tr>
@@ -120,6 +121,11 @@ export default function AdminEducationPage() {
                   <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>{mod.title}</td>
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <span className="badge-brutal" style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem", background: "var(--color-bg)", boxShadow: "none" }}>{mod.category}</span>
+                  </td>
+                  <td style={{ padding: "1rem 1.25rem" }}>
+                    <span className="badge-brutal" style={{ background: mod.status === "published" ? "var(--color-lime)" : "var(--color-border)", fontSize: "0.75rem", padding: "0.2rem 0.6rem", boxShadow: "none" }}>
+                      {mod.status === "published" ? "Published" : "Draft"}
+                    </span>
                   </td>
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <span className="badge-brutal" style={{ background: "var(--color-lime)", fontSize: "0.75rem", padding: "0.2rem 0.6rem", boxShadow: "none" }}>+{mod.points || 200} XP</span>
@@ -142,7 +148,7 @@ export default function AdminEducationPage() {
               
               {modules.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                  <td colSpan={6} style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)", fontWeight: 600 }}>
                     Belum ada data modul.
                   </td>
                 </tr>
@@ -179,6 +185,13 @@ export default function AdminEducationPage() {
                   <option value="Dasar">Dasar</option>
                   <option value="Investasi">Investasi</option>
                   <option value="Utang">Utang</option>
+                </select>
+              </div>
+              <div className="input-group-brutal">
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Status Publikasi</label>
+                <select name="status" defaultValue={editingItem?.status || "published"} className="input-brutal" style={{ width: "100%" }}>
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
                 </select>
               </div>
               <div className="input-group-brutal">
