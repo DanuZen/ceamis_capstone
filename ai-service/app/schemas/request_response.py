@@ -46,18 +46,18 @@ class HealthScoreResponse(BaseModel):
 
 class SpendingClusterRequest(BaseModel):
     user_id: str = Field(..., description="ID unik pengguna dari Supabase Authentication")
-    is_late_night: float = Field(..., description="Rata-rata transaksi malam hari (0-1)")
-    is_weekend: float = Field(..., description="Rata-rata transaksi akhir pekan (0-1)")
-    is_unbudgeted: float = Field(..., description="Rata-rata transaksi di luar anggaran (0-1)")
-    is_risky_category: float = Field(..., description="Rata-rata transaksi kategori berisiko (0-1)")
-    is_binge_spending: float = Field(..., description="Rata-rata pengeluaran berlebih spontan (0-1)")
-    hourly_txn_count: float = Field(..., description="Rata-rata jumlah transaksi per jam")
-    transaction_count: float = Field(..., description="Total frekuensi transaksi dalam sebulan")
-    saving_rate_raw: float = Field(..., description="Rasio tabungan mentah terhadap pendapatan")
-    wants_ratio_raw: float = Field(..., description="Rasio pengeluaran keinginan terhadap pendapatan")
-    investment_rate_raw: float = Field(..., description="Rasio investasi terhadap pendapatan")
-    dti_ratio_raw: float = Field(..., description="Debt to Income Ratio mentah")
-    category_features: Optional[Dict[str, float]] = Field(None, description="Proporsi kategori transaksi, ex: {'cat_hobi': 0.1}")
+    is_late_night: float = Field(default=0.0, description="Rata-rata transaksi malam hari (0-1)")
+    is_weekend: float = Field(default=0.0, description="Rata-rata transaksi akhir pekan (0-1)")
+    is_unbudgeted: float = Field(default=0.0, description="Rata-rata transaksi di luar anggaran (0-1)")
+    is_risky_category: float = Field(default=0.0, description="Rata-rata transaksi kategori berisiko (0-1)")
+    is_binge_spending: float = Field(default=0.0, description="Rata-rata pengeluaran berlebih spontan (0-1)")
+    hourly_txn_count: float = Field(default=0.0, description="Rata-rata jumlah transaksi per jam")
+    transaction_count: float = Field(default=0.0, description="Total frekuensi transaksi dalam sebulan")
+    saving_rate_raw: float = Field(default=0.0, description="Rasio tabungan mentah terhadap pendapatan")
+    wants_ratio_raw: float = Field(default=0.0, description="Rasio pengeluaran keinginan terhadap pendapatan")
+    investment_rate_raw: float = Field(default=0.0, description="Rasio investasi terhadap pendapatan")
+    dti_ratio_raw: float = Field(default=0.0, description="Debt to Income Ratio mentah")
+    category_features: Optional[Dict[str, float]] = Field(default=None, description="Proporsi kategori transaksi, ex: {'cat_hobi': 0.1}")
 
     class Config:
         json_schema_extra = {
