@@ -8,7 +8,7 @@ import {
   Home, Gamepad2, Banknote, Utensils, Car,
   Smartphone, Tv, ShoppingCart, Coffee, Candy,
   Shield, Laptop, Plane, GraduationCap,
-  Brain, ChevronDown, Loader, SearchX
+  Brain, ChevronDown, Loader, SearchX, Wand2
 } from "lucide-react";
 import React from "react";
 import { useSearchParams } from "next/navigation";
@@ -280,11 +280,7 @@ const PROFILE_INFO: Record<string, { description: string; suggestion: string; co
   },
 };
 
-const RISK_QUIZ = [
-  { id: "SELFCONTROL_1", label: "Seberapa baik kamu bisa menahan godaan belanja impulsif?", options: [{label:"Sangat Buruk",v:1},{label:"Buruk",v:2},{label:"Cukup",v:3},{label:"Baik",v:4},{label:"Sangat Baik",v:5}] },
-  { id: "SCFHORIZON",    label: "Seberapa jauh ke depan kamu merencanakan keuanganmu?",    options: [{label:"Tidak merencanakan",v:1},{label:"Bulan depan",v:2},{label:"1 tahun",v:3},{label:"Beberapa tahun (2-4)",v:4},{label:"5 - 10 tahun",v:5},{label:"Lebih dari 10 tahun",v:6}] },
-  { id: "FINGOALS",      label: "Seberapa spesifik dan jelas target keuanganmu saat ini?",    options: [{label:"Tidak punya",v:1},{label:"Ada tapi samar",v:2},{label:"Cukup jelas",v:3},{label:"Sangat spesifik",v:4}] },
-];
+// Kuis dipindahkan ke onboarding
 
 interface RiskResult {
   risk_profile: "Konservatif" | "Moderat" | "Agresif";
@@ -311,16 +307,15 @@ export default function PlanningPage() {
   const [activeFilter, setActiveFilter] = useState<"needs" | "wants" | "savings">("needs");
   const [newCategory, setNewCategory] = useState<{name: string; type: "needs"|"wants"|"savings"; allocated: string; icon: string}>({ name: "", type: "needs", allocated: "", icon: "home" });
   const [isLoaded, setIsLoaded] = useState(false);
+  const [baseIncome, setBaseIncome] = useState<number>(0);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
 
   // ── Model 3 state ──────────────────────────────────────────────────────────
   const [riskResult, setRiskResult] = useState<RiskResult | null>(null);
   const [riskLoading, setRiskLoading] = useState(false);
-  const [showRiskQuiz, setShowRiskQuiz] = useState(false);
-  const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
 
-  const fetchRiskProfile = useCallback(async (answers: Record<string, number>) => {
+  const fetchRiskProfile = useCallback(async () => {
     setRiskLoading(true);
-    setShowRiskQuiz(false);
     try {
       // 1. Get Onboarding data
       const onboardingData = await onboardingApi.get(userData.id);
@@ -354,6 +349,13 @@ export default function PlanningPage() {
       const isStudent = onboardingData?.income_source === "uang_saku" ? 1 : 0;
       const isSelfEmployed = onboardingData?.income_source === "bisnis" || onboardingData?.income_source === "freelance" ? 1 : 0;
       const isProfessional = onboardingData?.income_source === "gaji" ? 1 : 0;
+
+      // Retrieve answers from localStorage
+      let answers: any = {};
+      try {
+        const cachedAnswers = localStorage.getItem("ceamis_risk_answers");
+        if (cachedAnswers) answers = JSON.parse(cachedAnswers);
+      } catch (e) {}
 
       // 5. Construct payload
       const payload = {
@@ -393,7 +395,13 @@ export default function PlanningPage() {
       localStorage.setItem("ceamis_risk_profile", JSON.stringify(data));
     } catch {
       // fallback: derive dari jawaban secara lokal (mock)
-      const score = Object.values(answers).reduce((a, b) => a + b, 0);
+      let answers: any = {};
+      try {
+        const cachedAnswers = localStorage.getItem("ceamis_risk_answers");
+        if (cachedAnswers) answers = JSON.parse(cachedAnswers);
+      } catch (e) {}
+      
+      const score = Object.values(answers).reduce((a: any, b: any) => a + b, 0) as number;
       const profile = score < 6 ? "Konservatif" : score < 11 ? "Moderat" : "Agresif";
       const info = PROFILE_INFO[profile];
       const mockData = {
@@ -425,6 +433,7 @@ export default function PlanningPage() {
           const data = await onboardingApi.get(userData.id);
           if (data && data.income) {
             income = data.income;
+            setBaseIncome(data.income);
           }
         } catch (e) {
           console.error("Failed to fetch onboarding for budget", e);
@@ -439,6 +448,30 @@ export default function PlanningPage() {
 
       if (savedBudget) {
         initialBudget = JSON.parse(savedBudget);
+
+        // --- FIX: Auto-distribute if any category total is 0 ---
+        const dynInc = transactions.filter(tx => tx.type === "pemasukan").reduce((s, tx) => s + tx.amount, 0);
+        const effInc = dynInc > 0 ? dynInc : (income > 0 ? income : 4500000);
+        
+        const rRatios = getRiskTargetRatios();
+        (["needs", "wants", "savings"] as const).forEach(type => {
+          const typeItems = initialBudget.filter(b => b.type === type);
+          const typeSum = typeItems.reduce((s, b) => s + b.allocated, 0);
+          if (typeSum === 0 && typeItems.length > 0) {
+            const cap = Math.round(effInc * rRatios[type] / 100);
+            const perItem = Math.floor(cap / typeItems.length);
+            const rem = cap % typeItems.length;
+            let dCount = 0;
+            initialBudget = initialBudget.map(b => {
+              if (b.type === type) {
+                const amt = dCount === 0 ? perItem + rem : perItem;
+                dCount++;
+                return { ...b, allocated: amt };
+              }
+              return b;
+            });
+          }
+        });
       } else {
         // Get risk profile from cache, fallback to "Moderat"
         let riskProfile: "Konservatif" | "Moderat" | "Agresif" = "Moderat";
@@ -528,7 +561,66 @@ export default function PlanningPage() {
   });
 
   const dynamicIncome = filteredTransactions.filter(tx => tx.type === "pemasukan").reduce((sum, tx) => sum + tx.amount, 0);
-  const income = dynamicIncome > 0 ? dynamicIncome : 4500000;
+  const income = dynamicIncome > 0 ? dynamicIncome : (baseIncome > 0 ? baseIncome : 4500000);
+
+  // Auto-balance if cap changes (due to income or risk profile changes)
+  useEffect(() => {
+    if (!isLoaded || budget.length === 0) return;
+    
+    let needsUpdate = false;
+    let newBudget = [...budget];
+    const rRatios = getRiskTargetRatios();
+
+    (["needs", "wants", "savings"] as const).forEach(type => {
+      const typeItems = newBudget.filter(b => b.type === type);
+      if (typeItems.length === 0) return;
+
+      const currentSum = typeItems.reduce((s, b) => s + b.allocated, 0);
+      const cap = Math.round(income * rRatios[type] / 100);
+      
+      const difference = cap - currentSum;
+      if (difference !== 0) {
+        needsUpdate = true;
+        let amountToDistribute = difference; 
+        let itemsToModify = [...typeItems];
+        let attempts = 0;
+
+        while (Math.abs(amountToDistribute) > 0 && attempts < 10 && itemsToModify.length > 0) {
+          const perItem = Math.trunc(amountToDistribute / itemsToModify.length);
+          const remainder = amountToDistribute % itemsToModify.length;
+          let nextItemsToModify: typeof itemsToModify = [];
+          let distributedThisRound = 0;
+
+          for (let i = 0; i < itemsToModify.length; i++) {
+            const it = itemsToModify[i];
+            const currentIdx = newBudget.findIndex(b => b.id === it.id);
+            const currentAlloc = newBudget[currentIdx].allocated;
+            
+            let change = perItem;
+            if (i === 0) change += remainder;
+
+            let nextAlloc = currentAlloc + change;
+            if (nextAlloc < 0) {
+              change = -currentAlloc;
+              nextAlloc = 0;
+            } else {
+              nextItemsToModify.push(it);
+            }
+
+            newBudget[currentIdx] = { ...newBudget[currentIdx], allocated: nextAlloc };
+            distributedThisRound += change;
+          }
+          amountToDistribute -= distributedThisRound;
+          itemsToModify = nextItemsToModify;
+          attempts++;
+        }
+      }
+    });
+
+    if (needsUpdate) {
+      setBudget(newBudget);
+    }
+  }, [isLoaded, income, budget]);
 
   const budgetWithSpent = budget.map(b => {
     const spent = filteredTransactions
@@ -576,14 +668,14 @@ export default function PlanningPage() {
     return { needs: 50, wants: 30, savings: 20 }; // Moderat fallback
   };
   const riskRatios = getRiskTargetRatios();
-  const badgeNeeds   = needsPercent   > 0 ? needsPercent   : riskRatios.needs;
-  const badgeWants   = wantsPercent   > 0 ? wantsPercent   : riskRatios.wants;
-  const badgeSavings = savingsPercent > 0 ? savingsPercent : riskRatios.savings;
+  const badgeNeeds   = riskRatios.needs;
+  const badgeWants   = riskRatios.wants;
+  const badgeSavings = riskRatios.savings;
 
-  // Badge amounts: use actual totals if available, else calculate from income × ratio
-  const badgeNeedsRp   = totalNeeds   > 0 ? totalNeeds   : Math.round(income * riskRatios.needs / 100);
-  const badgeWantsRp   = totalWants   > 0 ? totalWants   : Math.round(income * riskRatios.wants / 100);
-  const badgeSavingsRp = totalSavings > 0 ? totalSavings : Math.round(income * riskRatios.savings / 100);
+  // Badge amounts: always calculate from income × ratio as the absolute limit
+  const badgeNeedsRp   = Math.round(income * riskRatios.needs / 100);
+  const badgeWantsRp   = Math.round(income * riskRatios.wants / 100);
+  const badgeSavingsRp = Math.round(income * riskRatios.savings / 100);
 
   const formatRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
 
@@ -624,56 +716,73 @@ export default function PlanningPage() {
     setShowAddCategory(false);
   };
 
-  const deleteTarget = (id: number) => {
-    const targetToDelete = targets.find(t => t.id === id);
-    setTargets(targets.filter(t => t.id !== id));
-    if (targetToDelete) {
-      setBudget(budget.filter(b => !(b.type === "savings" && b.name === targetToDelete.name)));
+  const handleAdjustAllocation = (id: string, newValue: number) => {
+    const typeItems = budget.filter(b => b.type === activeFilter);
+    const targetItem = typeItems.find(b => b.id === id);
+    if (!targetItem) return;
+
+    const cap = Math.round(income * riskRatios[activeFilter] / 100);
+    const clampedValue = Math.max(0, Math.min(newValue, cap));
+    const difference = clampedValue - targetItem.allocated;
+    
+    if (difference === 0) return;
+
+    let otherItems = typeItems.filter(b => b.id !== id);
+    if (otherItems.length === 0) {
+      setBudget(budget.map(b => b.id === id ? { ...b, allocated: clampedValue } : b));
+      return;
     }
+
+    let amountToDistribute = -difference; 
+    let newBudget = [...budget];
+    let itemsToModify = [...otherItems];
+    let attempts = 0;
+
+    while (Math.abs(amountToDistribute) > 0 && attempts < 10 && itemsToModify.length > 0) {
+      const perItem = Math.trunc(amountToDistribute / itemsToModify.length);
+      const remainder = amountToDistribute % itemsToModify.length;
+      
+      let nextItemsToModify: typeof itemsToModify = [];
+      let distributedThisRound = 0;
+
+      for (let i = 0; i < itemsToModify.length; i++) {
+        const it = itemsToModify[i];
+        const currentIdx = newBudget.findIndex(b => b.id === it.id);
+        const currentAlloc = newBudget[currentIdx].allocated;
+        
+        let change = perItem;
+        if (i === 0) change += remainder;
+
+        let nextAlloc = currentAlloc + change;
+        if (nextAlloc < 0) {
+          change = -currentAlloc;
+          nextAlloc = 0;
+        } else {
+          nextItemsToModify.push(it);
+        }
+
+        newBudget[currentIdx] = { ...newBudget[currentIdx], allocated: nextAlloc };
+        distributedThisRound += change;
+      }
+
+      amountToDistribute -= distributedThisRound;
+      itemsToModify = nextItemsToModify;
+      attempts++;
+    }
+
+    const targetIdx = newBudget.findIndex(b => b.id === id);
+    newBudget[targetIdx] = { ...newBudget[targetIdx], allocated: clampedValue + amountToDistribute };
+
+    setBudget(newBudget);
   };
 
-  // ── Overbudget warning guard for manual edit ──
-  const handleUpdateAllocation = (id: string, newAmount: number) => {
-    const otherAllocated = budget
-      .filter(b => b.id !== id)
-      .reduce((s, b) => s + b.allocated, 0);
-    const cap = income > 0 ? income : Infinity;
-    if (otherAllocated + newAmount > cap) {
-      const remaining = Math.max(cap - otherAllocated, 0);
-      setBudget(budget.map(b => b.id === id ? { ...b, allocated: remaining } : b));
-    } else {
-      setBudget(budget.map(b => b.id === id ? { ...b, allocated: newAmount } : b));
-    }
-  };
-
-  const BudgetRow = ({ item }: { item: BudgetCategory }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [editValue, setEditValue] = useState(item.allocated.toString());
-    const [hitCap, setHitCap] = useState(false);
-
+  const renderBudgetRow = (item: BudgetCategory) => {
     const pct = item.allocated > 0 ? Math.round((item.spent / item.allocated) * 100) : 0;
     const isOverBudget = item.spent > item.allocated && item.allocated > 0;
     const isNearLimit = pct >= 80 && !isOverBudget;
 
-    const handleSave = () => {
-      const val = parseInt(editValue) || 0;
-      const otherAllocated = budget.filter(b => b.id !== item.id).reduce((s, b) => s + b.allocated, 0);
-      const cap = income > 0 ? income : Infinity;
-      if (otherAllocated + val > cap) {
-        const remaining = Math.max(cap - otherAllocated, 0);
-        setEditValue(remaining.toString());
-        setHitCap(true);
-        setTimeout(() => setHitCap(false), 3000);
-        handleUpdateAllocation(item.id, remaining);
-      } else {
-        setHitCap(false);
-        handleUpdateAllocation(item.id, val);
-      }
-      setIsEditing(false);
-    };
-
     return (
-      <div className="card-brutal" style={{
+      <div key={item.id} className="card-brutal" style={{
         display: "flex", flexDirection: "column", gap: "1.25rem", padding: "1.5rem",
         background: isOverBudget ? "#fff5f5" : "var(--color-white)",
         border: `3px solid ${isOverBudget ? "#e74c3c" : "var(--color-navy)"}`,
@@ -687,36 +796,21 @@ export default function PlanningPage() {
           </div>
           <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontWeight: 900, fontSize: "1.1rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{item.name}</span>
-            {isEditing ? (
-              <div style={{ display: "flex", gap: "0.5rem", flexDirection: "column", alignItems: "flex-end" }}>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <input 
-                    type="number" 
-                    value={editValue} 
-                    onChange={e => setEditValue(e.target.value)}
-                    className="input-brutal"
-                    style={{ width: "110px", padding: "0.4rem 0.6rem", fontSize: "0.85rem", border: "2.5px solid var(--color-navy)", fontWeight: 800 }}
-                    autoFocus
-                    onKeyDown={e => e.key === "Enter" && handleSave()}
-                  />
-                  <button onClick={handleSave} className="btn-brutal" style={{ padding: "0.4rem 0.6rem", background: "var(--color-lime)", fontWeight: 800 }}>OK</button>
-                </div>
-                {hitCap && (
-                  <span style={{ fontSize: "0.75rem", color: "#e74c3c", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                    <AlertTriangle size={12} /> Dibatasi - melebihi total pendapatan
-                  </span>
-                )}
+            {isEditingCategory && (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input 
+                  type="text" 
+                  value={item.allocated === 0 ? "" : item.allocated.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
+                  onChange={e => {
+                    const unformatted = e.target.value.replace(/\D/g, "");
+                    const val = parseInt(unformatted) || 0;
+                    handleAdjustAllocation(item.id, val);
+                  }}
+                  className="input-brutal"
+                  style={{ width: "130px", padding: "0.4rem 0.6rem", fontSize: "0.85rem", border: "2.5px solid var(--color-navy)", fontWeight: 800 }}
+                  placeholder="0"
+                />
               </div>
-            ) : (
-              <button 
-                onClick={() => setIsEditing(true)}
-                style={{ background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", padding: "0.4rem", transition: "all 0.2s", boxShadow: "2px 2px 0px var(--color-navy)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-purple)"; e.currentTarget.style.color = "var(--color-white)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-bg)"; e.currentTarget.style.color = "var(--color-navy)"; }}
-                title="Ubah Alokasi Budget"
-              >
-                <Edit3 size={16} />
-              </button>
             )}
           </div>
         </div>
@@ -738,7 +832,7 @@ export default function PlanningPage() {
           {isOverBudget && (
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#e74c3c", padding: "0.4rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid #c0392b", marginTop: "0.25rem" }}>
               <AlertTriangle size={14} color="white" />
-              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "white" }}>⚠️ Pengeluaran melebihi batas alokasi!</span>
+              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "white" }}>Pengeluaran melebihi batas alokasi!</span>
             </div>
           )}
           {isNearLimit && (
@@ -751,7 +845,6 @@ export default function PlanningPage() {
     );
   };
 
-  const allAnswered = RISK_QUIZ.every(q => quizAnswers[q.id] !== undefined);
 
   const pageContent = (
     <div style={{ paddingBottom: "3rem" }}>
@@ -835,9 +928,9 @@ export default function PlanningPage() {
       <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
         
         {/* ── Sidebar (Left) ──────────────────────────────────────── */}
-        <div style={{ flex: "1 1 72%", minWidth: "320px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 2 }}>
+        <div style={{ flex: "1 1 calc(75% - 0.3125rem)", minWidth: "320px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 2 }}>
           {/* ── BUDGET VIEW ────────────────────── */}
-          <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "100%", minHeight: "60vh" }}>
+          <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "800px", maxHeight: "800px", display: "flex", flexDirection: "column" }}>
             
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
               <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -883,7 +976,7 @@ export default function PlanningPage() {
                       <AlertTriangle size={22} color="var(--color-navy)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Kebutuhan (Needs)
+                      Kebutuhan
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-lime)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -901,7 +994,7 @@ export default function PlanningPage() {
                       <Sparkles size={22} color="var(--color-navy)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Keinginan (Wants)
+                      Keinginan
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -919,7 +1012,7 @@ export default function PlanningPage() {
                       <ShieldCheck size={22} color="var(--color-white)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Tabungan (Savings)
+                      Tabungan
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-purple)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -932,15 +1025,25 @@ export default function PlanningPage() {
                   </div>
                 )}
               </div>
-              <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
-                padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
-                background: showAddCategory ? "var(--color-orange)" : "var(--color-navy)",
-                color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.5rem",
-                boxShadow: "4px 4px 0px var(--color-navy)",
-              }}>
-                <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
-                {showAddCategory ? "Batal" : t("dashboard.planning.addCategory")}
-              </button>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <button onClick={() => setIsEditingCategory(!isEditingCategory)} className="btn-brutal" style={{
+                  padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
+                  background: isEditingCategory ? "var(--color-lime)" : "var(--color-bg)", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem",
+                  boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)", transition: "all 0.2s"
+                }} title="Edit Alokasi Budget">
+                  {isEditingCategory ? <CheckCircle2 size={18} /> : <Edit3 size={18} />} 
+                  {isEditingCategory ? "Simpan" : "Edit"}
+                </button>
+                <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
+                  padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
+                  background: showAddCategory ? "var(--color-orange)" : "var(--color-navy)",
+                  color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.5rem",
+                  boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)"
+                }}>
+                  <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
+                  {showAddCategory ? "Batal" : t("dashboard.planning.addCategory")}
+                </button>
+              </div>
             </div>
 
             {showAddCategory && (
@@ -979,7 +1082,17 @@ export default function PlanningPage() {
                     </div>
                     <div style={{ flex: 1 }}>
                       <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ALOKASI (RP)</label>
-                      <input value={newCategory.allocated} onChange={e => setNewCategory({ ...newCategory, allocated: e.target.value })} className="input-brutal" type="number" placeholder="0" style={{ border: "3px solid var(--color-navy)", padding: "0.85rem", width: "100%", fontWeight: 900, boxShadow: "3px 3px 0px var(--color-navy)", fontSize: "1rem" }} />
+                      <input 
+                        value={newCategory.allocated ? newCategory.allocated.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""} 
+                        onChange={e => {
+                          const unformatted = e.target.value.replace(/\D/g, "");
+                          setNewCategory({ ...newCategory, allocated: unformatted });
+                        }} 
+                        className="input-brutal" 
+                        type="text" 
+                        placeholder="0" 
+                        style={{ border: "3px solid var(--color-navy)", padding: "0.85rem", width: "100%", fontWeight: 900, boxShadow: "3px 3px 0px var(--color-navy)", fontSize: "1rem" }} 
+                      />
                     </div>
                     <button onClick={handleAddCategory} className="btn-brutal" style={{
                       padding: "0.85rem 2rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900, fontSize: "1rem",
@@ -992,7 +1105,7 @@ export default function PlanningPage() {
               </div>
             )}
 
-            <div>
+            <div style={{ flex: 1, overflowY: "auto", paddingRight: "0.5rem" }} className="no-scrollbar">
               {searchQuery && filteredBudget.length === 0 ? (
                 <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
                   <SearchX size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
@@ -1006,7 +1119,7 @@ export default function PlanningPage() {
                     <div style={{ marginBottom: "3rem" }}>
 
                       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
-                        {needsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                        {needsBudget.map((item) => renderBudgetRow(item))}
                       </div>
                     </div>
                   )}
@@ -1015,7 +1128,7 @@ export default function PlanningPage() {
                     <div style={{ marginBottom: "3rem" }}>
 
                       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
-                        {wantsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                        {wantsBudget.map((item) => renderBudgetRow(item))}
                       </div>
                     </div>
                   )}
@@ -1024,7 +1137,7 @@ export default function PlanningPage() {
                     <div style={{ marginBottom: "2rem" }}>
 
                       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
-                        {savingsBudget.map((item) => <BudgetRow key={item.id} item={item} />)}
+                        {savingsBudget.map((item) => renderBudgetRow(item))}
                       </div>
                     </div>
                   )}
@@ -1035,13 +1148,17 @@ export default function PlanningPage() {
         </div>
 
         {/* ── Main Area (Right) ──────────────────────────────────────── */}
-        <div style={{ flex: "1 1 24%", minWidth: "250px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 1 }}>
+        <div style={{ flex: "0 0 calc(25% - 0.9375rem)", minWidth: "250px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 1 }}>
           {/* ── Model 3: Risk Profile Card ──────────────────────────────────────── */}
           <div className="card-brutal animate-bounce-in" style={{ overflow: "hidden",
             background: "var(--color-white)",
             border: "4px solid var(--color-navy)",
             boxShadow: "8px 8px 0px var(--color-navy)",
-            padding: 0
+            padding: 0,
+            height: "800px",
+            maxHeight: "800px",
+            display: "flex",
+            flexDirection: "column"
           }}>
             {/* Card Header */}
             <div style={{ padding: "1.5rem 2rem", background: "var(--color-purple)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", borderBottom: "4px solid var(--color-navy)" }}>
@@ -1054,85 +1171,31 @@ export default function PlanningPage() {
                   <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>Model 3 · Risk Profile Classifier</div>
                 </div>
               </div>
-              <button
-                onClick={() => setShowRiskQuiz(v => !v)}
-                className="btn-brutal"
-                style={{ padding: "0.75rem 1.5rem", background: "var(--color-white)", color: "var(--color-navy)", fontWeight: 900, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-navy)" }}
-              >
-                {riskResult ? "Isi Ulang" : "Mulai Analisis"} <ChevronDown size={18} style={{ transform: showRiskQuiz ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-              </button>
             </div>
-
-            {/* Quiz */}
-            {showRiskQuiz && (
-              <div style={{ padding: "2rem", background: "var(--color-bg)", borderTop: "3px solid var(--color-navy)" }}>
-                <p style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", marginBottom: "2rem", fontWeight: 700 }}>
-                  Jawab 5 pertanyaan berikut untuk mendapatkan profil risiko keuanganmu dari AI.
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                  {RISK_QUIZ.map((q) => (
-                    <div key={q.id}>
-                      <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", marginBottom: "0.75rem" }}>{q.label}</div>
-                      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                        {q.options.map((opt) => (
-                          <button
-                            key={opt.label}
-                            type="button"
-                            onClick={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt.v }))}
-                            className="btn-brutal"
-                            style={{
-                              padding: "0.6rem 1.25rem", fontSize: "0.9rem", fontWeight: 800,
-                              background: quizAnswers[q.id] === opt.v ? "var(--color-purple)" : "var(--color-white)",
-                              color: quizAnswers[q.id] === opt.v ? "var(--color-white)" : "var(--color-navy)",
-                              boxShadow: quizAnswers[q.id] === opt.v ? "4px 4px 0px var(--color-navy)" : "4px 4px 0px var(--color-navy)",
-                              border: "2.5px solid var(--color-navy)",
-                              transform: quizAnswers[q.id] === opt.v ? "translate(-2px,-2px)" : "none",
-                            }}
-                          >{opt.label}</button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={() => fetchRiskProfile(quizAnswers)}
-                  disabled={!allAnswered}
-                  className="btn-brutal"
-                  style={{
-                    marginTop: "2.5rem", padding: "1rem 2.5rem", fontWeight: 900, fontSize: "1.1rem",
-                    background: allAnswered ? "var(--color-lime)" : "var(--color-bg)",
-                    color: allAnswered ? "var(--color-navy)" : "var(--color-text-muted)",
-                    boxShadow: allAnswered ? "6px 6px 0px var(--color-navy)" : "none",
-                    border: allAnswered ? "3px solid var(--color-navy)" : "3px dashed var(--color-text-light)",
-                    cursor: allAnswered ? "pointer" : "not-allowed",
-                    display: "flex", alignItems: "center", gap: "0.75rem",
-                  }}
-                >
-                  <Sparkles size={20} /> Analisis Profil Saya
-                </button>
-              </div>
-            )}
 
             {/* Loading */}
             {riskLoading && (
-              <div style={{ padding: "3rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", background: "var(--color-white)" }}>
-                <Loader size={32} color="var(--color-purple)" style={{ animation: "spin 1s linear infinite" }} />
+              <div style={{ padding: "3rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem", background: "var(--color-white)", flex: 1 }}>
+                <Loader size={48} color="var(--color-purple)" style={{ animation: "spin 1s linear infinite" }} />
                 <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.1rem" }}>AI sedang memproses datamu...</span>
               </div>
             )}
 
             {/* Result */}
-            {riskResult && !riskLoading && !showRiskQuiz && (() => {
+            {riskResult && !riskLoading && (() => {
               const info = PROFILE_INFO[riskResult.risk_profile];
               return (
-                <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "center", background: "var(--color-white)" }}>
+                <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "stretch", background: "var(--color-white)", flex: 1 }}>
                   {/* Info */}
-                  <div>
+                  <div style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%" }}>
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", color: "var(--color-navy)", fontWeight: 900, marginBottom: "0.5rem", textTransform: "capitalize" }}>
+                      {riskResult.risk_profile}
+                    </h3>
                     <p style={{ fontSize: "1.1rem", lineHeight: 1.6, color: "var(--color-navy)", marginBottom: "1.5rem", fontWeight: 600 }}>
                       {riskResult.description}
                     </p>
                     {/* Probability bars */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2rem" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem", marginTop: "auto" }}>
                       {(["Konservatif","Moderat","Agresif"] as const).map(p => {
                         const prob = Math.round((riskResult.probabilities[p] || 0) * 100);
                         const isActive = riskResult.risk_profile === p;
@@ -1164,12 +1227,19 @@ export default function PlanningPage() {
             })()}
 
             {/* Empty state */}
-            {!riskResult && !riskLoading && !showRiskQuiz && (
-              <div style={{ padding: "4rem 2rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--color-white)" }}>
+            {!riskResult && !riskLoading && (
+              <div style={{ padding: "4rem 2rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--color-white)", flex: 1 }}>
                 <div style={{ background: "var(--color-bg)", padding: "1.5rem", borderRadius: "50%", border: "3px dashed var(--color-navy)", marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Brain size={48} color="var(--color-navy)" strokeWidth={2} style={{ opacity: 0.6 }} />
                 </div>
-                <p style={{ margin: 0, fontWeight: 800, fontSize: "1.1rem", color: "var(--color-navy)", opacity: 0.8 }}>Klik <strong>&quot;Mulai Analisis&quot;</strong> untuk mengetahui profil risiko keuanganmu!</p>
+                <p style={{ margin: 0, marginBottom: "1.5rem", fontWeight: 800, fontSize: "1.1rem", color: "var(--color-navy)", opacity: 0.8, textAlign: "center", maxWidth: "80%" }}>Klik <strong>&quot;Mulai Analisis&quot;</strong> untuk mengetahui profil risiko keuanganmu!</p>
+                <button
+                  onClick={() => fetchRiskProfile()}
+                  className="btn-brutal"
+                  style={{ padding: "0.75rem 1.5rem", background: "var(--color-orange)", color: "var(--color-navy)", fontWeight: 900, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)" }}
+                >
+                  <Sparkles size={20} /> Analisis Profil Saya
+                </button>
               </div>
             )}
           </div>

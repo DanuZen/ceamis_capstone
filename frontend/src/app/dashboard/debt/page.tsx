@@ -279,10 +279,13 @@ export default function DebtPage() {
                 {t("dashboard.debt.amount")}
               </label>
               <input
-                value={newEntry.amount}
-                onChange={(e) => setNewEntry({ ...newEntry, amount: e.target.value })}
+                value={newEntry.amount ? newEntry.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""}
+                onChange={(e) => {
+                  const unformatted = e.target.value.replace(/\D/g, "");
+                  setNewEntry({ ...newEntry, amount: unformatted });
+                }}
                 className="input-brutal"
-                type="number"
+                type="text"
                 placeholder="0"
                 style={{ border: "2px solid var(--color-navy)", padding: "0.85rem", width: "100%", fontWeight: 800, boxShadow: "3px 3px 0px var(--color-navy)", background: "var(--color-white)" }}
               />

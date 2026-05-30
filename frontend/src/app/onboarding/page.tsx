@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -9,7 +9,7 @@ import {
   Home, Utensils, Car, Tv, Package, Smartphone, HeartPulse, GraduationCap,
   PiggyBank, TrendingUp, Unlock, Umbrella, Laptop, Plane,
   ShieldCheck, Scale, Rocket, Briefcase, Store,
-  Users, MapPin, AlertCircle
+  Users, MapPin, AlertCircle, Brain, ChevronDown
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { onboardingApi } from "@/lib/api";
@@ -34,6 +34,10 @@ const STEPS = [
   {
     id: 5, title: "Kebiasaan Menabung", subtitle: "Gimana cara kamu simpan uang?", icon: Shield,
     accent: "var(--color-warning)", bg: "var(--color-warning)", textColor: "var(--color-navy)"
+  },
+  {
+    id: 6, title: "Psikologi Keuangan", subtitle: "Bantu AI memahami mindsetmu!", icon: Brain,
+    accent: "#00E5FF", bg: "#00E5FF", textColor: "var(--color-navy)"
   },
 ];
 
@@ -94,6 +98,19 @@ export default function OnboardingPage() {
   const router = useRouter();
   const supabase = createClient();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/auth/register");
+      } else {
+        setIsCheckingAuth(false);
+      }
+    };
+    checkAuth();
+  }, [router, supabase]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [formData, setFormData] = useState({
@@ -101,11 +118,20 @@ export default function OnboardingPage() {
     topExpenses: [] as string[], monthlyExpense: "",
     goals: [] as string[], riskProfile: "moderat",
     tanggunganKeluarga: 0, cityTier: 1, toleransiRugi: 1, 
-    saveHabit: 3, punyaTabungan: false, jumlahTabunganBulan: "0",
+    saveHabit: 3, punyaTabungan: true, jumlahTabunganBulan: "0",
+    selfControl: 3, scfHorizon: 3, finGoals: 3,
   });
 
   const step = STEPS[currentStep - 1];
   const progress = (currentStep / STEPS.length) * 100;
+
+  if (isCheckingAuth) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", fontFamily: "var(--font-body)" }}>
+        <div style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.2rem" }}>Memuat CEAMIS...</div>
+      </div>
+    );
+  }
 
   const goNext = () => {
     if (!canProceed()) return;
@@ -129,7 +155,8 @@ export default function OnboardingPage() {
       case 2: return formData.income !== "";
       case 3: return formData.topExpenses.length > 0;
       case 4: return formData.goals.length > 0;
-      case 5: return !formData.punyaTabungan || (formData.punyaTabungan && formData.jumlahTabunganBulan !== "");
+      case 5: return !formData.punyaTabungan || (formData.punyaTabungan && formData.jumlahTabunganBulan !== "0" && formData.jumlahTabunganBulan !== "");
+      case 6: return true; // Default selected 3
       default: return false;
     }
   };
@@ -160,12 +187,23 @@ export default function OnboardingPage() {
         // Hapus cache user agar di-fetch ulang dari server saat login
         localStorage.removeItem("ceamis_user");
         localStorage.removeItem("ceamis_transactions");
+        
+        // Simpan jawaban risk profile ke local storage agar bisa dibaca model 3 di Planning
+        localStorage.setItem("ceamis_risk_answers", JSON.stringify({
+          SELFCONTROL_1: formData.selfControl,
+          SCFHORIZON: formData.scfHorizon,
+          FINGOALS: formData.finGoals
+        }));
       }
       
       setIsSubmitting(false);
-      const { data } = await supabase.auth.getUser();
-      const emailParam = data?.user?.email ? encodeURIComponent(data.user.email) : "";
-      router.push(`/auth?verify=1&email=${emailParam}`);
+      
+      if (user) {
+        const emailParam = user.email ? encodeURIComponent(user.email) : "";
+        router.push(`/auth?verify=1&email=${emailParam}`);
+      } else {
+        router.push("/auth/register");
+      }
     } catch (err) {
       console.error("Onboarding save error:", err);
       setIsSubmitting(false);
@@ -218,7 +256,7 @@ export default function OnboardingPage() {
 
         {/* Logo */}
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: "1rem", textDecoration: "none", marginBottom: "auto", zIndex: 1 }}>
-          <img src="/images/logo_ceamis.png" alt="CEAMIS" style={{ width: 56, height: 56, objectFit: "contain" }} />
+          <img src="/images/logo_white.png" alt="CEAMIS" style={{ width: 56, height: 56, objectFit: "contain" }} />
           <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "2rem", letterSpacing: "2px", color: step.textColor }}>CEAMIS</span>
         </Link>
 
@@ -324,7 +362,7 @@ export default function OnboardingPage() {
                               padding: "0.6rem 1rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.9rem", fontWeight: 700,
                               border: "2px solid var(--color-navy)",
                               background: isSelected ? step.accent : "var(--color-white)",
-                              color: "var(--color-navy)",
+                              color: isSelected ? step.textColor : "var(--color-navy)",
                               cursor: "pointer",
                               boxShadow: "2px 2px 0px var(--color-navy)",
                               display: "flex", alignItems: "center", gap: "0.5rem"
@@ -367,7 +405,7 @@ export default function OnboardingPage() {
                               padding: "0.6rem 1rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.9rem", fontWeight: 700,
                               border: "2px solid var(--color-navy)",
                               background: isSelected ? step.accent : "var(--color-white)",
-                              color: "var(--color-navy)",
+                              color: isSelected ? step.textColor : "var(--color-navy)",
                               cursor: "pointer",
                               boxShadow: "2px 2px 0px var(--color-navy)",
                               display: "flex", alignItems: "center", gap: "0.5rem"
@@ -438,7 +476,7 @@ export default function OnboardingPage() {
                         style={{
                           padding: "0.75rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.85rem", fontWeight: 700,
                           background: sel ? step.accent : "var(--color-white)",
-                          color: "var(--color-navy)",
+                          color: sel ? step.textColor : "var(--color-navy)",
                           cursor: "pointer", display: "flex", alignItems: "center", gap: "0.75rem",
                           textAlign: "left",
                           border: "2px solid var(--color-navy)",
@@ -449,7 +487,7 @@ export default function OnboardingPage() {
                           <cat.icon size={18} strokeWidth={2.5} color="var(--color-navy)" />
                         </span>
                         <span>{cat.label}</span>
-                        {sel && <CheckCircle2 size={18} color="var(--color-navy)" style={{ marginLeft: "auto", flexShrink: 0 }} strokeWidth={3} />}
+                        {sel && <CheckCircle2 size={18} color={step.textColor} style={{ marginLeft: "auto", flexShrink: 0 }} strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -491,10 +529,10 @@ export default function OnboardingPage() {
                           <goal.icon size={20} strokeWidth={2.5} color="var(--color-navy)" />
                         </span>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.95rem", color: "var(--color-navy)", lineHeight: 1.2 }}>{goal.label}</div>
-                          <div style={{ fontSize: "0.75rem", color: sel ? "var(--color-navy)" : "var(--color-text-muted)", fontWeight: 600, marginTop: "0.25rem", lineHeight: 1.3 }}>{goal.desc}</div>
+                          <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.95rem", color: sel ? step.textColor : "var(--color-navy)", lineHeight: 1.2 }}>{goal.label}</div>
+                          <div style={{ fontSize: "0.75rem", color: sel ? step.textColor : "var(--color-text-muted)", fontWeight: 600, marginTop: "0.25rem", lineHeight: 1.3 }}>{goal.desc}</div>
                         </div>
-                        {sel && <CheckCircle2 size={18} color="var(--color-navy)" style={{ flexShrink: 0, marginTop: "2px" }} strokeWidth={3} />}
+                        {sel && <CheckCircle2 size={18} color={step.textColor} style={{ flexShrink: 0, marginTop: "2px" }} strokeWidth={3} />}
                       </button>
                     );
                   })}
@@ -519,15 +557,15 @@ export default function OnboardingPage() {
                             padding: "0.85rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.85rem", fontWeight: 700,
                             border: "2px solid var(--color-navy)",
                             background: isSelected ? step.accent : "var(--color-white)",
-                            color: "var(--color-navy)",
+                            color: isSelected ? step.textColor : "var(--color-navy)",
                             cursor: "pointer",
                             boxShadow: "2px 2px 0px var(--color-navy)",
                             display: "flex", flexDirection: "column", gap: "0.5rem", textAlign: "left"
                           }}
                         >
-                          <AlertCircle size={18} strokeWidth={2.5} color={isSelected ? "var(--color-navy)" : "var(--color-text-muted)"} />
+                          <AlertCircle size={18} strokeWidth={2.5} color={isSelected ? step.textColor : "var(--color-text-muted)"} />
                           <span style={{ fontWeight: 800, fontSize: "0.9rem" }}>{opt.label}</span>
-                          <span style={{ fontSize: "0.7rem", color: isSelected ? "var(--color-navy)" : "var(--color-text-muted)", fontWeight: 600 }}>{opt.desc}</span>
+                          <span style={{ fontSize: "0.7rem", color: isSelected ? step.textColor : "var(--color-text-muted)", fontWeight: 600 }}>{opt.desc}</span>
                         </button>
                       );
                     })}
@@ -562,7 +600,7 @@ export default function OnboardingPage() {
                               padding: "0.6rem 1rem", borderRadius: "100px", fontSize: "0.85rem", fontWeight: 700,
                               border: "2px solid var(--color-navy)",
                               background: isSelected ? step.accent : "var(--color-white)",
-                              color: "var(--color-navy)",
+                              color: isSelected ? step.textColor : "var(--color-navy)",
                               cursor: "pointer",
                             }}
                           >
@@ -585,7 +623,7 @@ export default function OnboardingPage() {
                           flex: 1, padding: "0.75rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.9rem", fontWeight: 800,
                           border: "2px solid var(--color-navy)",
                           background: formData.punyaTabungan ? step.accent : "var(--color-white)",
-                          color: "var(--color-navy)", cursor: "pointer", boxShadow: "2px 2px 0px var(--color-navy)"
+                          color: formData.punyaTabungan ? step.textColor : "var(--color-navy)", cursor: "pointer", boxShadow: "2px 2px 0px var(--color-navy)"
                         }}
                       >
                         Ya, Punya
@@ -596,7 +634,7 @@ export default function OnboardingPage() {
                         style={{
                           flex: 1, padding: "0.75rem", borderRadius: "var(--radius-brutal-sm)", fontSize: "0.9rem", fontWeight: 800,
                           border: "2px solid var(--color-navy)",
-                          background: !formData.punyaTabungan ? "var(--color-pink)" : "var(--color-white)",
+                          background: !formData.punyaTabungan ? "var(--color-orange)" : "var(--color-white)",
                           color: !formData.punyaTabungan ? "var(--color-white)" : "var(--color-navy)", cursor: "pointer", boxShadow: "2px 2px 0px var(--color-navy)"
                         }}
                       >
@@ -609,24 +647,89 @@ export default function OnboardingPage() {
                         <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.5rem" }}>
                           CUKUP UNTUK BERAPA BULAN PENGELUARAN?
                         </label>
-                        <select
+                        <CustomSelect
                           value={formData.jumlahTabunganBulan}
-                          onChange={(e) => setFormData({ ...formData, jumlahTabunganBulan: e.target.value })}
-                          style={{
-                            width: "100%", padding: "0.75rem", borderRadius: "var(--radius-brutal-sm)",
-                            border: "2px solid var(--color-navy)", fontSize: "0.9rem", fontWeight: 700,
-                            background: "var(--color-white)", color: "var(--color-navy)",
-                            boxShadow: "2px 2px 0px var(--color-navy)", outline: "none", cursor: "pointer"
-                          }}
-                        >
-                          <option value="0" disabled>Pilih opsi...</option>
-                          <option value="0.5">&lt; 1 Bulan</option>
-                          <option value="1.5">1 - 2 Bulan</option>
-                          <option value="4">3 - 5 Bulan</option>
-                          <option value="7">&gt; 6 Bulan</option>
-                        </select>
+                          onChange={(v) => setFormData({ ...formData, jumlahTabunganBulan: v })}
+                          accent={step.accent}
+                          textColor={step.textColor}
+                          disabledOption="Pilih opsi..."
+                          options={[
+                            { key: "0.5", label: "< 1 Bulan" },
+                            { key: "1.5", label: "1 - 2 Bulan" },
+                            { key: "4", label: "3 - 5 Bulan" },
+                            { key: "7", label: "> 6 Bulan" }
+                          ]}
+                        />
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 6 */}
+            {currentStep === 6 && (
+              <div>
+                <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.8rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.25rem" }}>
+                  Psikologi Keuangan
+                </h2>
+                <p style={{ color: "var(--color-text-muted)", marginBottom: "1.5rem", fontSize: "1rem", fontWeight: 500 }}>
+                  Bantu AI kami memahami cara kamu berpikir tentang uang.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.75rem" }}>
+                      SEBERAPA BAIK KAMU BISA MENAHAN GODAAN BELANJA IMPULSIF?
+                    </label>
+                    <CustomSelect 
+                      value={formData.selfControl.toString()} 
+                      onChange={v => setFormData({ ...formData, selfControl: parseInt(v) })}
+                      accent={step.accent}
+                      textColor={step.textColor} 
+                      options={[
+                        { key: "1", label: "Sangat Buruk" },
+                        { key: "2", label: "Buruk" },
+                        { key: "3", label: "Cukup" },
+                        { key: "4", label: "Baik" },
+                        { key: "5", label: "Sangat Baik" }
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.75rem" }}>
+                      SEBERAPA JAUH KE DEPAN KAMU MERENCANAKAN KEUANGANMU?
+                    </label>
+                    <CustomSelect 
+                      value={formData.scfHorizon.toString()} 
+                      onChange={v => setFormData({ ...formData, scfHorizon: parseInt(v) })}
+                      accent={step.accent}
+                      textColor={step.textColor} 
+                      options={[
+                        { key: "1", label: "Tidak merencanakan" },
+                        { key: "2", label: "Bulan depan" },
+                        { key: "3", label: "1 tahun" },
+                        { key: "4", label: "Beberapa tahun (2-4)" },
+                        { key: "5", label: "5 - 10 tahun" },
+                        { key: "6", label: "Lebih dari 10 tahun" }
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.75rem" }}>
+                      SEBERAPA SPESIFIK DAN JELAS TARGET KEUANGANMU SAAT INI?
+                    </label>
+                    <CustomSelect 
+                      value={formData.finGoals.toString()} 
+                      onChange={v => setFormData({ ...formData, finGoals: parseInt(v) })}
+                      accent={step.accent}
+                      textColor={step.textColor} 
+                      options={[
+                        { key: "1", label: "Tidak punya" },
+                        { key: "2", label: "Ada tapi samar" },
+                        { key: "3", label: "Cukup jelas" },
+                        { key: "4", label: "Sangat spesifik" }
+                      ]}
+                    />
                   </div>
                 </div>
               </div>
@@ -654,7 +757,7 @@ export default function OnboardingPage() {
                   style={{
                     flex: 1, 
                     background: step.accent,
-                    color: "var(--color-navy)",
+                    color: step.textColor,
                     display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
                     opacity: canProceed() ? 1 : 0.5,
                     padding: "0.75rem 1.25rem", fontSize: "0.95rem"
@@ -698,6 +801,22 @@ function InputField({
   accent: string; prefix?: string;
 }) {
   const [focused, setFocused] = useState(false);
+  
+  const isMoney = prefix === "Rp";
+  
+  const displayValue = isMoney && value
+    ? value.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+    : value;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isMoney) {
+      const unformatted = e.target.value.replace(/\D/g, "");
+      onChange(unformatted);
+    } else {
+      onChange(e.target.value);
+    }
+  };
+
   return (
     <div>
       <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, letterSpacing: "1px", color: "var(--color-navy)", marginBottom: "0.5rem" }}>
@@ -710,9 +829,9 @@ function InputField({
           </span>
         )}
         <input
-          type={type}
-          value={value}
-          onChange={e => onChange(e.target.value)}
+          type={isMoney ? "text" : type}
+          value={displayValue}
+          onChange={handleChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
@@ -731,4 +850,67 @@ function InputField({
     </div>
   );
 }
+
+const CustomSelect = ({ value, onChange, options, disabledOption, accent = "var(--color-purple)", textColor = "var(--color-white)" }: { value: string, onChange: (val: string) => void, options: {key:string, label:string}[], disabledOption?: string, accent?: string, textColor?: string }) => {
+  const [open, setOpen] = useState(false);
+  const selectedOpt = options.find(o => o.key === value);
+  const hasSelection = !!selectedOpt && value !== "0" && value !== "";
+
+  return (
+    <div style={{ position: "relative", width: "100%" }}>
+      <button 
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{ 
+          width: "100%", padding: "0.85rem", borderRadius: "var(--radius-brutal-sm)",
+          border: "2px solid var(--color-navy)", fontSize: "0.95rem", fontWeight: 700,
+          background: open || hasSelection ? accent : "var(--color-white)", 
+          color: open || hasSelection ? textColor : "var(--color-navy)",
+          boxShadow: open || hasSelection ? `4px 4px 0px ${accent}` : "2px 2px 0px var(--color-navy)", 
+          outline: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between",
+          fontFamily: "var(--font-body)", transition: "all 0.2s"
+        }}
+      >
+        <span>
+          {selectedOpt?.label || disabledOption || "Pilih opsi..."}
+        </span>
+        <ChevronDown size={18} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+      </button>
+      
+      {open && (
+        <div className="no-scrollbar" style={{
+          position: "absolute", top: "100%", left: 0, width: "100%", marginTop: "0.5rem",
+          background: "var(--color-white)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+          boxShadow: `4px 4px 0px ${accent}`, zIndex: 10, maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column"
+        }}>
+          {disabledOption && (
+            <div style={{ padding: "0.75rem 1rem", fontSize: "0.9rem", color: "var(--color-text-muted)", fontWeight: 700, borderBottom: "1px solid rgba(10,25,47,0.05)" }}>
+              {disabledOption}
+            </div>
+          )}
+          {options.map(opt => {
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => { onChange(opt.key); setOpen(false); }}
+                style={{
+                  padding: "0.75rem 1rem", display: "flex", alignItems: "center", border: "none",
+                  background: value === opt.key ? accent : "transparent",
+                  color: value === opt.key ? textColor : "var(--color-navy)",
+                  fontWeight: value === opt.key ? 800 : 700, textAlign: "left", cursor: "pointer", borderBottom: "1px solid rgba(10,25,47,0.05)",
+                  fontSize: "0.95rem", fontFamily: "var(--font-body)"
+                }}
+                onMouseEnter={(e) => { if(value !== opt.key) e.currentTarget.style.background = "var(--color-bg)" }}
+                onMouseLeave={(e) => { if(value !== opt.key) e.currentTarget.style.background = "transparent" }}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 

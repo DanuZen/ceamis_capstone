@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Target,
   BarChart3,
-  Lock
+  Lock,
+  CheckCircle2
 } from "lucide-react";
 import { useTransactions } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
@@ -287,8 +288,8 @@ export default function DashboardPage() {
                             {t("dashboard.locked")}
                           </span>
                         </div>
-                        <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "rgba(10,25,47,0.4)", margin: 0 }}>
-                          {t("dashboard.lockedDesc")}{userData.healthScore.toFixed(0)}/100 ✓
+                        <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "rgba(10,25,47,0.4)", margin: 0, display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                          {t("dashboard.lockedDesc")}{userData.healthScore.toFixed(0)}/100 <CheckCircle2 size={14} />
                         </p>
                       </div>
                     </div>

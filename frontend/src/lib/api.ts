@@ -23,9 +23,17 @@ async function request<T>(
     throw new Error(err.message || `API Error: ${res.status}`);
   }
 
-  // Handle 204 No Content
+  // Handle 204 No Content atau body kosong
   if (res.status === 204) return {} as T;
-  return res.json();
+  
+  const text = await res.text();
+  if (!text) return null as unknown as T;
+  
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    return text as unknown as T;
+  }
 }
 
 // ── Users ─────────────────────────────────────────────────────
