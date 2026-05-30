@@ -231,8 +231,6 @@ export interface HealthScoreResult {
 
 export interface SpendingClusterPayload {
   user_id: string;
-  category_breakdown: Record<string, number>;
-  total_transactions: number;
 }
 
 export interface SpendingClusterResult {

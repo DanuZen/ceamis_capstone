@@ -113,17 +113,13 @@ export class AiService {
    */
   async getSpendingCluster(payload: {
     user_id: string;
-    category_breakdown: Record<string, number>;
-    total_transactions: number;
   }) {
     try {
       const { data } = await firstValueFrom(
         this.httpService.post(
-          `${this.aiServiceUrl}/api/v1/predict/spending-cluster`,
+          `${this.aiServiceUrl}/api/v1/analyze`,
           {
             user_id:            payload.user_id,
-            category_breakdown: payload.category_breakdown,
-            total_transactions: payload.total_transactions,
           },
           { timeout: 10000 },
         ),
