@@ -1,0 +1,27 @@
+name: Sync to Hugging Face Hub
+
+on:
+  push:
+    branches: [ main ] # Akan jalan otomatis setiap kamu push ke branch main
+
+  # Mengizinkan kamu menjalankan workflow ini secara manual dari tab Actions di GitHub
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Langkah 1: Ambil source code dari repositori GitHub
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true # Pastikan true jika kamu menggunakan Git LFS untuk file besar
+          
+      # Langkah 2: Dorong (push) kode ke Hugging Face Spaces
+      - name: Push to HF
+        env:
+          # Mengambil token CEAMIS yang sudah kamu simpan di GitHub Secret tadi
+          HF_TOKEN: ${{ secrets.Ceamis }}
+        run: |
+          # Ganti USERNAME_HF dan NAMA_SPACES sesuai dengan akun Hugging Face kamu
+          git push --force https://USERNAME_HF:$HF_TOKEN@huggingface.co/spaces/USERNAME_HF/NAMA_SPACES main
