@@ -214,7 +214,7 @@ export default function RegisterPage() {
           box-shadow: 0 15px 35px 0 rgba(0, 0, 0, 0.2);
         }
         .logo-container-reg {
-          animation: pulseGlow 3s infinite;
+          /* Effect removed as requested */
         }
       `}</style>
 
@@ -234,7 +234,7 @@ export default function RegisterPage() {
       >
         {/* Logo */}
         <div style={{ position: "relative", zIndex: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", filter: "drop-shadow(2px 2px 0px rgba(0,0,0,0.4))" }}>
             <div className="logo-container-reg" style={{
               width: "64px", height: "64px",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -262,7 +262,7 @@ export default function RegisterPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "95%" }}>
             {/* Feature 1 */}
             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-              <div style={{ background: "linear-gradient(135deg, var(--color-lime), #84cc00)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "0 4px 12px rgba(204, 255, 0, 0.3)", flexShrink: 0 }}>
+              <div style={{ background: "var(--color-lime)", border: "2.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", flexShrink: 0 }}>
                 <Zap size={24} strokeWidth={2.5} />
               </div>
               <div>
@@ -273,7 +273,7 @@ export default function RegisterPage() {
 
             {/* Feature 2 */}
             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-              <div style={{ background: "linear-gradient(135deg, var(--color-orange), #e66c00)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-white)", boxShadow: "0 4px 12px rgba(255, 122, 0, 0.3)", flexShrink: 0 }}>
+              <div style={{ background: "var(--color-orange)", border: "2.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-white)", boxShadow: "4px 4px 0px var(--color-navy)", flexShrink: 0 }}>
                 <ShieldCheck size={24} strokeWidth={2.5} />
               </div>
               <div>
@@ -284,7 +284,7 @@ export default function RegisterPage() {
 
             {/* Feature 3 */}
             <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-              <div style={{ background: "linear-gradient(135deg, #FFFFFF, #E2E8F0)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "0 4px 12px rgba(255, 255, 255, 0.2)", flexShrink: 0 }}>
+              <div style={{ background: "var(--color-white)", border: "2.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", flexShrink: 0 }}>
                 <User size={24} strokeWidth={2.5} />
               </div>
               <div>

@@ -2,59 +2,21 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BookOpen, Award, PlayCircle, Clock } from "lucide-react";
+import { BookOpen, Award, PlayCircle, Clock, Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { getModules, getQuizzes } from "@/app/admin/education/actions";
 
-const initialModules = [
-  {
-    id: 1,
-    level: "Beginner",
-    color: "lime",
-    progress: 0,
-  },
-  {
-    id: 2,
-    level: "Beginner",
-    color: "purple",
-    progress: 0,
-  },
-  {
-    id: 3,
-    level: "Intermediate",
-    color: "orange",
-    progress: 0,
-  },
-  {
-    id: 4,
-    level: "Intermediate",
-    color: "lime",
-    progress: 0,
-  },
-  {
-    id: 5,
-    level: "Advanced",
-    color: "purple",
-    progress: 0,
-  },
-  {
-    id: 6,
-    level: "Advanced",
-    color: "orange",
-    progress: 0,
-  },
-];
-
 export default function EducationPage() {
   const { unlockBadge } = useUser();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
-  const [modules, setModules] = useState<any[]>(initialModules);
+  const [modules, setModules] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [completedQuizzes, setCompletedQuizzes] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"modules" | "quizzes">("modules");
+  const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -86,6 +48,8 @@ export default function EducationPage() {
         setQuizzes(fetchedQuizzes.filter((q: any) => q.status === "active"));
       } catch (error) {
         console.error("Failed to load education data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -225,12 +189,18 @@ export default function EducationPage() {
               gap: "1.5rem",
             }}
           >
-            {filteredModules.length === 0 && (
+            {isLoading ? (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  <Loader2 className="animate-spin" size={20} /> Memuat modul...
+                </p>
+              </div>
+            ) : filteredModules.length === 0 && (
               <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
                 <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>{t("dashboard.education.searchNotFound1")}{searchQuery}{t("dashboard.education.searchNotFound2")}</p>
               </div>
             )}
-            {filteredModules.map((mod, index) => {
+            {!isLoading && filteredModules.map((mod, index) => {
               const accentColor = `var(--color-${mod.color})`;
               return (
                 <Link 
@@ -306,7 +276,18 @@ export default function EducationPage() {
               gap: "1.5rem",
             }}
           >
-            {quizzes.map((quiz, index) => {
+            {isLoading ? (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  <Loader2 className="animate-spin" size={20} /> Memuat kuis...
+                </p>
+              </div>
+            ) : quizzes.length === 0 && (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>Belum ada kuis yang tersedia saat ini.</p>
+              </div>
+            )}
+            {!isLoading && quizzes.map((quiz, index) => {
               const mod = modules.find(m => m.id === quiz.moduleId) || { title: `Modul #${quiz.moduleId}` };
               return (
                 <Link 

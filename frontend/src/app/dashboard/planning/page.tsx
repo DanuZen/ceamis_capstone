@@ -40,7 +40,7 @@ const IconBox = ({ iconKey, size = 20, bg }: { iconKey: string; size?: number; b
       borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)",
       background: bg || "var(--color-bg)", boxShadow: "2px 2px 0px var(--color-navy)",
     }}>
-      <Icon size={size} color="var(--color-navy)" strokeWidth={2.5} />
+      <Icon size={size} color={bg === "var(--color-lime)" || !bg || bg === "var(--color-bg)" ? "var(--color-navy)" : "var(--color-white)"} strokeWidth={2.5} />
     </div>
   );
 };
@@ -517,15 +517,14 @@ export default function PlanningPage() {
           }
         });
       } else {
-        // Get risk profile from cache, fallback to "Moderat"
+        // Get risk profile from DB, fallback to "Moderat"
         let riskProfile: "Konservatif" | "Moderat" | "Agresif" = "Moderat";
-        const cachedProfile = localStorage.getItem("ceamis_risk_profile");
-        if (cachedProfile) {
-          try {
-            const p = JSON.parse(cachedProfile);
-            if (p.risk_profile in RISK_BUDGET_CONFIG) riskProfile = p.risk_profile;
-          } catch (e) {}
-        }
+        try {
+          const cachedProfile = userData?.id ? await getRiskProfile(userData.id) : null;
+          if (cachedProfile && cachedProfile.profile in RISK_BUDGET_CONFIG) {
+            riskProfile = cachedProfile.profile as "Konservatif" | "Moderat" | "Agresif";
+          }
+        } catch (e) {}
 
         const config = RISK_BUDGET_CONFIG[riskProfile];
         const { needs: pNeeds, wants: pWants, savings: pSavings } = config.ratios;
@@ -697,18 +696,14 @@ export default function PlanningPage() {
 
   // Target percentages from risk profile (for header badge display)
   const getRiskTargetRatios = () => {
-    try {
-      const cached = localStorage.getItem("ceamis_risk_profile");
-      if (cached) {
-        const p = JSON.parse(cached);
-        const config = RISK_BUDGET_CONFIG[p.risk_profile as string];
-        if (config) return {
-          needs: Math.round(config.ratios.needs * 100),
-          wants: Math.round(config.ratios.wants * 100),
-          savings: Math.round(config.ratios.savings * 100),
-        };
-      }
-    } catch (e) {}
+    if (riskResult?.risk_profile) {
+      const config = RISK_BUDGET_CONFIG[riskResult.risk_profile];
+      if (config) return {
+        needs: Math.round(config.ratios.needs * 100),
+        wants: Math.round(config.ratios.wants * 100),
+        savings: Math.round(config.ratios.savings * 100),
+      };
+    }
     return { needs: 50, wants: 30, savings: 20 }; // Moderat fallback
   };
   const riskRatios = getRiskTargetRatios();
@@ -952,13 +947,13 @@ export default function PlanningPage() {
         })()}
 
         {[
-          { label: t("dashboard.planning.needs"), amount: totalNeeds, color: "lime", Icon: Home },
-          { label: t("dashboard.planning.wants"), amount: totalWants, color: "orange", Icon: Gamepad2 },
-          { label: t("dashboard.planning.savings"), amount: totalSavings, color: "purple", Icon: Banknote },
+          { label: t("dashboard.planning.needs"), amount: badgeNeedsRp, color: "lime", Icon: Home },
+          { label: t("dashboard.planning.wants"), amount: badgeWantsRp, color: "orange", Icon: Gamepad2 },
+          { label: t("dashboard.planning.savings"), amount: badgeSavingsRp, color: "purple", Icon: Banknote },
         ].map((s, idx) => (
           <div key={idx} className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", transition: "transform 0.2s" }}>
             <div style={{ background: `var(--color-${s.color})`, width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
-              <s.Icon size={24} color={s.color === "purple" ? "var(--color-white)" : "var(--color-navy)"} strokeWidth={2.5} />
+              <s.Icon size={24} color={s.color === "lime" ? "var(--color-navy)" : "var(--color-white)"} strokeWidth={2.5} />
             </div>
             <div style={{ overflow: "hidden" }}>
               <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{formatRp(s.amount)}</div>
@@ -977,8 +972,11 @@ export default function PlanningPage() {
           <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "800px", maxHeight: "800px", display: "flex", flexDirection: "column" }}>
             
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <Target size={24} /> {t("dashboard.planning.categoryBudget")}
+              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div style={{ width: "36px", height: "36px", background: "var(--color-bg)", borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                  <Target size={20} color="var(--color-navy)" strokeWidth={2.5} />
+                </div>
+                {t("dashboard.planning.categoryBudget")}
               </h3>
               
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -1035,13 +1033,13 @@ export default function PlanningPage() {
                 {activeFilter === "wants" && (
                   <div style={{ display: "inline-flex", alignItems: "center", gap: "0.85rem", background: "var(--color-white)", padding: "0.5rem 1rem 0.5rem 0.5rem", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
                     <div style={{ background: "var(--color-orange)", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
-                      <Sparkles size={22} color="var(--color-navy)" strokeWidth={2.5} />
+                      <Sparkles size={22} color="var(--color-white)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
                       Keinginan
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                      <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                      <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
                         {badgeWants}%
                       </div>
                       <div style={{ background: "var(--color-bg)", padding: "0.2rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
