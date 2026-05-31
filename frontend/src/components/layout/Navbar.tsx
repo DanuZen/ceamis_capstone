@@ -160,7 +160,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
           <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>
             {t("navbar.guestMode")}
           </span>
-          <Link href="/auth" style={{ textDecoration: "none" }}>
+          <Link href="/auth/register" style={{ textDecoration: "none" }}>
             <button
               className="btn-brutal"
               style={{
@@ -304,7 +304,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
         </div>
 
         {/* Global Search */}
-        <div style={{ position: "relative", width: "300px" }}>
+        <div className="navbar-search" style={{ position: "relative", width: "300px" }}>
           <Search size={18} color="var(--color-text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
           <input 
             type="text" 
@@ -347,7 +347,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
 
       <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
         {/* Date Display */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--color-navy)", fontSize: "0.85rem", fontWeight: 700 }}>
+        <div className="navbar-date" style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--color-navy)", fontSize: "0.85rem", fontWeight: 700 }}>
           <Calendar size={16} strokeWidth={2.5} />
           {today}
         </div>
@@ -356,7 +356,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
           {/* Language Switcher */}
           <button 
             onClick={() => setLanguage(language === "id" ? "en" : "id")} 
-            className="btn-brutal"
+            className="btn-brutal navbar-language"
             style={{ 
               height: "48px", padding: "0 0.85rem", fontSize: "0.85rem", fontWeight: 800, 
               background: "var(--color-white)", border: "2px solid var(--color-navy)",
@@ -373,7 +373,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
           </button>
 
           {/* User Stats Group */}
-          <div style={{ 
+          <div className="navbar-stats" style={{ 
             display: "flex", alignItems: "center", gap: "0.75rem", padding: "0 0.85rem", height: "48px", boxSizing: "border-box",
             background: "var(--color-white)", border: "2px solid var(--color-navy)", 
             borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)" 

@@ -118,16 +118,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "1.25rem",
-          marginBottom: "2.5rem",
-        }}
-        className="stagger-children"
-      >
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+      <div className="quick-stats-grid stagger-children">
+        <div className="card-brutal quick-stat-card">
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-lime)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <Flame size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
@@ -137,20 +129,19 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+        <div className="card-brutal quick-stat-card">
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-purple)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp {(sisaSaldo/1000).toLocaleString("id-ID")}k</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp {sisaSaldo.toLocaleString("id-ID")}</div>
             <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.balance")}</div>
           </div>
         </div>
 
         <div 
-          className="card-brutal" 
+          className="card-brutal quick-stat-card" 
           style={{ 
-            display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem",
             border: userData.warningTriggered ? "3px solid var(--color-pink)" : undefined,
             boxShadow: userData.warningTriggered ? "4px 4px 0px var(--color-pink)" : undefined,
             animation: userData.warningTriggered ? "pulse-border 1.5s ease-in-out infinite" : undefined,
@@ -186,7 +177,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+        <div className="card-brutal quick-stat-card">
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-white)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <BarChart3 size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
@@ -390,7 +381,7 @@ export default function DashboardPage() {
                     color: trx.type === 'pemasukan' ? 'var(--color-navy)' : 'var(--color-danger)',
                     fontSize: "1rem"
                   }}>
-                    {trx.type === 'pemasukan' ? '+' : '-'}Rp{(Math.abs(trx.amount)/1000).toLocaleString('id-ID')}k
+                    {trx.type === 'pemasukan' ? '+' : '-'}Rp {Math.abs(trx.amount).toLocaleString('id-ID')}
                   </div>
                 </div>
               )) : (
