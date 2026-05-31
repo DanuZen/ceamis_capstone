@@ -16,7 +16,8 @@ export async function createBadge(data: any) {
       desc: data.desc,
       icon: data.icon,
       requirementType: data.requirementType,
-      requirementValue: data.requirementValue
+      requirementValue: data.requirementValue,
+      xp: data.xp || 100
     }
   });
 }
@@ -29,7 +30,8 @@ export async function updateBadge(id: string, data: any) {
       desc: data.desc,
       icon: data.icon,
       requirementType: data.requirementType,
-      requirementValue: data.requirementValue
+      requirementValue: data.requirementValue,
+      xp: data.xp || 100
     }
   });
 }
@@ -52,7 +54,8 @@ export async function saveBadgesBulk(badges: any[]) {
         desc: b.desc,
         icon: b.icon,
         requirementType: b.requirementType,
-        requirementValue: b.requirementValue
+        requirementValue: b.requirementValue,
+        xp: b.xp || 100
       }))
     });
   }

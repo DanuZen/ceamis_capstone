@@ -33,7 +33,7 @@ const LEVEL_CONFIG = [
 ];
 
 export default function AdminGamificationPage() {
-  const [badges, setBadgesState] = useState(INITIAL_BADGES);
+  const [badges, setBadgesState] = useState<any[]>(INITIAL_BADGES);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchBadges = async () => {
@@ -67,12 +67,13 @@ export default function AdminGamificationPage() {
     const formData = new FormData(e.currentTarget);
     
     const newBadgeData = {
-      id: `badge_${Date.now()}`,
+      id: formData.get("name")?.toString().toLowerCase().replace(/\s+/g, '_') || `badge_${Date.now()}`,
       name: formData.get("name") as string,
       desc: formData.get("requirement") as string,
       icon: formData.get("icon") as string,
-      requirementType: "manual",
-      requirementValue: Number(formData.get("xp"))
+      requirementType: formData.get("requirementType") as string,
+      requirementValue: Number(formData.get("requirementValue")),
+      xp: Number(formData.get("xp"))
     };
     
     await createBadge(newBadgeData);
@@ -139,8 +140,12 @@ export default function AdminGamificationPage() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", marginBottom: "0.25rem" }}>{badge.name}</div>
-              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", lineHeight: 1.4, marginBottom: "0.5rem" }}>{badge.requirement}</div>
-              <span style={{ fontSize: "0.75rem", fontWeight: 800, padding: "0.15rem 0.5rem", background: "var(--color-purple)", color: "var(--color-white)", borderRadius: "100px", border: "2px solid var(--color-navy)" }}>+{badge.xp} XP</span>
+              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", lineHeight: 1.4, marginBottom: "0.5rem" }}>
+                {badge.desc || badge.requirement} 
+                <br/>
+                <span style={{ color: "var(--color-purple)", fontWeight: 700 }}>Syarat: {badge.requirementType} ({badge.requirementValue})</span>
+              </div>
+              <span style={{ fontSize: "0.75rem", fontWeight: 800, padding: "0.15rem 0.5rem", background: "var(--color-purple)", color: "var(--color-white)", borderRadius: "100px", border: "2px solid var(--color-navy)" }}>+{badge.xp || badge.requirementValue} XP</span>
             </div>
           </div>
         ))}
@@ -167,8 +172,24 @@ export default function AdminGamificationPage() {
                 <input name="name" required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Sang Juara" />
               </div>
               <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Persyaratan (Deskripsi)</label>
-                <input name="requirement" required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Capai level 5" />
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Persyaratan (Deskripsi UI)</label>
+                <input name="requirement" required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Selesaikan 5 Modul Edukasi" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Tipe Syarat (Sistem)</label>
+                  <select name="requirementType" className="input-brutal" style={{ width: "100%" }}>
+                    <option value="module_completed">Modul Diselesaikan</option>
+                    <option value="transaction_count">Jumlah Transaksi</option>
+                    <option value="login_streak">Login Streak (Hari)</option>
+                    <option value="budget_kept">Budget Terjaga (Minggu)</option>
+                    <option value="level_reached">Level Dicapai</option>
+                  </select>
+                </div>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Nilai Target (Sistem)</label>
+                  <input name="requirementValue" type="number" defaultValue={5} required className="input-brutal" style={{ width: "100%" }} />
+                </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div className="input-group-brutal">

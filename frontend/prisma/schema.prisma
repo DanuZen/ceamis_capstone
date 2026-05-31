@@ -118,6 +118,7 @@ model GamificationBadge {
   icon            String
   requirementType String
   requirementValue Int
+  xp              Int      @default(100)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

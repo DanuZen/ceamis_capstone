@@ -103,7 +103,6 @@ export default function AdminQuizzesPage() {
             <thead>
               <tr style={{ background: "var(--color-bg)", borderBottom: "3px solid var(--color-navy)" }}>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Pertanyaan Kuis</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>ID Modul</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>XP Points</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Status</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)", width: "120px", textAlign: "center" }}>Aksi</th>
@@ -113,7 +112,6 @@ export default function AdminQuizzesPage() {
               {quizzes.map((quiz, i) => (
                 <tr key={quiz.id} style={{ borderBottom: i < quizzes.length - 1 ? "2px solid rgba(10, 25, 47, 0.05)" : "none" }}>
                   <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>{quiz.question}</td>
-                  <td style={{ padding: "1rem 1.25rem", fontWeight: 800, color: "var(--color-purple)" }}>Modul #{quiz.moduleId}</td>
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <span className="badge-brutal" style={{ background: "var(--color-pink)", fontSize: "0.75rem", boxShadow: "none" }}>+{quiz.points} XP</span>
                   </td>

@@ -51,9 +51,10 @@ Sistem CEAMIS didesain dari awal (*from scratch*) dengan memisahkan antarmuka pe
 | Layer | Teknologi Utama | Keterangan Tambahan |
 | --- | --- | --- |
 | **Frontend** | Next.js (App Router), React, CSS | Antarmuka bergaya *Neo-Brutalism Design* yang interaktif. |
-| **Backend & ORM** | Next.js Server Actions, Node.js, Prisma | Logika CRUD sisi server, memastikan tidak ada kunci API yang bocor. |
+| **Backend API** | NestJS (Node.js) | Melayani endpoint API utama (transaksi, profil) di port 3001. |
+| **Backend & ORM** | Next.js Server Actions, Prisma | Logika khusus untuk modul fitur tertentu yang berjalan di server. |
 | **Database Utama** | Supabase PostgreSQL | Relasional database dengan manajemen koneksi *Connection Pooler*. |
-| **AI Microservice** | FastAPI (Python), TensorFlow, Scikit-Learn | Endpoint API terpisah untuk melakukan inferensi model *Machine Learning*. |
+| **AI Microservice** | FastAPI (Python), TensorFlow, Scikit-Learn | Endpoint API terpisah di port 8000 untuk inferensi model *Machine Learning*. |
 
 ## Struktur Folder
 
@@ -66,10 +67,47 @@ ceamis/
 │   ├── src/components/    # Komponen React (Neo-Brutalist UI)
 │   ├── src/context/       # Global State Management (User, Transactions)
 │   └── prisma/            # Skema Database (schema.prisma) & Migrasi SQL
+├── backend/               # Main API & Business Logic (NestJS)
+│   ├── src/               # Controller, Modules, dan Services utama
+│   └── supabase/          # Konfigurasi klien database
 ├── ai-service/            # Microservice AI & Machine Learning (FastAPI)
 │   ├── app/               # Logika API Endpoint, Routing, & Inferensi Model
 │   └── models/            # Model Machine Learning hasil pelatihan (.pkl, .h5)
 └── docs/                  # Pusat Dokumentasi Lengkap Proyek
+```
+
+## Panduan Menjalankan Proyek Lokal (Development)
+
+Proyek ini menggunakan arsitektur *microservices*. Anda perlu membuka 3 terminal (Command Prompt/PowerShell) terpisah untuk menjalankan masing-masing layanan secara bersamaan.
+
+**1. Menjalankan Backend API (NestJS)**
+Backend utama berjalan di port 3001 dan bertugas melayani data transaksi dan profil pengguna.
+```bash
+cd backend
+npm install
+npm run start:dev
+# Akan berjalan di http://localhost:3001
+```
+
+**2. Menjalankan AI Service (FastAPI)**
+Layanan kecerdasan buatan berjalan di port 8000.
+```bash
+cd ai-service
+# Mengaktifkan virtual environment (wajib pada Windows)
+venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+# Akan berjalan di http://localhost:8000
+```
+
+**3. Menjalankan Frontend (Next.js)**
+Antarmuka pengguna berjalan di port 3000.
+```bash
+cd frontend
+npm install
+npx prisma generate
+npm run dev
+# Buka http://localhost:3000 di browser
 ```
 
 ## Tim Pengembang
