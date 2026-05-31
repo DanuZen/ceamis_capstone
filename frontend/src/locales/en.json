@@ -318,7 +318,7 @@
       "qq2": "What is an emergency fund?",
       "qq3": "Tips to reduce impulsive spending",
       "qq4": "What's the ideal saving ratio?",
-      "connErrorText": "Oops, we couldn't connect to the AI service. Make sure the AI service is running on `http://localhost:8000`!",
+      "connErrorText": "Oops, it seems there's a connection issue with the server. Please try refreshing the page in a moment!",
       "sensitive": "SENSITIVE",
       "connError": "CONNECTION ERROR",
       "camiThinking": "CAMI IS THINKING...",

@@ -262,7 +262,7 @@
       "qq2": "Apa itu emergency fund?",
       "qq3": "Tips kurangi pengeluaran impulsif",
       "qq4": "Berapa ideal rasio tabungan?",
-      "connErrorText": "Waduh, koneksi ke AI service lagi bermasalah nih. Pastiin AI service udah jalan di `http://localhost:8000` ya!",
+      "connErrorText": "Waduh, sepertinya sedang ada masalah koneksi ke server. Silakan coba muat ulang halaman ini beberapa saat lagi ya!",
       "sensitive": "SENSITIF",
       "connError": "CONNECTION ERROR",
       "camiThinking": "CAMI MIKIR...",
