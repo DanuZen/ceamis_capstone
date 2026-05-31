@@ -162,7 +162,7 @@ export default function QuizDetailPage() {
               <div style={{ marginBottom: "2.5rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-navy)", marginBottom: "1rem" }}>
                   <Award size={24} color="var(--color-navy)" />
-                  <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>Kuis Evaluasi Modul {id}</span>
+                  <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>Kuis Evaluasi</span>
                   <span style={{ color: "var(--color-navy)", opacity: 0.2 }}>•</span>
                   <span style={{ color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
                     Soal {currentQuestion + 1} dari {questions.length}

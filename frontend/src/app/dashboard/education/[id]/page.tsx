@@ -41,7 +41,8 @@ export default function ModuleDetailPage() {
         if (pages && pages.length > 0) {
           setContent(pages);
         } else {
-          const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true }) || t(`dashboard.education.detail.moduleData.1`, { returnObjects: true });
+          // If no pages exist in DB, check if it's a legacy module with JSON translation
+          const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true });
           const contentArray = Array.isArray(translatedContent) ? translatedContent : [];
           setContent(contentArray);
         }
@@ -149,7 +150,7 @@ export default function ModuleDetailPage() {
           <div style={{ marginBottom: "2.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-navy)", marginBottom: "1rem" }}>
               <BookOpen size={24} color="var(--color-navy)" />
-              <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>{t("dashboard.education.detail.moduleLabel")} {id}</span>
+              <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>{t("dashboard.education.detail.moduleLabel")} MATERI</span>
               <span style={{ color: "var(--color-navy)", opacity: 0.2 }}>•</span>
               <span style={{ color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
                 {t("dashboard.education.detail.pageLabel")} {currentPage + 1} {t("dashboard.education.detail.fromLabel")} {module.content.length}

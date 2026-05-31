@@ -119,7 +119,20 @@ export default function EducationPage() {
       <div className="card-brutal animate-bounce-in" style={{ marginBottom: "3rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", padding: "2rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem", margin: 0 }}>
-            <Award size={28} color="var(--color-orange)" strokeWidth={2.5} />
+            <div style={{
+              width: "44px",
+              height: "44px",
+              background: "var(--color-orange)",
+              border: "2.5px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)",
+              boxShadow: "3px 3px 0px var(--color-navy)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}>
+              <Award size={22} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
             {t("dashboard.education.progressTitle")}
           </h3>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -197,7 +210,11 @@ export default function EducationPage() {
               </div>
             ) : filteredModules.length === 0 && (
               <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
-                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>{t("dashboard.education.searchNotFound1")}{searchQuery}{t("dashboard.education.searchNotFound2")}</p>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>
+                  {searchQuery 
+                    ? <>{t("dashboard.education.searchNotFound1")}{searchQuery}{t("dashboard.education.searchNotFound2")}</>
+                    : "Materi pembelajaran akan segera hadir."}
+                </p>
               </div>
             )}
             {!isLoading && filteredModules.map((mod, index) => {

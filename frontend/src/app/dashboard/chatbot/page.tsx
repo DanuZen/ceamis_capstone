@@ -152,7 +152,7 @@ export default function ChatbotPage() {
 
   // ── Ping AI service sekali saat mount ───────────────────────────────────
   useEffect(() => {
-    fetch(`${AI_URL}/health`, { signal: AbortSignal.timeout(3000) })
+    fetch(`${AI_URL}/health`, { signal: AbortSignal.timeout(10000) })
       .then(r => setIsConnected(r.ok))
       .catch(() => setIsConnected(false));
   }, []);
