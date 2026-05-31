@@ -1,111 +1,123 @@
 # CEAMIS
 
-**Ekosistem Pencatatan Keuangan Gen-Z Berbasis AI, Gamifikasi, & Edukasi Adaptif**
+**Control Every Awful Money Impulse System**
 
-"Cerdas Finansial, Kontrol Impuls, Raih Masa Depan"
+*Cerdas Finansial, Kontrol Impuls, Raih Masa Depan*
 
----
+## Tentang CEAMIS
 
-## Tentang
+**CEAMIS** adalah platform manajemen keuangan komprehensif yang dirancang secara spesifik untuk memecahkan masalah literasi keuangan dan kontrol impuls pada Generasi Z di Indonesia. Permasalahan utama yang sering dihadapi oleh generasi muda saat ini bukanlah kurangnya informasi, melainkan kurangnya kesadaran dan disiplin dalam mengelola pengeluaran harian, terutama yang bersifat impulsif (*latte factor*, *doom spending*, dan *fear of missing out*).
 
-CEAMIS adalah platform pencatatan keuangan untuk Gen-Z Indonesia, menggabungkan AI (insight, XAI, chatbot), gamifikasi (streak, badge, leaderboard), dan edukasi finansial adaptif. Dirancang untuk membangun kebiasaan finansial sehat secara fun, interaktif, dan relevan.
+Alih-alih sekadar menjadi aplikasi pencatat pengeluaran pasif yang membosankan, CEAMIS bertindak sebagai asisten finansial yang proaktif. Kami merancang arsitektur sistem ini dengan menggabungkan tiga pilar utama untuk menciptakan perubahan perilaku yang nyata:
+1. **Kecerdasan Buatan (AI):** Memberikan analisis perilaku yang mendalam dan *hyper-personalized* berdasarkan data transaksi nyata.
+2. **Gamifikasi:** Membangun kebiasaan pencatatan melalui mekanisme psikologi positif, memberikan penghargaan atas setiap langkah kecil menuju kesehatan finansial.
+3. **Edukasi Adaptif:** Meningkatkan literasi keuangan secara berkelanjutan dengan memberikan materi yang sesuai dengan tingkat pemahaman pengguna saat ini.
 
-## Tech Stack
+## Latar Belakang Masalah
 
-| Layer       | Teknologi                                                |
-| ----------- | -------------------------------------------------------- |
-| Frontend    | Next.js, Vite, TypeScript, TailwindCSS, D3.js, Mapbox GL |
-| Backend API | Express.js, TypeScript, Zod, PostgreSQL, Redis           |
-| Backend AI  | FastAPI, Python, TensorFlow, scikit-learn                |
-| Database    | PostgreSQL + PostGIS + TimescaleDB, Redis                |
-| DevOps      | Docker, GitHub Actions, Vercel, Railway                  |
+Menurut riset terbaru, mayoritas anak muda kesulitan menabung bukan karena pendapatan yang kurang, melainkan karena pengeluaran mikro yang tidak terkontrol. Pencatat keuangan konvensional seringkali gagal karena prosesnya kaku dan tidak memberikan umpan balik instan. CEAMIS hadir untuk mengisi celah tersebut dengan antarmuka bergaya *Neo-Brutalism* yang tegas, lugas, dan interaktif, menyingkirkan kebosanan dari proses perencanaan keuangan.
 
-## Struktur Project
+## Fitur Utama
 
-```
-ceamis/
-├── frontend/              # Next.js/Vite — dashboard & UI
-├── backend/               # Express.js — REST API & auth
-├── ai-service/            # FastAPI — AI/ML services
-├── docs/                  # Dokumentasi arsitektur & API
-├── infrastructure/        # Docker, deployment scripts
-└── .github/               # Copilot instructions, CI/CD workflows
-```
+### 1. Deteksi Gaya Hidup Berbasis AI (Spending Cluster)
+Sistem secara otomatis mengklasifikasikan pola pengeluaran pengguna ke dalam kategori gaya hidup spesifik. Model Machine Learning kami memproses riwayat transaksi dan mengelompokkan profil pengguna (misalnya: *Impulsive Buyer*, *Frugal*, atau *Balanced*). Fitur ini membantu pengguna menyadari secara langsung kebocoran halus yang menguras kondisi finansial mereka tanpa disadari, memberikan *wake-up call* yang terukur berbasis data.
 
-## Getting Started
+### 2. Skor Kesehatan Finansial (Financial Health Score)
+Penilaian komprehensif dan *real-time* terhadap kondisi keuangan pengguna. Metrik ini dievaluasi secara dinamis berdasarkan perhitungan kompleks yang mempertimbangkan:
+- Rasio utang terhadap pendapatan (*Debt-to-Income Ratio*).
+- Tingkat tabungan (*Savings Rate*).
+- Kepatuhan terhadap batas anggaran bulanan yang telah ditetapkan.
+Skor ini divisualisasikan dengan indikator warna dan grafik yang tegas untuk memberikan kesadaran instan kepada pengguna mengenai posisi finansial mereka.
 
-1. Clone repo & install dependencies di tiap service
-2. Copy .env.example → .env di tiap service
-3. Jalankan database: `docker compose -f infrastructure/docker/docker-compose.yml up -d`
-4. Jalankan service di terminal terpisah:
-   - frontend: `npm run dev`
-   - backend: `npm run dev`
-   - ai-service: `uvicorn src.main:app --reload`
+### 3. Asisten AI Personal (CAMI)
+Chatbot pintar berbasis Generative AI yang terintegrasi secara dinamis dengan seluruh data transaksi riil pengguna. CAMI tidak sekadar memberikan jawaban umum, melainkan mampu memberikan saran spesifik dan dapat ditindaklanjuti. Pengguna dapat berkonsultasi mengenai strategi pemotongan anggaran bulan ini, meminta rekomendasi instrumen investasi yang cocok dengan Profil Risiko mereka, hingga berdiskusi tentang strategi pelunasan utang yang paling efisien (*snowball* atau *avalanche*).
 
-## Konvensi
+### 4. Ekosistem Gamifikasi
+Untuk mempertahankan tingkat retensi (*retention rate*) dan membangun disiplin finansial jangka panjang, CEAMIS memanfaatkan berbagai elemen permainan:
+- **Sistem Lencana (Badges):** Penghargaan visual atas pencapaian tertentu, seperti "Pencatat Setia" (menjaga batas anggaran selama beberapa minggu berturut-turut) atau menyelesaikan modul edukasi tertentu.
+- **Streak Harian:** Membangun kebiasaan (*habit building*) melalui sistem *streak* untuk mendorong pengguna melakukan pencatatan atau minimal mengecek kondisi keuangan mereka secara konsisten setiap harinya.
+- **Poin Pengalaman (XP):** XP dikumpulkan dari setiap tindakan positif (mencatat pengeluaran, membaca materi, lulus kuis) dan digunakan sebagai proksi tingkat kedisiplinan pengguna.
 
-- Bahasa Indonesia untuk kode, komentar, dan dokumentasi
-- Feature-based folder structure
-- Semua dependencies wajib 0 vulnerabilities
+### 5. Modul Edukasi Adaptif
+Kurikulum literasi finansial interaktif yang disesuaikan dengan level pemahaman (*Beginner*, *Intermediate*, *Advanced*). Kurikulum ini terdiri dari:
+- Materi bacaan singkat, padat, dan langsung pada intinya.
+- Kuis evaluasi berkala untuk menguji pemahaman pengguna.
+Sistem edukasi ini terhubung erat dengan modul Gamifikasi, memberikan insentif penyelesaian berupa tambahan XP dan pencapaian lencana baru.
 
-## Dokumentasi
+## Arsitektur Teknologi
 
-Lihat folder `docs/` untuk urutan dan penjelasan lengkap dokumentasi arsitektur, API, dan proses pengembangan.
+Sistem CEAMIS didesain dari awal (*from scratch*) dengan memisahkan antarmuka pengguna, logika bisnis, dan komputasi kompeks model AI untuk menjamin skalabilitas maksimal, keamanan data, serta kemudahan dalam proses pemeliharaan.
 
-## Lisensi
-
-MIT# CEAMIS Project Documentation
-
-Selamat datang di repositori CEAMIS (Control Every Awful Money Impulse System)!
-
-## Deskripsi Singkat
-
-CEAMIS adalah ekosistem pencatatan keuangan berbasis AI dan gamifikasi, dirancang khusus untuk Gen-Z Indonesia. Proyek ini bertujuan membangun kebiasaan finansial sehat melalui pendekatan fun, interaktif, dan adaptif.
-
----
-
-## Urutan Dokumentasi Utama
-
-| No  | Nama File                        | Deskripsi Singkat                                                 |
-| --- | -------------------------------- | ----------------------------------------------------------------- |
-| 00  | 00-master-requirements.md        | Daftar kebutuhan utama (master requirements) seluruh sistem       |
-| 01  | 01-product-blueprint.md          | Blueprint produk: visi, value proposition, dan gambaran solusi    |
-| 02  | 02-technical-architecture.md     | Arsitektur teknis: diagram sistem, integrasi, dan komponen utama  |
-| 03  | 03-implementation-roadmap.md     | Roadmap implementasi: tahapan, milestone, dan timeline            |
-| 04  | 04-approval-signoff-checklist.md | Checklist persetujuan dan sign-off sebelum go-live                |
-| 05  | 05-backend-architecture.md       | Detail arsitektur backend: API, database, service, dan skema data |
-| 06  | 06-api-endpoints.md              | Daftar endpoint API beserta penjelasan fungsinya                  |
-| 07  | 07-frontend-architecture.md      | Detail arsitektur frontend, struktur folder, dan framework        |
-| 08  | 08-testing-strategy.md           | Strategi pengujian (unit, integration, UAT) dan coverage          |
-| 09  | 09-deployment-guide.md           | Panduan deployment ke staging/production                          |
-| 10  | 10-maintenance-plan.md           | Rencana maintenance dan update sistem                             |
-
----
+| Layer | Teknologi Utama | Keterangan Tambahan |
+| --- | --- | --- |
+| **Frontend** | Next.js (App Router), React, CSS | Antarmuka bergaya *Neo-Brutalism Design* yang interaktif. |
+| **Backend & ORM** | Next.js Server Actions, Node.js, Prisma | Logika CRUD sisi server, memastikan tidak ada kunci API yang bocor. |
+| **Database Utama** | Supabase PostgreSQL | Relasional database dengan manajemen koneksi *Connection Pooler*. |
+| **AI Microservice** | FastAPI (Python), TensorFlow, Scikit-Learn | Endpoint API terpisah untuk melakukan inferensi model *Machine Learning*. |
 
 ## Struktur Folder
 
-- `/frontend` — Next.js, Vite, Tailwind (UI)
-- `/backend` — Express.js, TypeScript (API)
-- `/ai-service` — FastAPI, TensorFlow (AI)
-- `/docs` — Dokumentasi proyek
+Berikut adalah topologi arsitektur sistem pada tingkat repositori (*monorepo*):
+
+```text
+ceamis/
+├── frontend/              # Antarmuka web utama (Next.js App Router)
+│   ├── src/app/           # Routing halaman & logika Server Actions
+│   ├── src/components/    # Komponen React (Neo-Brutalist UI)
+│   ├── src/context/       # Global State Management (User, Transactions)
+│   └── prisma/            # Skema Database (schema.prisma) & Migrasi SQL
+├── ai-service/            # Microservice AI & Machine Learning (FastAPI)
+│   ├── app/               # Logika API Endpoint, Routing, & Inferensi Model
+│   └── models/            # Model Machine Learning hasil pelatihan (.pkl, .h5)
+└── docs/                  # Pusat Dokumentasi Lengkap Proyek
+```
+
+## Tim Pengembang
+
+Proyek kolaboratif ini dibangun dan dirancang secara penuh oleh tim multidisiplin:
+
+| Nama | Peran | Fokus Utama |
+| --- | --- | --- |
+| **Wira Fikri Ramadanu** | Fullstack Dev & Project Manager | Arsitektur Sistem Keseluruhan, Database Supabase, Manajemen Proyek, Integrasi AI |
+| **Humaira Mutia** | Frontend Developer | Antarmuka Pengguna (UI), Neo-Brutalism Styling, Komponen React |
+| **Vanesha Alexandria D.** | AI Lead | Arsitektur Model AI, Pipeline Pelatihan, Optimasi Akurasi Model |
+| **Muhammad Taufiqulhakim**| AI Developer | Endpoint FastAPI, Generative AI (Chatbot CAMI), Logika Edukasi |
+| **Muhammad Devin Rahadi** | Data Analyst | Eksplorasi Data (EDA), Wrangling Data, Analisis Klaster Pengeluaran |
+| **Hafiz Hafrienda** | Data Modeler & QA | Rekayasa Fitur (*Feature Engineering*), Pengujian A/B, Jaminan Kualitas |
+
+## Dokumentasi Proyek Terpusat
+
+Bagi kontributor, pengembang masa depan, dan pengulas, seluruh detail teknis, rancangan arsitektur tingkat lanjut, metrik desain *Neo-Brutalism*, hingga logika spesifik metrik model *Machine Learning* tersedia secara komprehensif di dalam direktori `docs/`.
+
+Untuk memastikan pemahaman yang komprehensif mengenai aplikasi ini, silakan meninjau dokumen dengan urutan prioritas berikut:
+
+**Bagian 1: Produk, Visi, & Perencanaan**
+1. `01-Vision-and-Executive-Summary.md` - Visi dan Misi Utama CEAMIS.
+2. `02-Product-Requirements-Document.md` - Dokumen Spesifikasi Kebutuhan Produk.
+3. `03a-Requirements.md` & `03b-Scope-and-Deliverables.md` - Ruang Lingkup Pengerjaan.
+4. `04-User-Persona-and-Flow.md` - Analisis Target Audiens dan Alur Interaksi.
+
+**Bagian 2: Arsitektur & Rekayasa Perangkat Lunak**
+5. `10-System-Architecture.md` - Blueprint Arsitektur Sistem.
+6. `12-Frontend-Architecture.md` - Struktur Komponen & Routing Next.js.
+7. `14-Backend-Architecture.md` - Penjelasan Logika Server Actions.
+8. `15-Database-and-Prisma.md` - Skema Lengkap Supabase PostgreSQL & Prisma.
+
+**Bagian 3: Kecerdasan Buatan (AI Service)**
+9. `16-AI-Integration.md` - Logika Komunikasi antara Frontend dan Microservice AI.
+10. `17-AI-Model-Financial-Health.md` - Penjelasan Kalkulasi Skor Kesehatan.
+11. `18-AI-Model-Spending-Cluster.md` - Algoritma dan Fitur Pengelompokan Gaya Hidup.
+12. `19-AI-Model-Risk-Profile.md` - Penjelasan Probabilitas Kuesioner Profil Risiko.
+
+**Untuk indeks lengkap dan akses langsung ke seluruh dokumen, silakan merujuk pada file utama: [docs/00-README-INDEX.md](docs/00-README-INDEX.md)**
 
 ---
 
-## Cara Kontribusi
+## Tentang Proyek Ini
 
-1. Fork & clone repo
-2. Buat branch baru dari `dev`
-3. Commit dengan format: `[type] deskripsi singkat`
-4. Buat Pull Request ke `dev` (wajib review)
+**CEAMIS** merupakan karya otentik yang dikembangkan sebagai pemenuhan tugas akhir (*Capstone Project*) pada program **Dicoding**. Proyek ini merepresentasikan gabungan kompetensi lintas disiplin ilmu dari seluruh anggota tim kami, mencakup integrasi sistem *Front-End*, arsitektur *Back-End*, hingga penerapan *Machine Learning* yang fungsional.
 
----
+<br>
 
-## Kontak & Tim
-
-Lihat file `Team-Structure-Jobdesk.md` pada folder `docs` untuk detail struktur tim dan kontak.
-
----
-
-## Lisensi
-
-Proyek ini menggunakan lisensi MIT.
+**Hak Cipta © 2026 Tim CEAMIS - Dicoding Capstone Project.**
+Seluruh Hak Dilindungi.

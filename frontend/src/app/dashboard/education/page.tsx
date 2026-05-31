@@ -6,6 +6,7 @@ import { BookOpen, Award, PlayCircle, Clock } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { getModules, getQuizzes } from "@/app/admin/education/actions";
 
 const initialModules = [
   {
@@ -50,48 +51,44 @@ export default function EducationPage() {
   const { unlockBadge } = useUser();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
-  const [modules, setModules] = useState(initialModules);
+  const [modules, setModules] = useState<any[]>(initialModules);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [completedQuizzes, setCompletedQuizzes] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"modules" | "quizzes">("modules");
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Load modules from localStorage
-    const savedModules = localStorage.getItem("ceamis_modules");
-    let baseModules = savedModules ? JSON.parse(savedModules).filter((m: any) => m.status === "published") : initialModules;
-    
-    // Add progress to modules
-    const updatedModules = baseModules.map((mod: any) => {
-      const saved = localStorage.getItem(`ceamis_module_${mod.id}_progress`);
-      return {
-        ...mod,
-        level: mod.category || mod.level || "Beginner",
-        color: mod.color || ["lime", "purple", "orange"][mod.id % 3], // fallback color
-        progress: saved ? parseInt(saved) : 0
-      };
-    });
-    setModules(updatedModules);
+    const fetchData = async () => {
+      try {
+        const fetchedModules = await getModules();
+        const baseModules = fetchedModules.filter((m: any) => m.status === "published");
+        
+        // Add progress to modules
+        const updatedModules = baseModules.map((mod: any) => {
+          const saved = localStorage.getItem(`ceamis_module_${mod.id}_progress`);
+          return {
+            ...mod,
+            level: mod.category || mod.level || "Beginner",
+            color: mod.color || ["lime", "purple", "orange"][mod.id % 3], // fallback color
+            progress: saved ? parseInt(saved) : 0
+          };
+        });
+        setModules(updatedModules);
 
-    // Get finished quizzes based on module IDs
-    const quizzesFinished = updatedModules.filter((mod: any) => {
-      return localStorage.getItem(`ceamis_quiz_${mod.id}_completed`) === "true";
-    }).map((mod: any) => mod.id);
-    setCompletedQuizzes(quizzesFinished);
+        // Get finished quizzes based on module IDs
+        const quizzesFinished = updatedModules.filter((mod: any) => {
+          return localStorage.getItem(`ceamis_quiz_${mod.id}_completed`) === "true";
+        }).map((mod: any) => mod.id);
+        setCompletedQuizzes(quizzesFinished);
 
-    // Load quizzes from localStorage
-    const savedQuizzes = localStorage.getItem("ceamis_quizzes");
-    if (savedQuizzes) {
-      setQuizzes(JSON.parse(savedQuizzes).filter((q: any) => q.status === "active"));
-    } else {
-      // Fallback
-      setQuizzes([
-        { id: 1, moduleId: 1, question: "Apa tujuan utama dari pencatatan keuangan pribadi?", points: 150, status: "active" },
-        { id: 2, moduleId: 2, question: "Apa fungsi utama dari Dana Darurat?", points: 150, status: "active" },
-        { id: 3, moduleId: 3, question: "Manakah contoh dari 'Wants' (Keinginan) dalam budgeting?", points: 150, status: "active" },
-        { id: 4, moduleId: 4, question: "Instrumen investasi apa yang umumnya memiliki risiko paling rendah?", points: 150, status: "draft" }
-      ].filter(q => q.status === "active"));
-    }
+        // Load quizzes from database
+        const fetchedQuizzes = await getQuizzes();
+        setQuizzes(fetchedQuizzes.filter((q: any) => q.status === "active"));
+      } catch (error) {
+        console.error("Failed to load education data:", error);
+      }
+    };
+    fetchData();
   }, []);
 
   const totalModulesCompleted = modules.filter(m => m.progress === 100).length;

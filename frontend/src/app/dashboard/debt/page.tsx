@@ -10,6 +10,8 @@ import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/components/ui/Toast";
 import { useTransactions } from "@/context/TransactionContext";
+import { useUser } from "@/context/UserContext";
+import { getDebts, saveDebts } from "@/app/dashboard/planning/actions";
 
 type DebtType = "utang" | "piutang";
 type DebtStatus = "belum_lunas" | "lunas" | "jatuh_tempo";
@@ -33,6 +35,7 @@ export default function DebtPage() {
   const { t } = useLanguage();
   const { showToast } = useToast();
   const { addTransaction } = useTransactions();
+  const { userData } = useUser();
   const [entries, setEntries] = useState<DebtEntry[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "utang" | "piutang">("all");
@@ -46,20 +49,47 @@ export default function DebtPage() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("ceamis_debts");
-    if (saved) {
-      setEntries(JSON.parse(saved));
-    } else {
-      setEntries(DEFAULT_DATA);
-    }
-    setIsLoaded(true);
-  }, []);
+    const fetchData = async () => {
+      if (!userData?.id) return;
+      try {
+        const saved = await getDebts(userData.id);
+        if (saved && saved.length > 0) {
+          setEntries(saved.map((d: any) => ({
+            id: d.id,
+            type: d.type,
+            person: d.name,
+            amount: d.amount,
+            description: d.name,
+            dueDate: d.dueDate ? new Date(d.dueDate).toISOString().split("T")[0] : "",
+            status: d.status,
+            createdAt: d.createdAt ? new Date(d.createdAt).toISOString().split("T")[0] : ""
+          })));
+        } else {
+          setEntries(DEFAULT_DATA);
+        }
+      } catch (e) {
+        console.error("Failed to load debts", e);
+        setEntries(DEFAULT_DATA);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    fetchData();
+  }, [userData?.id]);
 
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("ceamis_debts", JSON.stringify(entries));
+    if (isLoaded && userData?.id) {
+      const dataToSave = entries.map(e => ({
+        name: e.person,
+        type: e.type,
+        amount: e.amount,
+        dueDate: e.dueDate,
+        status: e.status,
+        icon: "utensils"
+      }));
+      saveDebts(userData.id, dataToSave).catch(e => console.error("Failed to save debts", e));
     }
-  }, [entries, isLoaded]);
+  }, [entries, isLoaded, userData?.id]);
 
   const filteredEntries = entries.filter(e => {
     if (activeTab !== "all" && e.type !== activeTab) return false;

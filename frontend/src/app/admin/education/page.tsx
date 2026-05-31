@@ -3,30 +3,27 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Eye, X, BookOpen, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-const INITIAL_MODULES = [
-  { id: 1, title: "Cara Membuat Anggaran Bulanan", category: "Dasar", reads: 342, status: "published", points: 200 },
-  { id: 2, title: "Investasi Reksadana untuk Pemula", category: "Investasi", reads: 218, status: "published", points: 200 },
-  { id: 3, title: "Mengelola Utang dengan Cerdas", category: "Utang", reads: 156, status: "published", points: 200 },
-  { id: 4, title: "Cara Menabung ala Gen-Z", category: "Dasar", reads: 0, status: "draft", points: 200 },
-];
+import { getModules, createModule, updateModule, deleteModule } from "./actions";
 
 export default function AdminEducationPage() {
   const router = useRouter();
-  const [modules, setModulesState] = useState(INITIAL_MODULES);
+  const [modules, setModulesState] = useState<any[]>([]);
   
-  useEffect(() => {
-    const saved = localStorage.getItem("ceamis_modules");
-    if (saved) {
-      setModulesState(JSON.parse(saved));
-    } else {
-      localStorage.setItem("ceamis_modules", JSON.stringify(INITIAL_MODULES));
+  const fetchModules = async () => {
+    try {
+      const data = await getModules();
+      setModulesState(data);
+    } catch (error) {
+      console.error("Failed to load modules:", error);
     }
+  };
+
+  useEffect(() => {
+    fetchModules();
   }, []);
 
   const setModules = (newModules: any[]) => {
     setModulesState(newModules);
-    localStorage.setItem("ceamis_modules", JSON.stringify(newModules));
   };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -46,46 +43,45 @@ export default function AdminEducationPage() {
     setDeleteConfirmId(id);
   };
   
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteConfirmId !== null) {
-      setModules(modules.filter(m => m.id !== deleteConfirmId));
+      await deleteModule(deleteConfirmId);
+      await fetchModules();
       setDeleteConfirmId(null);
     }
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
     if (editingItem) {
       const updatedItem = {
-        id: editingItem.id,
         title: formData.get("title") as string,
         category: formData.get("category") as string,
-        reads: editingItem.reads,
         status: formData.get("status") as string || "published",
         points: Number(formData.get("points")) || 200,
         desc: formData.get("desc") as string,
         duration: formData.get("duration") as string,
       };
-      setModules(modules.map(m => m.id === editingItem.id ? updatedItem : m));
+      await updateModule(editingItem.id, updatedItem);
+      await fetchModules();
       setIsModalOpen(false);
     } else {
-      const newModule = {
-        id: Date.now(),
+      const newModuleData = {
         title: formData.get("title") as string,
         category: formData.get("category") as string,
-        reads: 0,
         status: formData.get("status") as string || "published",
         points: Number(formData.get("points")) || 200,
         desc: formData.get("desc") as string,
         duration: formData.get("duration") as string,
       };
-      setModules([...modules, newModule]);
+      const created = await createModule(newModuleData);
+      await fetchModules();
       setIsModalOpen(false);
       
       // Auto redirect to content editor
-      router.push(`/admin/education/edit-module/${newModule.id}`);
+      router.push(`/admin/education/edit-module/${created.id}`);
     }
   };
 

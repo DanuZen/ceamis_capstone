@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Trophy, Star, Flame, Zap, Target, Shield, Edit, Plus, X } from "lucide-react";
+import { getBadges, createBadge } from "./actions";
 
 // Convert icon references to string names for localStorage compatibility
 const INITIAL_BADGES = [
@@ -35,32 +36,47 @@ export default function AdminGamificationPage() {
   const [badges, setBadgesState] = useState(INITIAL_BADGES);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("ceamis_badges");
-    if (saved) {
-      setBadgesState(JSON.parse(saved));
-    } else {
-      localStorage.setItem("ceamis_badges", JSON.stringify(INITIAL_BADGES));
+  const fetchBadges = async () => {
+    try {
+      const data = await getBadges();
+      if (data && data.length > 0) {
+        setBadgesState(data.map((b: any) => ({
+          ...b,
+          color: "lime", // Default for now
+          xp: b.requirementValue,
+          requirement: b.desc
+        })));
+      } else {
+        setBadgesState(INITIAL_BADGES);
+      }
+    } catch (error) {
+      console.error("Failed to fetch badges", error);
     }
+  };
+
+  useEffect(() => {
+    fetchBadges();
   }, []);
 
   const setBadges = (newBadges: any[]) => {
     setBadgesState(newBadges);
-    localStorage.setItem("ceamis_badges", JSON.stringify(newBadges));
   };
 
-  const handleSaveBadge = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveBadge = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const newBadge = {
-      id: Date.now(),
+    
+    const newBadgeData = {
+      id: `badge_${Date.now()}`,
       name: formData.get("name") as string,
+      desc: formData.get("requirement") as string,
       icon: formData.get("icon") as string,
-      color: formData.get("color") as string,
-      xp: Number(formData.get("xp")),
-      requirement: formData.get("requirement") as string,
+      requirementType: "manual",
+      requirementValue: Number(formData.get("xp"))
     };
-    setBadges([...badges, newBadge]);
+    
+    await createBadge(newBadgeData);
+    await fetchBadges();
     setIsModalOpen(false);
   };
 

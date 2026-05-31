@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronRight, CheckCircle, Save, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { getQuizByModule, saveModuleQuizzes } from "../../../education/actions";
 
 export default function EditQuizPage() {
   const params = useParams();
@@ -18,37 +19,30 @@ export default function EditQuizPage() {
   const [popupMessage, setPopupMessage] = useState<{title: string, message: string, type: "success" | "error"} | null>(null);
 
   useEffect(() => {
-    // 1. Fetch title from quizzes
-    const savedQuizzes = localStorage.getItem("ceamis_quizzes");
-    if (savedQuizzes) {
-      const parsed = JSON.parse(savedQuizzes);
-      const quiz = parsed.find((q: any) => q.id.toString() === id);
-      if (quiz) {
-        setQuizTitle(`Kuis untuk Modul ${quiz.moduleId}`);
-      } else {
-        setQuizTitle("Kuis");
+    const fetchData = async () => {
+      setQuizTitle(`Kuis untuk Modul ${id}`);
+      try {
+        const quizzes = await getQuizByModule(Number(id));
+        if (quizzes && quizzes.length > 0) {
+          setContent(quizzes);
+        } else {
+          // Fallback for demo
+          setContent([{
+            question: "Pertanyaan Baru",
+            options: ["Opsi A", "Opsi B", "Opsi C", "Opsi D"],
+            correctAnswer: 0,
+            explanation: "Penjelasan jawaban benar"
+          }]);
+        }
+      } catch (error) {
+        console.error("Failed to load quizzes:", error);
       }
-    } else {
-      setQuizTitle("Kuis");
-    }
-
-    // 2. Fetch content
-    const savedContent = localStorage.getItem(`ceamis_quiz_content_${id}`);
-    if (savedContent) {
-      setContent(JSON.parse(savedContent));
-    } else {
-      // Fallback for demo
-      setContent([{
-        question: "Pertanyaan Baru",
-        options: ["Opsi A", "Opsi B", "Opsi C", "Opsi D"],
-        correctAnswer: 0,
-        explanation: "Penjelasan jawaban benar"
-      }]);
-    }
+    };
+    fetchData();
   }, [id, t]);
 
-  const handleSave = () => {
-    localStorage.setItem(`ceamis_quiz_content_${id}`, JSON.stringify(content));
+  const handleSave = async () => {
+    await saveModuleQuizzes(Number(id), content);
     setPopupMessage({ title: "Berhasil!", message: "Pertanyaan kuis berhasil disimpan!", type: "success" });
   };
 

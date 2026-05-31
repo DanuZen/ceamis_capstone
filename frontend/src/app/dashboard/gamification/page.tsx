@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Trophy, Flame, Star, Medal, Zap, Target, Shield } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { getBadges } from "@/app/admin/gamification/actions";
 
 const INITIAL_BADGES = [
   { id: 1, name: "Pencatat Setia", icon: "Target", color: "lime", xp: 100, requirement: "Catat 30 transaksi berturut-turut", unlocked: true },
@@ -30,15 +31,26 @@ export default function GamificationPage() {
   const [badges, setBadges] = useState(INITIAL_BADGES);
 
   useEffect(() => {
-    const saved = localStorage.getItem("ceamis_badges");
-    if (saved) {
-      // Map saved badges. Note: unlocked state is mock for now
-      const parsed = JSON.parse(saved).map((b: any, index: number) => ({
-        ...b,
-        unlocked: index < 3 // Mock unlocking first 3
-      }));
-      setBadges(parsed);
-    }
+    const fetchBadges = async () => {
+      try {
+        const dbBadges = await getBadges();
+        if (dbBadges && dbBadges.length > 0) {
+          const parsed = dbBadges.map((b: any, index: number) => ({
+            ...b,
+            color: "lime", // Default fallback
+            requirement: b.desc,
+            unlocked: index < 3 // Mock unlocking first 3
+          }));
+          setBadges(parsed);
+        } else {
+          // Fallback if db is empty
+          setBadges(INITIAL_BADGES);
+        }
+      } catch (error) {
+        console.error("Failed to load badges:", error);
+      }
+    };
+    fetchBadges();
   }, []);
 
   return (

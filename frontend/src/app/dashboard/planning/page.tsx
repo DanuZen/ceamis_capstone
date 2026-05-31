@@ -18,7 +18,12 @@ import { useUser } from "@/context/UserContext";
 import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 import { useLanguage } from "@/context/LanguageContext";
 import { onboardingApi } from "@/lib/api";
-
+import { 
+  getBudget, saveBudget, 
+  getTargets, saveTargets, 
+  getDebts, saveDebts, 
+  getRiskProfile, saveRiskProfile 
+} from "./actions";
 // ── Icon Mapping (replaces emojis) ──────────────
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
   home: Home, utensils: Utensils, car: Car, smartphone: Smartphone, tv: Tv,
@@ -337,10 +342,9 @@ export default function PlanningPage() {
       // 3. Calculate DTI Ratio from cached debts
       let totalDebt = 0;
       try {
-        const savedDebts = localStorage.getItem("ceamis_debts");
-        if (savedDebts) {
-          const debts = JSON.parse(savedDebts);
-          totalDebt = debts.filter((d: any) => d.type === "hutang" && !d.is_paid).reduce((acc: number, d: any) => acc + d.amount, 0);
+        const savedDebts = await getDebts(userData.id);
+        if (savedDebts && savedDebts.length > 0) {
+          totalDebt = savedDebts.filter((d: any) => d.type === "hutang" && d.status === "unpaid").reduce((acc: number, d: any) => acc + d.amount, 0);
         }
       } catch (e) {}
       const dti_ratio = (inc > 0 && totalDebt > 0) ? Math.min(totalDebt / (inc * 12), 1.0) : 0;
@@ -350,11 +354,13 @@ export default function PlanningPage() {
       const isSelfEmployed = onboardingData?.income_source === "bisnis" || onboardingData?.income_source === "freelance" ? 1 : 0;
       const isProfessional = onboardingData?.income_source === "gaji" ? 1 : 0;
 
-      // Retrieve answers from localStorage
+      // Retrieve answers from Prisma
       let answers: any = {};
       try {
-        const cachedAnswers = localStorage.getItem("ceamis_risk_answers");
-        if (cachedAnswers) answers = JSON.parse(cachedAnswers);
+        const cachedRisk = await getRiskProfile(userData.id);
+        if (cachedRisk && cachedRisk.answers) {
+          answers = JSON.parse(cachedRisk.answers);
+        }
       } catch (e) {}
 
       // 5. Construct payload
@@ -392,7 +398,18 @@ export default function PlanningPage() {
       if (!res.ok) throw new Error("API error");
       const data: RiskResult = await res.json();
       setRiskResult(data);
-      localStorage.setItem("ceamis_risk_profile", JSON.stringify(data));
+      if (userData?.id && !isGuest) {
+        await saveRiskProfile(userData.id, {
+          profile: data.risk_profile,
+          answers: JSON.stringify(answers),
+          aiRecommendation: JSON.stringify({
+            confidence: data.confidence,
+            probabilities: data.probabilities,
+            description: data.description,
+            suggestion: data.suggestion
+          })
+        });
+      }
     } catch {
       // fallback: derive dari jawaban secara lokal (mock)
       let answers: any = {};
@@ -413,7 +430,18 @@ export default function PlanningPage() {
         is_mock: true,
       };
       setRiskResult(mockData);
-      localStorage.setItem("ceamis_risk_profile", JSON.stringify(mockData));
+      if (userData?.id && !isGuest) {
+        await saveRiskProfile(userData.id, {
+          profile: mockData.risk_profile,
+          answers: JSON.stringify(answers),
+          aiRecommendation: JSON.stringify({
+            confidence: mockData.confidence,
+            probabilities: mockData.probabilities,
+            description: mockData.description,
+            suggestion: mockData.suggestion
+          })
+        });
+      }
     } finally {
       setRiskLoading(false);
     }
@@ -421,9 +449,25 @@ export default function PlanningPage() {
 
   // Load cached risk result
   useEffect(() => {
-    const cached = localStorage.getItem("ceamis_risk_profile");
-    if (cached) setRiskResult(JSON.parse(cached));
-  }, []);
+    const loadCachedRisk = async () => {
+      const cached = userData?.id ? await getRiskProfile(userData.id) : null;
+      if (cached) {
+        try {
+          const aiRec = cached.aiRecommendation ? JSON.parse(cached.aiRecommendation) : {};
+          const parsed = {
+            risk_profile: cached.profile,
+            confidence: aiRec.confidence || 0,
+            probabilities: aiRec.probabilities || { Konservatif: 0, Moderat: 0, Agresif: 0 },
+            description: aiRec.description || "",
+            suggestion: aiRec.suggestion || "",
+            is_mock: false
+          };
+          setRiskResult(parsed as RiskResult);
+        } catch (e) {}
+      }
+    };
+    loadCachedRisk();
+  }, [userData?.id]);
 
   useEffect(() => {
     const initData = async () => {
