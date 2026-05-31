@@ -349,8 +349,15 @@ export default function DashboardPage() {
         {/* Sidebar Area (Recent Activity) */}
         <div style={{ flex: "1 1 30%", minWidth: "280px" }}>
           <div className="card-brutal" style={{ padding: "1.5rem", height: "100%", display: "flex", flexDirection: "column", background: "var(--color-white)" }}>
-            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <TrendingUp size={24} color="var(--color-purple)" /> {t("dashboard.recentActivity")}
+            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem", fontWeight: 900 }}>
+              <div style={{
+                width: "40px", height: "40px", background: "var(--color-purple)", border: "2.5px solid var(--color-navy)",
+                borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+              }}>
+                <TrendingUp size={20} color="var(--color-white)" strokeWidth={2.5} />
+              </div>
+              {t("dashboard.recentActivity")}
             </h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1 }}>

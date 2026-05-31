@@ -1,9 +1,60 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Eye, X, BookOpen, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, X, BookOpen, FileText, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getModules, createModule, updateModule, deleteModule } from "./actions";
+
+const BrutalSelect = ({ name, options, defaultValue }: { name: string, options: {value: string, label: string}[], defaultValue: string }) => {
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState(defaultValue);
+  const selectedOpt = options.find(o => o.value === val) || options[0];
+
+  return (
+    <div style={{ position: "relative" }}>
+      <input type="hidden" name={name} value={val} />
+      <button 
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="input-brutal"
+        style={{ 
+          padding: "0.75rem", fontSize: "1rem", fontWeight: 700, 
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: "var(--color-white)", cursor: "pointer"
+        }}
+      >
+        <span>{selectedOpt.label}</span>
+        <ChevronDown size={18} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+      </button>
+      
+      {open && (
+        <div className="no-scrollbar" style={{
+          position: "absolute", top: "100%", left: 0, width: "100%", marginTop: "0.5rem",
+          background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+          boxShadow: "4px 4px 0px var(--color-navy)", zIndex: 10, maxHeight: "250px", overflowY: "auto", display: "flex", flexDirection: "column"
+        }}>
+          {options.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => { setVal(opt.value); setOpen(false); }}
+              style={{
+                padding: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", border: "none",
+                background: val === opt.value ? "var(--color-purple)" : "transparent",
+                color: val === opt.value ? "var(--color-white)" : "var(--color-navy)",
+                fontWeight: 700, fontSize: "1rem", textAlign: "left", cursor: "pointer", borderBottom: "2px solid rgba(10,25,47,0.05)"
+              }}
+              onMouseEnter={(e) => { if(val !== opt.value) e.currentTarget.style.background = "var(--color-bg)" }}
+              onMouseLeave={(e) => { if(val !== opt.value) e.currentTarget.style.background = "transparent" }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function AdminEducationPage() {
   const router = useRouter();
@@ -59,7 +110,7 @@ export default function AdminEducationPage() {
       const updatedItem = {
         title: formData.get("title") as string,
         category: formData.get("category") as string,
-        status: formData.get("status") as string || "published",
+        status: editingItem.status || "draft",
         points: Number(formData.get("points")) || 200,
         desc: formData.get("desc") as string,
         duration: formData.get("duration") as string,
@@ -71,7 +122,7 @@ export default function AdminEducationPage() {
       const newModuleData = {
         title: formData.get("title") as string,
         category: formData.get("category") as string,
-        status: formData.get("status") as string || "published",
+        status: "draft",
         points: Number(formData.get("points")) || 200,
         desc: formData.get("desc") as string,
         duration: formData.get("duration") as string,
@@ -177,18 +228,15 @@ export default function AdminEducationPage() {
               </div>
               <div className="input-group-brutal">
                 <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Kategori</label>
-                <select name="category" defaultValue={editingItem?.category || "Dasar"} className="input-brutal" style={{ width: "100%" }}>
-                  <option value="Dasar">Dasar</option>
-                  <option value="Investasi">Investasi</option>
-                  <option value="Utang">Utang</option>
-                </select>
-              </div>
-              <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Status Publikasi</label>
-                <select name="status" defaultValue={editingItem?.status || "published"} className="input-brutal" style={{ width: "100%" }}>
-                  <option value="published">Published</option>
-                  <option value="draft">Draft</option>
-                </select>
+                <BrutalSelect 
+                  name="category"
+                  defaultValue={editingItem?.category || "Dasar"}
+                  options={[
+                    { value: "Dasar", label: "Dasar" },
+                    { value: "Investasi", label: "Investasi" },
+                    { value: "Utang", label: "Utang" }
+                  ]}
+                />
               </div>
               <div className="input-group-brutal">
                 <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Deskripsi Singkat</label>

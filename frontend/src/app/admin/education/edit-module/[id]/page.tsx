@@ -33,9 +33,16 @@ export default function EditModulePage() {
         if (pages && pages.length > 0) {
           setContent(pages);
         } else {
-          const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true }) || t(`dashboard.education.detail.moduleData.1`, { returnObjects: true });
-          const contentArray = Array.isArray(translatedContent) ? translatedContent : [{ subtitle: "Halaman Baru", text: "Isi konten di sini..." }];
-          setContent(contentArray);
+          // If no pages exist in DB, check if it's a legacy module (ID 1-10) with JSON translation
+          const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true });
+          const contentArray = Array.isArray(translatedContent) ? translatedContent : [];
+          
+          if (contentArray.length > 0) {
+            setContent(contentArray);
+          } else {
+            // New custom module: force admin to start with an empty page
+            setContent([{ subtitle: "", text: "" }]);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch module data:", error);

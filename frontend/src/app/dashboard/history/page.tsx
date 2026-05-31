@@ -127,8 +127,15 @@ export default function HistoryPage() {
             
             {/* Header List & Filters */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
-              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 900 }}>
-                <Filter size={24} /> {searchQuery ? `${t("dashboard.history.search")}"${searchQuery}"` : t("dashboard.history.transactionList")}
+              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.75rem", fontWeight: 900 }}>
+                <div style={{
+                  width: "44px", height: "44px", background: "var(--color-white)", border: "2.5px solid var(--color-navy)",
+                  borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                }}>
+                  <Filter size={22} color="var(--color-navy)" strokeWidth={2.5} />
+                </div>
+                {searchQuery ? `${t("dashboard.history.search")}"${searchQuery}"` : t("dashboard.history.transactionList")}
               </h2>
               
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -234,8 +241,15 @@ export default function HistoryPage() {
         {/* Sidebar Info (Right) */}
         <div style={{ flex: "1 1 25%", minWidth: "280px" }}>
           <div className="card-brutal" style={{ padding: "1.5rem", background: "var(--color-white)", height: "100%", minHeight: "60vh", display: "flex", flexDirection: "column" }}>
-            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 900 }}>
-              <TrendingUp size={24} color="var(--color-purple)" /> {t("dashboard.history.topCategories")}
+            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem", fontWeight: 900 }}>
+              <div style={{
+                width: "40px", height: "40px", background: "var(--color-purple)", border: "2.5px solid var(--color-navy)",
+                borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+              }}>
+                <TrendingUp size={20} color="var(--color-white)" strokeWidth={2.5} />
+              </div>
+              {t("dashboard.history.topCategories")}
             </h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
