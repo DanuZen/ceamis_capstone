@@ -187,6 +187,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setUserData(prev => {
       const updated = { ...prev, ...data };
       localStorage.setItem("ceamis_user", JSON.stringify(updated));
+      
+      // Sync to API in background
+      if (updated.id) {
+        usersApi.updateProfile(updated.id, {
+          name: updated.name,
+          phone: updated.phone,
+          avatar_url: updated.avatarUrl,
+        } as any).catch(err => console.warn("Failed to sync profile:", err));
+      }
+      
       return updated;
     });
   };

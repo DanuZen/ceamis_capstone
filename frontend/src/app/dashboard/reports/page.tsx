@@ -12,7 +12,9 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { useTransactions } from "@/context/TransactionContext";
+import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { translateCategoryName } from "@/lib/translateCategory";
 import { useToast } from "@/components/ui/Toast";
 
 const MONTHS = [
@@ -33,6 +35,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function ReportsPage() {
   const { showToast } = useToast();
   const { transactions } = useTransactions();
+  const { userData } = useUser();
   const { t, language } = useLanguage();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear] = useState(new Date().getFullYear());
@@ -249,10 +252,13 @@ export default function ReportsPage() {
   
   const handleSendEmail = () => {
     setIsSending(true);
+    if (userData?.email) {
+      window.location.href = `mailto:${userData.email}?subject=Laporan Keuangan CEAMIS ${MONTHS[selectedMonth]} ${selectedYear}&body=Halo ${userData.name}, berikut adalah rekap laporan keuangan Anda bulan ini.`;
+    }
     // Simulate sending email with attachments
     setTimeout(() => {
       setIsSending(false);
-      showToast(`Sukses! Laporan Keuangan (berisi lampiran PDF & Excel) bulan ${MONTHS[selectedMonth]} ${selectedYear} telah dikirim ke email terdaftar Anda.`, "success");
+      showToast(`Sukses! Laporan Keuangan (berisi lampiran PDF & Excel) bulan ${MONTHS[selectedMonth]} ${selectedYear} telah diteruskan ke email ${userData?.email || "Anda"}.`, "success");
     }, 1500);
   };
 
@@ -431,19 +437,19 @@ export default function ReportsPage() {
         {/* Income Category Breakdown */}
         <div className="card-brutal" style={{ padding: "2rem" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <PieChart size={22} color="var(--color-lime)" /> Pemasukan per Kategori
+            <PieChart size={22} color="var(--color-lime)" /> {t("dashboard.reports.incomeByCategory") || "Pemasukan per Kategori"}
           </h3>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {INCOME_CATEGORY_DATA.length === 0 && (
-              <div style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
-                Belum ada pemasukan di bulan ini.
+              <div style={{ color: "var(--color-navy)", opacity: 0.7, textAlign: "center", margin: "auto", fontSize: "0.95rem" }}>
+                {t("dashboard.reports.noIncome") || "Belum ada pemasukan di bulan ini."}
               </div>
             )}
             {INCOME_CATEGORY_DATA.map((cat) => (
               <div key={cat.name}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
-                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{cat.name}</span>
+                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{translateCategoryName(cat.name, t)}</span>
                   <span style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem" }}>
                     {formatRupiah(cat.amount)}
                   </span>
@@ -478,7 +484,7 @@ export default function ReportsPage() {
             {CATEGORY_DATA.map((cat) => (
               <div key={cat.name}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
-                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{cat.name}</span>
+                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{translateCategoryName(cat.name, t)}</span>
                   <span style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem" }}>
                     {formatRupiah(cat.amount)}
                   </span>
@@ -500,40 +506,53 @@ export default function ReportsPage() {
 
         {/* Report Preview / Email Preview */}
         <div className="card-brutal" style={{ padding: "2rem", background: "var(--color-navy)", color: "var(--color-white)" }}>
-          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1rem 0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Mail size={22} color="var(--color-lime)" /> {t("dashboard.reports.emailPreviewTitle")}
+          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 0.75rem 0", display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-white)" }}>
+            <div style={{ background: "var(--color-lime)", borderRadius: "6px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Mail size={18} color="var(--color-navy)" />
+            </div>
+            {t("dashboard.reports.emailPreviewTitle")}
           </h3>
-          <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.6)", marginBottom: "1.5rem" }}>
+          <p style={{ fontSize: "0.875rem", color: "var(--color-white)", marginBottom: "1.5rem", fontWeight: 600, lineHeight: 1.5 }}>
             {t("dashboard.reports.emailPreviewDesc")}
           </p>
 
           {/* Email Preview Card */}
           <div style={{
-            background: "var(--color-white)", color: "var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+            background: "var(--color-white)", color: "var(--color-navy)", borderRadius: "12px",
             border: "3px solid var(--color-white)", padding: "1.5rem",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.18)"
           }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.25rem" }}>From: noreply@ceamis.id</div>
-            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.75rem" }}>Subject: {t("dashboard.reports.title")} {t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}</div>
-            <div style={{ borderTop: "2px dashed var(--color-border-light)", paddingTop: "1rem" }}>
-              <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.125rem", fontWeight: 800, marginBottom: "1rem" }}>
+            <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: "0.15rem" }}>From: noreply@ceamis.id</div>
+            <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: "1rem", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(10,25,47,0.08)" }}>Subject: {t("dashboard.reports.title")} {t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}</div>
+            <div>
+              <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 900, marginBottom: "1rem", color: "var(--color-navy)" }}>
                 {t("dashboard.reports.summaryTitle")}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.875rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><Banknote size={14} color="var(--color-navy)" /> {t("dashboard.reports.income")}</span>
-                  <span style={{ fontWeight: 800 }}>{formatRupiah(MONTHLY_SUMMARY.income)}</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.875rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", fontSize: "0.78rem", letterSpacing: "0.5px" }}>
+                    <Banknote size={14} color="var(--color-text-muted)" /> {t("dashboard.reports.income")}
+                  </span>
+                  <span style={{ fontWeight: 800, color: "var(--color-navy)" }}>{formatRupiah(MONTHLY_SUMMARY.income)}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><TrendingDown size={14} color="var(--color-navy)" /> {t("dashboard.reports.expense")}</span>
-                  <span style={{ fontWeight: 800 }}>{formatRupiah(MONTHLY_SUMMARY.expense)}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", fontSize: "0.78rem", letterSpacing: "0.5px" }}>
+                    <TrendingDown size={14} color="var(--color-text-muted)" /> {t("dashboard.reports.expense")}
+                  </span>
+                  <span style={{ fontWeight: 800, color: "var(--color-navy)" }}>{formatRupiah(MONTHLY_SUMMARY.expense)}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid var(--color-navy)", paddingTop: "0.5rem", marginTop: "0.25rem" }}>
-                  <span style={{ fontWeight: 800, display: "flex", alignItems: "center", gap: "0.35rem" }}><Target size={14} color="var(--color-navy)" /> {t("dashboard.reports.sisa")}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1.5px solid var(--color-navy)", paddingTop: "0.75rem", marginTop: "0.25rem" }}>
+                  <span style={{ fontWeight: 900, display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.9rem", color: "var(--color-navy)" }}>
+                    <Target size={14} color="var(--color-navy)" /> {t("dashboard.reports.sisa")}
+                  </span>
                   <span style={{ fontWeight: 900, color: "var(--color-purple)", fontSize: "1rem" }}>{formatRupiah(MONTHLY_SUMMARY.savings)}</span>
                 </div>
               </div>
-              <div style={{ marginTop: "1rem", padding: "0.75rem", background: "var(--color-bg)", borderRadius: "var(--radius-brutal-sm)", border: "2px dashed var(--color-navy)", fontSize: "0.8rem" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.35rem" }}><Lightbulb size={14} color="var(--color-navy)" style={{ flexShrink: 0, marginTop: "2px" }} /><span><strong>Insight:</strong> {CATEGORY_DATA.length > 0 ? `${t("dashboard.reports.insightMsgPrefix")} ${MONTHLY_SUMMARY.topCategory} ${t("dashboard.reports.insightMsgSuffix")} (${CATEGORY_DATA[0]?.percentage}%).` : t("dashboard.reports.insightMsgEmpty")}</span></div>
+              <div style={{ marginTop: "1rem", padding: "0.75rem", background: "var(--color-bg)", borderRadius: "8px", border: "1.5px dashed var(--color-navy)", fontSize: "0.8rem" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem" }}>
+                  <Lightbulb size={14} color="var(--color-navy)" style={{ flexShrink: 0, marginTop: "2px" }} />
+                  <span><strong>Insight:</strong> {CATEGORY_DATA.length > 0 ? `${t("dashboard.reports.insightMsgPrefix")} ${MONTHLY_SUMMARY.topCategory} ${t("dashboard.reports.insightMsgSuffix")} (${CATEGORY_DATA[0]?.percentage}%).` : t("dashboard.reports.insightMsgEmpty")}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -542,12 +561,13 @@ export default function ReportsPage() {
             width: "100%", marginTop: "1.5rem", padding: "1rem",
             background: "var(--color-lime)", color: "var(--color-navy)", fontWeight: 800,
             display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-            boxShadow: "4px 4px 0px var(--color-white)",
+            fontSize: "1rem",
+            boxShadow: "4px 4px 0px rgba(255,255,255,0.3)",
             cursor: isSending ? "not-allowed" : "pointer",
             opacity: isSending ? 0.8 : 1
           }}>
             {isSending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} 
-            {isSending ? "Mengirim Email..." : t("dashboard.reports.sendToMyEmail")}
+            {isSending ? t("dashboard.reports.sendingEmail") : t("dashboard.reports.sendToMyEmail")}
           </button>
         </div>
       </div>

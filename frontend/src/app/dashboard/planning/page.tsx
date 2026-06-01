@@ -18,6 +18,7 @@ import { useUser } from "@/context/UserContext";
 import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 import { useLanguage } from "@/context/LanguageContext";
 import { onboardingApi } from "@/lib/api";
+import { translateCategoryName } from "@/lib/translateCategory";
 
 // ── Icon Mapping (replaces emojis) ──────────────
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
@@ -305,7 +306,7 @@ export default function PlanningPage() {
   const [newTarget, setNewTarget] = useState({ name: "", target: "", icon: "target", deadline: "" });
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [activeFilter, setActiveFilter] = useState<"needs" | "wants" | "savings">("needs");
-  const [newCategory, setNewCategory] = useState<{name: string; type: "needs"|"wants"|"savings"; allocated: string; icon: string}>({ name: "", type: "needs", allocated: "", icon: "home" });
+  const [newCategory, setNewCategory] = useState<{name: string; allocated: string; icon: string}>({ name: "", allocated: "", icon: "home" });
   const [isLoaded, setIsLoaded] = useState(false);
   const [baseIncome, setBaseIncome] = useState<number>(0);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
@@ -707,13 +708,22 @@ export default function PlanningPage() {
     setBudget([...budget, {
       id: Date.now().toString(),
       name: newCategory.name,
-      type: newCategory.type,
+      type: activeFilter,
       allocated: parseInt(newCategory.allocated) || 0,
       spent: 0,
       icon: newCategory.icon
     }]);
-    setNewCategory({ name: "", type: "needs", allocated: "", icon: "home" });
+    setNewCategory({ name: "", allocated: "", icon: "home" });
     setShowAddCategory(false);
+  };
+
+  const handleDeleteCategory = (id: string, type: string) => {
+    const typeItems = budget.filter(b => b.type === type);
+    if (typeItems.length <= 1) {
+      alert("Tidak dapat menghapus seluruh kategori. Minimal harus tersisa satu kategori pada tipe ini.");
+      return;
+    }
+    setBudget(budget.filter(b => b.id !== id));
   };
 
   const handleAdjustAllocation = (id: string, newValue: number) => {
@@ -795,9 +805,9 @@ export default function PlanningPage() {
             <IconBox iconKey={item.icon} size={20} bg={isOverBudget ? "#e74c3c" : item.type === "needs" ? "var(--color-lime)" : item.type === "wants" ? "var(--color-orange)" : "var(--color-purple)"} />
           </div>
           <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontWeight: 900, fontSize: "1.1rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{item.name}</span>
+            <span style={{ fontWeight: 900, fontSize: "1.1rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{translateCategoryName(item.name, t)}</span>
             {isEditingCategory && (
-              <div style={{ display: "flex", gap: "0.5rem" }}>
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                 <input 
                   type="text" 
                   value={item.allocated === 0 ? "" : item.allocated.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
@@ -810,6 +820,15 @@ export default function PlanningPage() {
                   style={{ width: "130px", padding: "0.4rem 0.6rem", fontSize: "0.85rem", border: "2.5px solid var(--color-navy)", fontWeight: 800 }}
                   placeholder="0"
                 />
+                <button 
+                  type="button"
+                  onClick={() => handleDeleteCategory(item.id, item.type)}
+                  className="btn-brutal"
+                  style={{ background: "#ffebee", border: "2.5px solid var(--color-navy)", cursor: "pointer", padding: "0.4rem 0.5rem", color: "#e74c3c", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  title="Hapus Kategori"
+                >
+                  <Trash2 size={22} />
+                </button>
               </div>
             )}
           </div>
@@ -901,7 +920,7 @@ export default function PlanningPage() {
                 <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: colors ? colors.text : "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {profile || "—"}
                 </div>
-                <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>Profil Risiko</div>
+                <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>{t("dashboard.planning.riskProfileLabel") || "Profil Risiko"}</div>
               </div>
             </div>
           );
@@ -976,7 +995,7 @@ export default function PlanningPage() {
                       <AlertTriangle size={22} color="var(--color-navy)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Kebutuhan
+                      {t("dashboard.planning.needs") || "Kebutuhan"}
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-lime)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -994,7 +1013,7 @@ export default function PlanningPage() {
                       <Sparkles size={22} color="var(--color-navy)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Keinginan
+                      {t("dashboard.transactions.wants") || "Keinginan"}
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -1012,7 +1031,7 @@ export default function PlanningPage() {
                       <ShieldCheck size={22} color="var(--color-white)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Tabungan
+                      {t("dashboard.transactions.save")}
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-purple)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -1030,9 +1049,9 @@ export default function PlanningPage() {
                   padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
                   background: isEditingCategory ? "var(--color-lime)" : "var(--color-bg)", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem",
                   boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)", transition: "all 0.2s"
-                }} title="Edit Alokasi Budget">
+                }} title={t("dashboard.planning.editAllocation") || "Edit Alokasi Budget"}>
                   {isEditingCategory ? <CheckCircle2 size={18} /> : <Edit3 size={18} />} 
-                  {isEditingCategory ? "Simpan" : "Edit"}
+                  {isEditingCategory ? t("dashboard.planning.saveBtn") : t("dashboard.planning.editBtn")}
                 </button>
                 <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
                   padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
@@ -1041,7 +1060,7 @@ export default function PlanningPage() {
                   boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)"
                 }}>
                   <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
-                  {showAddCategory ? "Batal" : t("dashboard.planning.addCategory")}
+                  {showAddCategory ? (t("dashboard.planning.cancelBtn") || "Batal") : t("dashboard.planning.addCategory")}
                 </button>
               </div>
             </div>
@@ -1050,38 +1069,26 @@ export default function PlanningPage() {
               <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2.5rem", background: "var(--color-white)", boxShadow: "6px 6px 0px var(--color-navy)", overflow: "visible", border: "3px dashed var(--color-navy)" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", alignItems: "flex-end" }}>
                   <div>
-                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>TIPE</label>
-                    <TypePicker 
-                      value={newCategory.type} 
-                      onChange={v => setNewCategory({ ...newCategory, type: v as any })} 
-                      options={[
-                        {key: "needs", label: "Needs"},
-                        {key: "wants", label: "Wants"},
-                        {key: "savings", label: "Savings"}
-                      ]} 
-                    />
-                  </div>
-                  <div>
                     <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ICON</label>
                     <IconPicker 
                       value={newCategory.icon} 
                       onChange={v => setNewCategory({ ...newCategory, icon: v })} 
-                      options={ICON_OPTIONS} 
+                      options={ICON_OPTIONS.map(opt => ({ ...opt, label: t(`dashboard.planning.icons.${opt.key}`) || opt.label }))} 
                     />
                   </div>
                   <div style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", alignItems: "flex-end" }}>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>NAMA KATEGORI</label>
+                      <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.planning.categoryName") || "NAMA KATEGORI"}</label>
                       <input 
                         value={newCategory.name} 
                         onChange={e => setNewCategory({ ...newCategory, name: e.target.value })} 
                         className="input-brutal" 
-                        placeholder="Contoh: Belanja Online" 
+                        placeholder={t("dashboard.planning.exampleCategory") || "Contoh: Belanja Online"} 
                         style={{ border: "3px solid var(--color-navy)", padding: "0.85rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)", outline: "none", fontWeight: 800, fontSize: "1rem" }} 
                       />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ALOKASI (RP)</label>
+                      <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.planning.allocationRp") || "ALOKASI (RP)"}</label>
                       <input 
                         value={newCategory.allocated ? newCategory.allocated.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""} 
                         onChange={e => {
@@ -1098,7 +1105,7 @@ export default function PlanningPage() {
                       padding: "0.85rem 2rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900, fontSize: "1rem",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)", border: "3px solid var(--color-navy)"
                     }}>
-                      Simpan
+                      {t("dashboard.planning.saveBtn") || "Simpan"}
                     </button>
                   </div>
                 </div>
@@ -1167,8 +1174,8 @@ export default function PlanningPage() {
                   <Brain size={28} color="var(--color-navy)" strokeWidth={2.5} />
                 </div>
                 <div>
-                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>Profil Risiko Keuangan</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>Model 3 · Risk Profile Classifier</div>
+                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>{t("dashboard.planning.riskProfileTitle")}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>{t("dashboard.planning.riskProfileSubtitle") || "Model 3 · Risk Profile Classifier"}</div>
                 </div>
               </div>
             </div>
@@ -1232,13 +1239,15 @@ export default function PlanningPage() {
                 <div style={{ background: "var(--color-bg)", padding: "1.5rem", borderRadius: "50%", border: "3px dashed var(--color-navy)", marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Brain size={48} color="var(--color-navy)" strokeWidth={2} style={{ opacity: 0.6 }} />
                 </div>
-                <p style={{ margin: 0, marginBottom: "1.5rem", fontWeight: 800, fontSize: "1.1rem", color: "var(--color-navy)", opacity: 0.8, textAlign: "center", maxWidth: "80%" }}>Klik <strong>&quot;Mulai Analisis&quot;</strong> untuk mengetahui profil risiko keuanganmu!</p>
+                <p style={{ margin: 0, marginBottom: "1.5rem", fontWeight: 800, fontSize: "1.1rem", color: "var(--color-navy)", opacity: 0.8, textAlign: "center", maxWidth: "80%" }}>
+                  {t("dashboard.planning.clickToStart") || "Klik 'Mulai Analisis' untuk mengetahui profil risiko keuanganmu!"}
+                </p>
                 <button
                   onClick={() => fetchRiskProfile()}
                   className="btn-brutal"
                   style={{ padding: "0.75rem 1.5rem", background: "var(--color-orange)", color: "var(--color-navy)", fontWeight: 900, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)" }}
                 >
-                  <Sparkles size={20} /> Analisis Profil Saya
+                  <Sparkles size={20} /> {t("dashboard.planning.analyzeProfile") || "Analisis Profil Saya"}
                 </button>
               </div>
             )}

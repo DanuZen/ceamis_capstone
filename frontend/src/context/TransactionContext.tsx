@@ -93,8 +93,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         savings_ratio: summaryRes.savings_ratio,
         category_breakdown: summaryRes.category_breakdown,
       });
-    } catch (err) {
-      console.error("Failed to fetch transactions from API, falling back to localStorage:", err);
+    } catch (err: any) {
+      console.warn("Failed to fetch transactions from API, falling back to localStorage:", err?.message || err);
       const saved = localStorage.getItem("ceamis_transactions");
       if (saved) {
         try { setTransactions(JSON.parse(saved)); } catch { /* ignore */ }
@@ -158,8 +158,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         savings_ratio: summaryRes.savings_ratio,
         category_breakdown: summaryRes.category_breakdown,
       });
-    } catch (err) {
-      console.error("Failed to save transaction to API, keeping optimistic entry:", err);
+    } catch (err: any) {
+      console.warn("Failed to save transaction to API, keeping optimistic entry:", err?.message || err);
       // Persist the optimistic tx to localStorage as fallback backup
       const saved = localStorage.getItem("ceamis_transactions");
       const existing: Transaction[] = saved ? JSON.parse(saved) : [];

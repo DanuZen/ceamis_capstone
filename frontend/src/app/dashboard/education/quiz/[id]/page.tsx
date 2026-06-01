@@ -133,7 +133,7 @@ export default function QuizDetailPage() {
 
   const handleFinishQuiz = () => {
     if (answers.includes(null)) {
-      showToast("Harap jawab semua soal sebelum menyelesaikan kuis!", "warning");
+      showToast(t("dashboard.education.quiz.mustAnswerAll"), "warning");
       return;
     }
     setShowResult(true);
@@ -167,7 +167,7 @@ export default function QuizDetailPage() {
         {!showResult && (
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <div className="badge-brutal" style={{ background: "var(--color-white)", border: "2px solid var(--color-navy)", fontSize: "0.875rem" }}>
-               {currentProgress}% Selesai
+               {currentProgress}% {t("dashboard.education.quiz.percentDone")}
             </div>
           </div>
         )}
@@ -177,7 +177,7 @@ export default function QuizDetailPage() {
         {/* Sidebar Nav */}
         {!showResult && (
           <div style={{ width: "280px", background: "var(--color-white)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem", height: "fit-content", border: "2.5px solid var(--color-navy)", borderRadius: "12px" }}>
-            <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>Daftar Soal</h4>
+            <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>{t("dashboard.education.quiz.questionList")}</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               {questions.map((q, index) => (
                 <button 
@@ -200,7 +200,7 @@ export default function QuizDetailPage() {
                   }}
                 >
                   {answers[index] !== null ? <CheckCircle size={14} /> : <div style={{width: 14, height: 14, borderRadius: '50%', border: '2px solid currentColor'}} />}
-                  Soal {index + 1}
+                  {t("dashboard.education.quiz.question")} {index + 1}
                 </button>
               ))}
             </div>
@@ -226,10 +226,10 @@ export default function QuizDetailPage() {
               <div style={{ marginBottom: "2.5rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-navy)", marginBottom: "1rem" }}>
                   <Award size={24} color="var(--color-navy)" />
-                  <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>Kuis Evaluasi Modul {id}</span>
+                  <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>{t("dashboard.education.quiz.quizTitle")} {id}</span>
                   <span style={{ color: "var(--color-navy)", opacity: 0.2 }}>•</span>
                   <span style={{ color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                    Soal {currentQuestion + 1} dari {questions.length}
+                    {t("dashboard.education.quiz.question")} {currentQuestion + 1} {t("dashboard.education.quiz.of")} {questions.length}
                   </span>
                 </div>
                 <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.5rem", margin: 0, lineHeight: 1.2, fontWeight: 900 }}>
@@ -272,7 +272,7 @@ export default function QuizDetailPage() {
                   className="btn-brutal"
                   style={{ padding: "0.75rem 1.5rem", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "0.5rem", background: currentQuestion === 0 ? "var(--color-bg)" : "var(--color-white)", opacity: currentQuestion === 0 ? 0.5 : 1, cursor: currentQuestion === 0 ? "not-allowed" : "pointer" }}
                 >
-                  <ArrowLeft size={20} /> Sebelumnya
+                  <ArrowLeft size={20} /> {t("dashboard.education.quiz.prev")}
                 </button>
 
                 {currentQuestion === questions.length - 1 ? (
@@ -289,7 +289,7 @@ export default function QuizDetailPage() {
                       transform: answers.includes(null) ? "translate(4px, 4px)" : "none"
                     }}
                   >
-                    Selesaikan Kuis <CheckCircle size={24} />
+                    {t("dashboard.education.quiz.finishQuiz")} <CheckCircle size={24} />
                   </button>
                 ) : (
                   <button 
@@ -297,7 +297,7 @@ export default function QuizDetailPage() {
                     className="btn-brutal"
                     style={{ padding: "0.75rem 1.5rem", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--color-lime)" }}
                   >
-                    Selanjutnya <CheckCircle size={20} />
+                    {t("dashboard.education.quiz.next")} <CheckCircle size={20} />
                   </button>
                 )}
               </div>
@@ -310,7 +310,7 @@ export default function QuizDetailPage() {
                     <Award size={40} color="var(--color-navy)" strokeWidth={2.5} />
                   </div>
                 </div>
-                <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "3rem", margin: "0 0 1rem 0", color: "var(--color-navy)", fontWeight: 900 }}>Hasil Kuis</h1>
+                <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "3rem", margin: "0 0 1rem 0", color: "var(--color-navy)", fontWeight: 900 }}>{t("dashboard.education.quiz.quizResult")}</h1>
                 
                 {/* Score calc */}
                 {(() => {
@@ -320,17 +320,17 @@ export default function QuizDetailPage() {
                   return (
                     <>
                       <p style={{ fontSize: "1.25rem", color: "var(--color-navy)", fontWeight: 700, margin: "0 0 1.5rem 0" }}>
-                        Kamu menjawab benar <span style={{ color: "var(--color-success)", fontSize: "1.5rem" }}>{correctCount}</span> dari {questions.length} soal!
+                        {t("dashboard.education.quiz.correctAnswers1")} <span style={{ color: "var(--color-success)", fontSize: "1.5rem" }}>{correctCount}</span> {t("dashboard.education.quiz.of")} {questions.length} {t("dashboard.education.quiz.correctAnswers2")}
                       </p>
                       
                       <div style={{ display: "inline-block", background: "var(--color-bg)", border: "3px dashed var(--color-navy)", padding: "1.5rem 2.5rem", borderRadius: "var(--radius-brutal)", marginBottom: "3rem" }}>
-                        <div style={{ fontSize: "1rem", fontWeight: 800, color: "var(--color-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "1px" }}>XP Diterima</div>
+                        <div style={{ fontSize: "1rem", fontWeight: 800, color: "var(--color-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "1px" }}>{t("dashboard.education.quiz.xpEarned")}</div>
                         <div style={{ fontSize: "3rem", fontWeight: 900, color: "var(--color-pink)", lineHeight: 1 }}>+{xpEarned}</div>
                       </div>
                       
                       {/* Breakdown */}
                       <div style={{ textAlign: "left", marginBottom: "3rem" }}>
-                        <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem" }}>Review Jawaban:</h3>
+                        <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem" }}>{t("dashboard.education.quiz.reviewAnswers")}</h3>
                         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
                           {questions.map((q, i) => {
                             const isCorrect = answers[i] === q.correctAnswer;
@@ -371,7 +371,7 @@ export default function QuizDetailPage() {
                                     {isCorrect ? <CheckCircle size={20} color="var(--color-navy)" /> : <XCircle size={20} color="var(--color-navy)" />}
                                   </div>
                                   <h3 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1.2rem", color: "var(--color-navy)" }}>
-                                    Pertanyaan {i + 1}
+                                    {t("dashboard.education.quiz.question")} {i + 1}
                                   </h3>
                                   <span style={{ 
                                     marginLeft: "auto", 
@@ -401,7 +401,7 @@ export default function QuizDetailPage() {
                                       border: `2px solid ${isCorrect ? "var(--color-success)" : "var(--color-danger)"}`
                                     }}>
                                       <div style={{ fontWeight: 800, color: isCorrect ? "var(--color-success)" : "var(--color-danger)", minWidth: "120px" }}>
-                                        Jawaban Anda:
+                                        {t("dashboard.education.quiz.yourAnswer")}
                                       </div>
                                       <div style={{ fontWeight: 700, color: "var(--color-navy)" }}>
                                         {q.options[answers[i] as number]}
@@ -417,7 +417,7 @@ export default function QuizDetailPage() {
                                         border: "2px solid var(--color-success)"
                                       }}>
                                         <div style={{ fontWeight: 800, color: "var(--color-success)", minWidth: "120px" }}>
-                                          Jawaban Benar:
+                                          {t("dashboard.education.quiz.correctAnswerLabel")}
                                         </div>
                                         <div style={{ fontWeight: 700, color: "var(--color-navy)" }}>
                                           {q.options[q.correctAnswer]}
@@ -442,7 +442,7 @@ export default function QuizDetailPage() {
                                     </div>
                                     <div>
                                       <h4 style={{ margin: "0 0 0.25rem 0", color: "var(--color-purple)", fontWeight: 800, fontSize: "0.9rem", textTransform: "uppercase" }}>
-                                        Penjelasan
+                                        {t("dashboard.education.quiz.explanation")}
                                       </h4>
                                       <p style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--color-navy)", lineHeight: 1.5 }}>
                                         {q.explanation}
@@ -461,7 +461,7 @@ export default function QuizDetailPage() {
                         className="btn-brutal btn-brutal--primary" 
                         style={{ padding: "1.25rem 3rem", fontSize: "1.25rem", display: "inline-flex", alignItems: "center", gap: "0.75rem" }}
                       >
-                        Klaim XP & Kembali <CheckCircle size={24} />
+                        {t("dashboard.education.quiz.claimXp")} <CheckCircle size={24} />
                       </button>
                     </>
                   );

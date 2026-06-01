@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ShieldCheck, User, Zap, ArrowLeft, UserPlus, Mail, X, Info, ExternalLink } from "lucide-react";
+import { ShieldCheck, User, Zap, ArrowLeft, UserPlus, Mail, X, Info, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,11 +209,18 @@ export default function RegisterPage() {
         }
         .logo-container-reg {
           animation: pulseGlow 3s infinite;
+        @media (max-width: 768px) {
+          .desktop-panel { display: none !important; }
+          .mobile-container { padding: 1rem !important; }
+          .mobile-logo { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+          .mobile-logo { display: none !important; }
         }
       `}</style>
 
       <div
-        className="hidden md:flex"
+        className="desktop-panel"
         style={{
           flex: 1,
           background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)",
@@ -304,6 +312,7 @@ export default function RegisterPage() {
 
       {/* ── RIGHT PANEL: Register Form ── */}
       <div
+        className="mobile-container"
         style={{
           flex: 1,
           display: "flex",
@@ -317,8 +326,8 @@ export default function RegisterPage() {
       >
         <div style={{ width: "100%", maxWidth: 420 }}>
           {/* Logo Mobile Only */}
-          <div className="hide-on-desktop" style={{ marginBottom: "1.5rem" }}>
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none" }}>
+          <div className="mobile-logo" style={{ marginBottom: "1.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none" }}>
               <img
                 src="/images/logo_color.png"
                 alt="CEAMIS Logo"
@@ -335,7 +344,7 @@ export default function RegisterPage() {
               <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "2rem", color: "var(--color-text)" }}>
                 CEAMIS
               </span>
-            </Link>
+            </div>
           </div>
 
           {/* Header */}
@@ -404,13 +413,26 @@ export default function RegisterPage() {
                 <label style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.5rem", display: "block", color: "var(--color-navy)" }}>
                   Password
                 </label>
-                <input
-                  type="password" className="input-brutal"
-                  placeholder={t("auth.registerPasswordPlaceholder")}
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  style={{ width: "100%", padding: "0.85rem 1rem", fontSize: "0.95rem", background: "#F8FAFC" }}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPassword ? "text" : "password"} className="input-brutal"
+                    placeholder={t("auth.registerPasswordPlaceholder")}
+                    value={password} onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    style={{ width: "100%", padding: "0.85rem 2.5rem 0.85rem 1rem", fontSize: "0.95rem", background: "#F8FAFC" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
+                      background: "none", border: "none", cursor: "pointer", color: "var(--color-navy)",
+                      display: "flex", alignItems: "center", justifyContent: "center"
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <button

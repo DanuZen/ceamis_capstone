@@ -5,6 +5,7 @@ import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter } from "luc
 import { useSearchParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { translateCategoryName } from "@/lib/translateCategory";
 
 export default function HistoryPage() {
   const searchParams = useSearchParams();
@@ -206,7 +207,7 @@ export default function HistoryPage() {
                         <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", display: "flex", gap: "0.5rem", alignItems: "center", fontWeight: 600 }}>
                           <span>{tx.date}</span>
                           <span style={{ opacity: 0.3 }}>•</span>
-                          <span style={{ color: "var(--color-purple)" }}>{tx.category}</span>
+                          <span style={{ color: "var(--color-purple)" }}>{translateCategoryName(tx.category, t)}</span>
                         </div>
                       </div>
                     </div>
@@ -243,13 +244,13 @@ export default function HistoryPage() {
                 <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                     <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: cat.color, border: "2px solid var(--color-navy)" }}></div>
-                    <span style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-navy)" }}>{cat.name}</span>
+                    <span style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-navy)" }}>{translateCategoryName(cat.name, t)}</span>
                   </div>
                   <span style={{ fontWeight: 800, color: "var(--color-text-muted)" }}>{cat.count}</span>
                 </div>
               )) : (
                 <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontStyle: "italic" }}>
-                  Belum ada data pengeluaran.
+                  {t("dashboard.history.noExpenseData")}
                 </div>
               )}
             </div>

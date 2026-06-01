@@ -255,10 +255,10 @@ export default function OnboardingPage() {
         </div>
 
         {/* Logo */}
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "1rem", textDecoration: "none", marginBottom: "auto", zIndex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "auto", zIndex: 1 }}>
           <img src="/images/logo_white.png" alt="CEAMIS" style={{ width: 56, height: 56, objectFit: "contain" }} />
           <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "2rem", letterSpacing: "2px", color: step.textColor }}>CEAMIS</span>
-        </Link>
+        </div>
 
         {/* Step Info */}
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", zIndex: 1, margin: "2.5rem 0" }}>

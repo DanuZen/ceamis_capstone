@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { ShieldCheck, User, Eye, Zap, LogIn, ArrowLeft, Mail, X, ExternalLink, Info } from "lucide-react";
+import { ShieldCheck, User, Eye, EyeOff, Zap, LogIn, ArrowLeft, Mail, X, ExternalLink, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -19,6 +19,7 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -237,10 +238,17 @@ export default function AuthPage() {
         }
         .logo-container {
           animation: pulseGlow 3s infinite;
+        @media (max-width: 768px) {
+          .desktop-panel { display: none !important; }
+          .mobile-container { padding: 1rem !important; }
+          .mobile-logo { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+          .mobile-logo { display: none !important; }
         }
       `}</style>
       <div 
-        className="hidden md:flex"
+        className="desktop-panel"
         style={{
           flex: 1,
           background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)",
@@ -325,6 +333,7 @@ export default function AuthPage() {
 
       {/* ── RIGHT PANEL: Login Form ── */}
       <div
+        className="mobile-container"
         style={{
           flex: 1,
           display: "flex",
@@ -338,9 +347,8 @@ export default function AuthPage() {
       >
         <div style={{ width: "100%", maxWidth: 420 }}>
           {/* Logo (Hanya tampil di Mobile karena Desktop sudah ada di kiri) */}
-          <div className="hide-on-desktop" style={{ marginBottom: "1.5rem" }}>
-            <Link
-              href="/"
+          <div className="mobile-logo" style={{ marginBottom: "1.5rem" }}>
+            <div
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -369,7 +377,7 @@ export default function AuthPage() {
             >
               CEAMIS
             </span>
-          </Link>
+            </div>
           </div>
 
           {/* Header Text (Dipindah ke luar card) */}
@@ -438,11 +446,25 @@ export default function AuthPage() {
                 <label style={{ fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem", display: "block" }}>
                   Password
                 </label>
-                <input
-                  type="password" className="input-brutal"
-                  placeholder={t("auth.passwordPlaceholder")}
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPassword ? "text" : "password"} className="input-brutal"
+                    placeholder={t("auth.passwordPlaceholder")}
+                    value={password} onChange={(e) => setPassword(e.target.value)}
+                    style={{ width: "100%", paddingRight: "2.5rem" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
+                      background: "none", border: "none", cursor: "pointer", color: "var(--color-navy)",
+                      display: "flex", alignItems: "center", justifyContent: "center"
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <button

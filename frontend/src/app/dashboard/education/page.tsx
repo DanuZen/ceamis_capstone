@@ -7,7 +7,19 @@ import { useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
 
-const initialModules = [
+type Module = {
+  id: number;
+  level: string;
+  color: string;
+  progress: number;
+  title?: string;
+  desc?: string;
+  duration?: string;
+  category?: string;
+  status?: string;
+};
+
+const initialModules: Module[] = [
   {
     id: 1,
     level: "Beginner",
@@ -112,10 +124,19 @@ export default function EducationPage() {
 
   const getLevelBadge = (level: string) => {
     switch (level) {
-      case "Beginner": return "badge-brutal--lime";
-      case "Intermediate": return "badge-brutal--orange";
-      case "Advanced": return "badge-brutal--purple";
+      case "Beginner": case "Dasar": return "badge-brutal--lime";
+      case "Intermediate": case "Menengah": return "badge-brutal--orange";
+      case "Advanced": case "Mahir": return "badge-brutal--purple";
       default: return "";
+    }
+  };
+
+  const translateLevel = (level: string) => {
+    switch (level) {
+      case "Beginner": case "Dasar": return t("dashboard.education.levelBeginner") || level;
+      case "Intermediate": case "Menengah": return t("dashboard.education.levelIntermediate") || level;
+      case "Advanced": case "Mahir": return t("dashboard.education.levelAdvanced") || level;
+      default: return level;
     }
   };
 
@@ -162,8 +183,8 @@ export default function EducationPage() {
             {t("dashboard.education.progressTitle")}
           </h3>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} / {initialModules.length} Modul Selesai</span>
-            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {initialModules.length} Kuis Selesai</span>
+            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} / {initialModules.length} {t("dashboard.education.modulesCompletedBadge")}</span>
+            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {initialModules.length} {t("dashboard.education.quizzesCompletedBadge")}</span>
           </div>
         </div>
         <div className="progress-brutal" style={{ height: "24px", border: "3px solid var(--color-navy)" }}>
@@ -195,7 +216,7 @@ export default function EducationPage() {
             gap: "0.5rem"
           }}
         >
-          Modul Materi
+          {t("dashboard.education.modulesTab") || "Modul Materi"}
         </button>
         <button 
           onClick={() => setActiveTab("quizzes")}
@@ -211,7 +232,7 @@ export default function EducationPage() {
             gap: "0.5rem"
           }}
         >
-          Kuis Evaluasi
+          {t("dashboard.education.quizzesTab") || "Kuis Evaluasi"}
         </button>
       </div>
 
@@ -267,7 +288,7 @@ export default function EducationPage() {
                     }}>
                       <PlayCircle size={20} color="var(--color-navy)" strokeWidth={2.5} />
                     </div>
-                    <span className={`badge-brutal ${getLevelBadge(mod.level)}`} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}>{mod.level}</span>
+                    <span className={`badge-brutal ${getLevelBadge(mod.level)}`} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)" }}>{translateLevel(mod.level)}</span>
                   </div>
                   
                   <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
@@ -299,7 +320,7 @@ export default function EducationPage() {
       ) : (
         <>
           <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)" }}>
-            Pilih Kuis Evaluasi
+            {t("dashboard.education.chooseQuiz") || "Pilih Kuis Evaluasi"}
           </h2>
           <div
             className="stagger-children"
@@ -310,7 +331,7 @@ export default function EducationPage() {
             }}
           >
             {quizzes.map((quiz, index) => {
-              const mod = modules.find(m => m.id === quiz.moduleId) || { title: `Modul #${quiz.moduleId}` };
+              const mod: any = modules.find(m => m.id === quiz.moduleId) || { title: `Modul #${quiz.moduleId}` };
               return (
                 <Link 
                   key={quiz.id} 
@@ -348,10 +369,10 @@ export default function EducationPage() {
                   
                   <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", marginBottom: "0.5rem", fontWeight: 800 }}>
-                      Kuis: {quiz.question || mod.title || (!mod.id || mod.id > 10 ? `Modul Kustom #${quiz.moduleId}` : t(`dashboard.education.modules.${mod.id - 1}.title`))}
+                      {t("dashboard.education.quizPrefix") || "Kuis:"} {quiz.question || mod.title || (!mod.id || mod.id > 10 ? `Modul Kustom #${quiz.moduleId}` : t(`dashboard.education.modules.${mod.id - 1}.title`))}
                     </h3>
                     <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", marginBottom: "1.5rem", flex: 1, fontWeight: 500 }}>
-                      Uji pemahamanmu tentang materi {mod.title || (!mod.id || mod.id > 10 ? `Modul Kustom #${quiz.moduleId}` : t(`dashboard.education.modules.${mod.id - 1}.title`))} dan dapatkan XP tambahan!
+                      {t("dashboard.education.quizDesc")} {mod.title || (!mod.id || mod.id > 10 ? `Modul Kustom #${quiz.moduleId}` : t(`dashboard.education.modules.${mod.id - 1}.title`))} {t("dashboard.education.quizDesc2")}
                     </p>
                     
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: "2px solid rgba(10, 25, 47, 0.05)" }}>
@@ -359,9 +380,9 @@ export default function EducationPage() {
                         <Clock size={14} /> 2 menit
                       </span>
                       {completedQuizzes.includes(quiz.moduleId) ? (
-                        <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>SELESAI</span>
+                        <span className="badge-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{t("dashboard.education.statusDone") || "SELESAI"}</span>
                       ) : (
-                        <span className="badge-brutal" style={{ background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>MULAI KUIS</span>
+                        <span className="badge-brutal" style={{ background: "var(--color-white)", color: "var(--color-navy)", border: "2px solid var(--color-navy)", fontSize: "0.75rem", boxShadow: "none" }}>{t("dashboard.education.startQuizBtn") || "MULAI KUIS"}</span>
                       )}
                     </div>
                   </div>

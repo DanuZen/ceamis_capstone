@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet, Plus, Coffee, Utensils, Car, ShoppingBag, Zap, Sparkles, TrendingUp, ArrowRight, Tag, Home, Gamepad2, Banknote, Brain, RefreshCw, ChevronDown } from "lucide-react";
+import { Wallet, Plus, Coffee, Utensils, Car, ShoppingBag, Zap, Sparkles, TrendingUp, ArrowRight, Tag, Home, Gamepad2, Banknote, Brain, RefreshCw, ChevronDown, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTransactions, TransactionType } from "@/context/TransactionContext";
@@ -103,6 +103,7 @@ export default function TransactionsPage() {
   const [amountRaw, setAmountRaw] = useState(""); // unformatted for parse
   const [type, setType]       = useState<TransactionType>("pengeluaran");
   const [tag, setTag]         = useState<"needs" | "wants" | "save">("needs");
+  const [isQuickInput, setIsQuickInput] = useState(false);
 
   const CATEGORY_OPTIONS = {
     pemasukan: [t("dashboard.transactions.catSalary"), t("dashboard.transactions.catBonus"), t("dashboard.transactions.catBusiness"), t("dashboard.transactions.catOther")],
@@ -241,6 +242,8 @@ export default function TransactionsPage() {
   const handleQuickInput = (presetDesc: string, presetAmount: string) => {
     setDesc(presetDesc);
     setAmount(presetAmount);
+    setType("pengeluaran");
+    setIsQuickInput(true);
   };
 
   const handleCategoryChange = (cat: string) => {
@@ -302,8 +305,8 @@ export default function TransactionsPage() {
           {/* Main info */}
           <div style={{ flex: 1, minWidth: "200px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
-              <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", fontWeight: 800 }}>
-                {t("dashboard.transactions.spendingPattern")} {loadingCluster ? "..." : cluster.cluster_label}
+              <span style={{ fontWeight: 800 }}>
+                {t("dashboard.transactions.spendingPattern")} {cluster.cluster_label === "Si Hemat" ? t("dashboard.transactions.mockClusterLabel") : cluster.cluster_label}
               </span>
               {!loadingCluster && (
                 <div style={{
@@ -319,7 +322,7 @@ export default function TransactionsPage() {
             </div>
 
             <p style={{ fontSize: "0.9rem", opacity: 0.85, margin: "0 0 0.75rem 0", lineHeight: 1.5 }}>
-              {loadingCluster ? t("dashboard.transactions.analyzing") : cluster.insight}
+              {loadingCluster ? t("dashboard.transactions.analyzing") : (cluster.insight === MOCK_CLUSTER.insight ? t("dashboard.transactions.mockInsight") : cluster.insight)}
             </p>
 
             {/* Needs / Wants / Savings bar */}
@@ -360,7 +363,7 @@ export default function TransactionsPage() {
               }}
             >
               <RefreshCw size={13} className={loadingCluster ? "animate-spin" : ""} />
-              {loadingCluster ? t("dashboard.transactions.analyzing") : "Analisis Lagi"}
+              {loadingCluster ? t("dashboard.transactions.analyzing") : t("dashboard.transactions.refreshInsight")}
             </button>
           </div>
         </div>
@@ -384,11 +387,12 @@ export default function TransactionsPage() {
                 { label: t("dashboard.transactions.quickSnackLabel"), amount: "15000", desc: t("dashboard.transactions.quickSnackDesc"), color: "var(--color-orange)", icon: ShoppingBag, type: "wants" as const },
                 { label: t("dashboard.transactions.quickFoodLabel"), amount: "35000", desc: t("dashboard.transactions.quickFoodDesc"), color: "var(--color-lime)", icon: Utensils, type: "needs" as const },
                 { label: t("dashboard.transactions.quickGasLabel"), amount: "20000", desc: t("dashboard.transactions.quickGasDesc"), color: "var(--color-lime)", icon: Car, type: "needs" as const },
-                { label: "Tabungan", amount: "50000", desc: "Tabungan Darurat", color: "var(--color-purple)", icon: Wallet, type: "save" as const },
-                { label: "Investasi", amount: "100000", desc: "Beli Reksadana", color: "var(--color-purple)", icon: TrendingUp, type: "save" as const },
+                { label: t("dashboard.transactions.quickSaveLabel"), amount: "50000", desc: t("dashboard.transactions.quickSaveDesc"), color: "var(--color-purple)", icon: Wallet, type: "save" as const },
+                { label: t("dashboard.transactions.quickInvestLabel"), amount: "100000", desc: t("dashboard.transactions.quickInvestDesc"), color: "var(--color-purple)", icon: TrendingUp, type: "save" as const },
               ].map((btn) => (
                 <button
                   key={btn.label}
+                  type="button"
                   onClick={() => { handleQuickInput(btn.desc, btn.amount); setTag(btn.type); }}
                   className="btn-brutal"
                   style={{
@@ -435,7 +439,7 @@ export default function TransactionsPage() {
               <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", color: "var(--color-navy)", margin: 0, fontWeight: 900 }}>{t("dashboard.transactions.formTitle")}</h3>
             </div>
             <p style={{ fontSize: "1rem", color: "var(--color-text-muted)", marginBottom: "2rem", lineHeight: 1.5, fontWeight: 500 }}>
-              Catat secara manual detail transaksi pemasukan, pengeluaran, atau tabunganmu di sini.
+              {t("dashboard.transactions.formDesc")}
             </p>
 
             <form
@@ -444,7 +448,7 @@ export default function TransactionsPage() {
                 if (!desc || !amount) return;
                 addTransaction({ description: desc, amount: parseFloat(amountRaw.replace(/\./g, "")), type, category, tag });
                 showToast(t("dashboard.transactions.savedSuccess") || "Transaksi aman tersimpan, cuy!", "success");
-                setDesc(""); setAmount(""); setAmountRaw("");
+                setDesc(""); setAmount(""); setAmountRaw(""); setIsQuickInput(false);
               }}
               style={{ display: "flex", flexDirection: "column", gap: "1.5rem", flex: 1 }}
             >
@@ -452,17 +456,29 @@ export default function TransactionsPage() {
                 <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
                   {type === "pemasukan" ? t("dashboard.transactions.formIncomeLabel") : tag === "save" ? t("dashboard.transactions.formSaveLabel") : t("dashboard.transactions.formExpenseLabel")}
                 </label>
-                <input
-                  value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
-                  className="input-brutal"
-                  placeholder={
-                    type === "pemasukan" ? t("dashboard.transactions.formIncomePlaceholder") :
-                    tag === "save" ? t("dashboard.transactions.formSavePlaceholder") :
-                    t("dashboard.transactions.formExpensePlaceholder")
-                  }
-                  style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    value={desc}
+                    onChange={(e) => setDesc(e.target.value)}
+                    className="input-brutal"
+                    placeholder={
+                      type === "pemasukan" ? t("dashboard.transactions.formIncomePlaceholder") :
+                      tag === "save" ? t("dashboard.transactions.formSavePlaceholder") :
+                      t("dashboard.transactions.formExpensePlaceholder")
+                    }
+                    style={{ border: "3px solid var(--color-navy)", padding: "1rem", paddingRight: isQuickInput ? "3rem" : "1rem", fontSize: "1.125rem", width: "100%", boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
+                  />
+                  {isQuickInput && (
+                    <button
+                      type="button"
+                      onClick={() => setIsQuickInput(false)}
+                      style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "0.25rem" }}
+                      title="Batal One Click"
+                    >
+                      <X size={20} color="var(--color-text-muted)" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.5rem" }}>
@@ -492,14 +508,20 @@ export default function TransactionsPage() {
                   <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
                     {t("dashboard.transactions.typeLabel")}
                   </label>
-                  <CustomSelect
-                    value={type}
-                    onChange={(v) => setType(v as TransactionType)}
-                    options={[
-                      { key: "pengeluaran", label: t("dashboard.transactions.expense") },
-                      { key: "pemasukan", label: t("dashboard.transactions.income") }
-                    ]}
-                  />
+                  {isQuickInput ? (
+                    <div className="input-brutal" style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)", background: "#e2e8f0", color: "var(--color-text-muted)" }}>
+                      {t("dashboard.transactions.expense")}
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      value={type}
+                      onChange={(v) => setType(v as TransactionType)}
+                      options={[
+                        { key: "pengeluaran", label: t("dashboard.transactions.expense") },
+                        { key: "pemasukan", label: t("dashboard.transactions.income") }
+                      ]}
+                    />
+                  )}
                 </div>
               </div>
 

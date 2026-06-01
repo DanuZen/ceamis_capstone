@@ -52,8 +52,8 @@ export default function ProfilePage() {
   const biggestExpense = React.useMemo(() => {
     const expenses = transactions.filter(t => t.type === "pengeluaran");
     if (expenses.length > 0) {
-      const maxExpense = expenses.reduce((prev, current) => (prev.amount > current.amount) ? prev : current);
-      return `${maxExpense.category} — Rp ${maxExpense.amount.toLocaleString("id-ID")}`;
+      const maxExpense = expenses.reduce((prev, current) => ((prev.amount || 0) > (current.amount || 0)) ? prev : current);
+      return `${maxExpense.category || "Lainnya"} — Rp ${(maxExpense.amount || 0).toLocaleString("id-ID")}`;
     }
     return "Tidak ada data";
   }, [transactions]);

@@ -112,7 +112,7 @@ export default function DashboardPage() {
         <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", maxWidth: "600px", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           {t("dashboard.ready")}
           <span className="badge-brutal badge-brutal--lime" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.6rem", fontSize: "0.75rem" }}>
-            {userData.label}
+            {userData.label.toUpperCase() === "PEMULA" ? (t("dashboard.beginnerBadge") || "PEMULA") : userData.label}
           </span>
         </p>
       </div>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
             <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp {(sisaSaldo/1000).toLocaleString("id-ID")}k</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp {sisaSaldo.toLocaleString("id-ID")}</div>
             <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.balance")}</div>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
                   <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: 0, color: "var(--color-navy)" }}>
                     {t("dashboard.insightTitle")}
                   </h3>
-                  <div className="badge-brutal badge-brutal--purple" style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}>AI Confidence: 89%</div>
+                  <div className="badge-brutal badge-brutal--purple" style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}>{t("dashboard.aiConfidence") || "AI Confidence"}: 89%</div>
                 </div>
                 <p style={{ fontSize: "1.0625rem", lineHeight: 1.6, marginBottom: "1.25rem", color: "var(--color-navy)", fontWeight: 600 }}>
                   {t("dashboard.insightDesc")}
