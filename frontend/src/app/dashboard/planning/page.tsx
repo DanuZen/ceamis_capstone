@@ -940,7 +940,7 @@ export default function PlanningPage() {
                 <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: colors ? colors.text : "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {profile || "—"}
                 </div>
-                <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>Profil Risiko</div>
+                <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>{t("dashboard.planning.riskProfileTitle")}</div>
               </div>
             </div>
           );
@@ -1018,7 +1018,7 @@ export default function PlanningPage() {
                       <AlertTriangle size={22} color="var(--color-navy)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Kebutuhan
+                      {t("dashboard.planning.needs")}
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-lime)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -1036,7 +1036,7 @@ export default function PlanningPage() {
                       <Sparkles size={22} color="var(--color-white)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Keinginan
+                      {t("dashboard.planning.wants")}
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -1054,7 +1054,7 @@ export default function PlanningPage() {
                       <ShieldCheck size={22} color="var(--color-white)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      Tabungan
+                      {t("dashboard.planning.savings")}
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                       <div style={{ background: "var(--color-purple)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -1083,7 +1083,7 @@ export default function PlanningPage() {
                   boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)"
                 }}>
                   <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
-                  {showAddCategory ? "Batal" : t("dashboard.planning.addCategory")}
+                  {showAddCategory ? t("dashboard.planning.cancel") : t("dashboard.planning.addCategory")}
                 </button>
               </div>
             </div>
@@ -1118,7 +1118,7 @@ export default function PlanningPage() {
                         value={newCategory.name} 
                         onChange={e => setNewCategory({ ...newCategory, name: e.target.value })} 
                         className="input-brutal" 
-                        placeholder="Contoh: Belanja Online" 
+                        placeholder={t("dashboard.planning.categoryPlaceholder")} 
                         style={{ border: "3px solid var(--color-navy)", padding: "0.85rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)", outline: "none", fontWeight: 800, fontSize: "1rem" }} 
                       />
                     </div>
@@ -1140,7 +1140,7 @@ export default function PlanningPage() {
                       padding: "0.85rem 2rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900, fontSize: "1rem",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)", border: "3px solid var(--color-navy)"
                     }}>
-                      Simpan
+                      {t("dashboard.planning.save")}
                     </button>
                   </div>
                 </div>
@@ -1152,7 +1152,7 @@ export default function PlanningPage() {
                 <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
                   <SearchX size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
                   <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
-                    Pencarian untuk "{searchQuery}" tidak ditemukan.
+                    {t("dashboard.planning.searchNoResult")} "{searchQuery}" {t("dashboard.planning.searchNoResultSuffix")}
                   </p>
                 </div>
               ) : (
@@ -1209,8 +1209,8 @@ export default function PlanningPage() {
                   <Brain size={28} color="var(--color-navy)" strokeWidth={2.5} />
                 </div>
                 <div>
-                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>Profil Risiko Keuangan</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>Model 3 · Risk Profile Classifier</div>
+                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>{t("dashboard.planning.riskProfileTitle")}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>{t("dashboard.planning.riskProfileSubtitle")}</div>
                 </div>
               </div>
             </div>
@@ -1219,7 +1219,7 @@ export default function PlanningPage() {
             {riskLoading && (
               <div style={{ padding: "3rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem", background: "var(--color-white)", flex: 1 }}>
                 <Loader size={48} color="var(--color-purple)" style={{ animation: "spin 1s linear infinite" }} />
-                <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.1rem" }}>AI sedang memproses datamu...</span>
+                <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.1rem" }}>{t("dashboard.planning.aiLoading")}</span>
               </div>
             )}
 
@@ -1259,7 +1259,7 @@ export default function PlanningPage() {
                         <Sparkles size={24} color={info.accentColor} />
                       </div>
                       <div>
-                        <h4 style={{ margin: "0 0 0.5rem 0", fontFamily: "var(--font-heading)", fontWeight: 900, color: "var(--color-navy)", fontSize: "1.1rem" }}>Saran AI:</h4>
+                        <h4 style={{ margin: "0 0 0.5rem 0", fontFamily: "var(--font-heading)", fontWeight: 900, color: "var(--color-navy)", fontSize: "1.1rem" }}>{t("dashboard.planning.aiSuggestionLabel")}</h4>
                         <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.6, color: "var(--color-navy)", fontWeight: 600 }}>{riskResult.suggestion}</p>
                       </div>
                     </div>
@@ -1280,7 +1280,7 @@ export default function PlanningPage() {
                   className="btn-brutal"
                   style={{ padding: "0.75rem 1.5rem", background: "var(--color-orange)", color: "var(--color-navy)", fontWeight: 900, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)" }}
                 >
-                  <Sparkles size={20} /> Analisis Profil Saya
+                  <Sparkles size={20} /> {t("dashboard.planning.analyzeBtn")}
                 </button>
               </div>
             )}
