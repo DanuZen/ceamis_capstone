@@ -41,7 +41,7 @@ def hitung_feature_engineering_dari_db(user_id: str) -> dict:
     return calculated_features
 
 
-@router.post("/predict/spending-cluster", response_model=SpendingClusterResponse)
+@router.post("/analyze", response_model=SpendingClusterResponse)
 def analyze_persona(payload: SpendingClusterRequest):
     try:
         # 1. Ambil user_id dari payload masuk (bawaan dari frontend/Node.js)

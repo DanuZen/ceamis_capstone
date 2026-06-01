@@ -46,39 +46,12 @@ class HealthScoreResponse(BaseModel):
 
 class SpendingClusterRequest(BaseModel):
     user_id: str = Field(..., description="ID unik pengguna dari Supabase Authentication")
-    is_late_night: float = Field(default=0.0, description="Rata-rata transaksi malam hari (0-1)")
-    is_weekend: float = Field(default=0.0, description="Rata-rata transaksi akhir pekan (0-1)")
-    is_unbudgeted: float = Field(default=0.0, description="Rata-rata transaksi di luar anggaran (0-1)")
-    is_risky_category: float = Field(default=0.0, description="Rata-rata transaksi kategori berisiko (0-1)")
-    is_binge_spending: float = Field(default=0.0, description="Rata-rata pengeluaran berlebih spontan (0-1)")
-    hourly_txn_count: float = Field(default=0.0, description="Rata-rata jumlah transaksi per jam")
-    transaction_count: float = Field(default=0.0, description="Total frekuensi transaksi dalam sebulan")
-    saving_rate_raw: float = Field(default=0.0, description="Rasio tabungan mentah terhadap pendapatan")
-    wants_ratio_raw: float = Field(default=0.0, description="Rasio pengeluaran keinginan terhadap pendapatan")
-    investment_rate_raw: float = Field(default=0.0, description="Rasio investasi terhadap pendapatan")
-    dti_ratio_raw: float = Field(default=0.0, description="Debt to Income Ratio mentah")
-    category_features: Optional[Dict[str, float]] = Field(default=None, description="Proporsi kategori transaksi, ex: {'cat_hobi': 0.1}")
+
 
     class Config:
         json_schema_extra = {
             "example": {
-                "user_id": "user-123",
-                "is_late_night": 0.29,
-                "is_weekend": 0.43,
-                "is_unbudgeted": 0.68,
-                "is_risky_category": 0.43,
-                "is_binge_spending": 0.15,
-                "hourly_txn_count": 1.8,
-                "transaction_count": 24.0,
-                "saving_rate_raw": 0.35,
-                "wants_ratio_raw": 0.19,
-                "investment_rate_raw": 0.05,
-                "dti_ratio_raw": 0.20,
-                "category_features": {
-                    "cat_hobi": 0.12,
-                    "cat_hiburan": 0.08,
-                    "cat_f&b": 0.35
-                }
+                "user_id": "user-123"
             }
         }
 

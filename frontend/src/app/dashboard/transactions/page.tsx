@@ -183,14 +183,12 @@ export default function TransactionsPage() {
     setLoadingCluster(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000"}/api/v1/predict/spending-cluster`,
+        `${process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000"}/api/v1/analyze`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            user_id:            userData.id || "guest",
-            category_features:  breakdown,
-            transaction_count:  transactions.filter(tx => tx.type === "pengeluaran").length,
+            user_id:            userData.id || "guest"
           }),
         }
       );
