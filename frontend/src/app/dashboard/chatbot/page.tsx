@@ -307,7 +307,7 @@ export default function ChatbotPage() {
 
       {/* ── Chat Messages ─────────────────────────────────────────────────── */}
       <div
-        className="card-brutal"
+        className="card-brutal no-scrollbar"
         style={{
           flex: 1, overflowY: "auto", padding: "1.25rem",
           display: "flex", flexDirection: "column", gap: "1.25rem",

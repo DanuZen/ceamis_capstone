@@ -360,7 +360,7 @@ export default function TransactionsPage() {
               }}
             >
               <RefreshCw size={13} className={loadingCluster ? "animate-spin" : ""} />
-              {loadingCluster ? t("dashboard.transactions.analyzing") : "Analisis Lagi"}
+              {loadingCluster ? "Menganalisis..." : "Analisis Lagi"}
             </button>
           </div>
         </div>
