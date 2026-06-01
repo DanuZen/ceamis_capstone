@@ -109,6 +109,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       return (
         <div
           key={item.href}
+          className="sidebar__link"
           title={t("sidebar.guestLockedTitle")}
           style={{
             padding: "0.75rem 1.25rem",
@@ -146,6 +147,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       return (
         <div
           key={item.href}
+          className="sidebar__link"
           title={`${t("sidebar.warningTitle")} (${healthScore.toFixed(0)}%)`}
           style={{
             padding: "0.75rem 1.25rem",
@@ -211,7 +213,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   return (
     <aside className="sidebar">
       {/* Logo Section */}
-      <div className="sidebar__logo" style={{ padding: "2rem 1.5rem 1rem 1.5rem" }}>
+      <div className="sidebar__logo">
         <div style={{
           width: "72px",
           height: "72px",

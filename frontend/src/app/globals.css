@@ -81,6 +81,28 @@
   scrollbar-width: none;  /* Firefox */
 }
 
+/* ── Modern Brutalist Scrollbar ── */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+  border-left: 2px solid var(--color-navy);
+  border-top: 2px solid var(--color-navy); /* For horizontal scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-purple);
+  border: 2px solid var(--color-navy);
+  border-radius: 4px; /* Slight rounding to keep it modern */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-lime);
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
@@ -191,6 +213,143 @@ a {
 @media (min-width: 769px) {
   .hide-on-desktop {
     display: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE ENHANCEMENTS
+   ═══════════════════════════════════════════════ */
+/* Quick Stats Desktop Baseline */
+.quick-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+.quick-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  /* Navbar adjustments */
+  .navbar {
+    padding: 0 1rem !important;
+    justify-content: space-between;
+  }
+  .navbar-search, .navbar-date, .navbar-language, .navbar-stats {
+    display: none !important;
+  }
+
+  /* Responsive Tables (No sideways scroll) */
+  table {
+    display: block;
+    width: 100%;
+    border: none !important;
+  }
+  thead {
+    display: none; /* Hide headers */
+  }
+  tbody {
+    display: block;
+    width: 100%;
+  }
+  tr {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 1rem;
+    border: 3px solid var(--color-navy) !important;
+    border-radius: var(--radius-brutal-sm);
+    padding: 0.5rem;
+    background: var(--color-white);
+    box-shadow: 4px 4px 0px var(--color-purple) !important;
+  }
+  td {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border: none !important;
+    border-bottom: 2px dashed rgba(0,0,0,0.1) !important;
+    padding: 0.75rem 0.5rem !important;
+    text-align: left;
+    gap: 0.5rem;
+    width: 100%;
+    word-break: break-word;
+  }
+  td:last-child {
+    border-bottom: none !important;
+  }
+  
+  /* Fix grid wrapping and padding */
+  .dashboard-main {
+    padding: 1rem !important;
+  }
+  
+  /* Make all cards compact on mobile */
+  .card-brutal {
+    padding: 1rem !important;
+  }
+
+  /* Shrink icon boxes globally on mobile */
+  .landing-feature-card__icon-box {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+  }
+  .landing-feature-card__icon-box svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Typography adjustments for mobile */
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  h3 {
+    font-size: 1.1rem !important;
+  }
+
+  /* Modal size adjustment */
+  .modal-content {
+    width: 95% !important;
+    margin: 1rem !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Quick Stats "Sebaris / Compact" (2x2 Grid) */
+  .quick-stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+  .quick-stats-grid .card-brutal {
+    padding: 0.85rem !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+  .quick-stats-grid .card-brutal > div:first-child {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+  }
+  .quick-stats-grid .card-brutal > div:first-child svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .quick-stats-grid .card-brutal > div:last-child > div:first-child {
+    font-size: 1.15rem !important;
+  }
+  .quick-stats-grid .card-brutal > div:last-child > div:last-child {
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
   }
 }
 

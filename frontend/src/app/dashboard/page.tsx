@@ -118,16 +118,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "1.25rem",
-          marginBottom: "2.5rem",
-        }}
-        className="stagger-children"
-      >
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+      <div className="quick-stats-grid stagger-children">
+        <div className="card-brutal quick-stat-card">
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-lime)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <Flame size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
@@ -137,7 +129,7 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+        <div className="card-brutal quick-stat-card">
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-purple)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
           </div>
@@ -148,9 +140,8 @@ export default function DashboardPage() {
         </div>
 
         <div 
-          className="card-brutal" 
+          className="card-brutal quick-stat-card" 
           style={{ 
-            display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem",
             border: userData.warningTriggered ? "3px solid var(--color-pink)" : undefined,
             boxShadow: userData.warningTriggered ? "4px 4px 0px var(--color-pink)" : undefined,
             animation: userData.warningTriggered ? "pulse-border 1.5s ease-in-out infinite" : undefined,
@@ -186,7 +177,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+        <div className="card-brutal quick-stat-card">
           <div className="landing-feature-card__icon-box" style={{ background: "var(--color-white)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <BarChart3 size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
@@ -358,8 +349,15 @@ export default function DashboardPage() {
         {/* Sidebar Area (Recent Activity) */}
         <div style={{ flex: "1 1 30%", minWidth: "280px" }}>
           <div className="card-brutal" style={{ padding: "1.5rem", height: "100%", display: "flex", flexDirection: "column", background: "var(--color-white)" }}>
-            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <TrendingUp size={24} color="var(--color-purple)" /> {t("dashboard.recentActivity")}
+            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem", fontWeight: 900 }}>
+              <div style={{
+                width: "40px", height: "40px", background: "var(--color-purple)", border: "2.5px solid var(--color-navy)",
+                borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+              }}>
+                <TrendingUp size={20} color="var(--color-white)" strokeWidth={2.5} />
+              </div>
+              {t("dashboard.recentActivity")}
             </h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1 }}>
@@ -390,7 +388,7 @@ export default function DashboardPage() {
                     color: trx.type === 'pemasukan' ? 'var(--color-navy)' : 'var(--color-danger)',
                     fontSize: "1rem"
                   }}>
-                    {trx.type === 'pemasukan' ? '+' : '-'}Rp{(Math.abs(trx.amount)/1000).toLocaleString('id-ID')}k
+                    {trx.type === 'pemasukan' ? '+' : '-'}Rp {Math.abs(trx.amount).toLocaleString('id-ID')}
                   </div>
                 </div>
               )) : (

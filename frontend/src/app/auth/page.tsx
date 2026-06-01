@@ -20,6 +20,7 @@ export default function AuthPage() {
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -237,7 +238,8 @@ export default function AuthPage() {
           box-shadow: 0 15px 35px 0 rgba(0, 0, 0, 0.2);
         }
         .logo-container {
-          animation: pulseGlow 3s infinite;
+          /* Effect removed as requested */
+        }
         @media (max-width: 768px) {
           .desktop-panel { display: none !important; }
           .mobile-container { padding: 1rem !important; }
@@ -263,7 +265,7 @@ export default function AuthPage() {
       >
         {/* Logo Panel */}
         <div style={{ position: "relative", zIndex: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", filter: "drop-shadow(2px 2px 0px rgba(0,0,0,0.4))" }}>
             <div className="logo-container" style={{ 
               width: "64px", height: "64px",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -291,7 +293,7 @@ export default function AuthPage() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "95%" }}>
              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                <div style={{ background: "linear-gradient(135deg, var(--color-lime), #84cc00)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "0 4px 12px rgba(204, 255, 0, 0.3)", flexShrink: 0 }}><Zap size={24} strokeWidth={2.5} /></div>
+                <div style={{ background: "var(--color-lime)", border: "2.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", flexShrink: 0 }}><Zap size={24} strokeWidth={2.5} /></div>
                 <div>
                   <div style={{ color: "var(--color-lime)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>Smart Analytics</div>
                   <div style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--color-white)" }}>{t("auth.feat1")}</div>
@@ -299,7 +301,7 @@ export default function AuthPage() {
              </div>
              
              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                <div style={{ background: "linear-gradient(135deg, var(--color-orange), #e66c00)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-white)", boxShadow: "0 4px 12px rgba(255, 122, 0, 0.3)", flexShrink: 0 }}><ShieldCheck size={24} strokeWidth={2.5} /></div>
+                <div style={{ background: "var(--color-orange)", border: "2.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-white)", boxShadow: "4px 4px 0px var(--color-navy)", flexShrink: 0 }}><ShieldCheck size={24} strokeWidth={2.5} /></div>
                 <div>
                   <div style={{ color: "var(--color-orange)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>Protection</div>
                   <div style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--color-white)" }}>{t("auth.feat2")}</div>
@@ -307,7 +309,7 @@ export default function AuthPage() {
              </div>
              
              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                <div style={{ background: "linear-gradient(135deg, #FFFFFF, #E2E8F0)", borderRadius: "12px", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "0 4px 12px rgba(255, 255, 255, 0.2)", flexShrink: 0 }}><User size={24} strokeWidth={2.5} /></div>
+                <div style={{ background: "var(--color-white)", border: "2.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", flexShrink: 0 }}><User size={24} strokeWidth={2.5} /></div>
                 <div>
                   <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "0.25rem", fontWeight: 800 }}>AI Assistant</div>
                   <div style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--color-white)" }}>{t("auth.feat3")}</div>
@@ -465,6 +467,25 @@ export default function AuthPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+              </div>
+
+              {/* Remember Me Checkbox */}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.25rem" }}>
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  style={{
+                    width: "18px", height: "18px",
+                    accentColor: "var(--color-purple)",
+                    cursor: "pointer",
+                    border: "2px solid var(--color-navy)"
+                  }}
+                />
+                <label htmlFor="rememberMe" style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", cursor: "pointer" }}>
+                  Ingat saya
+                </label>
               </div>
 
               <button

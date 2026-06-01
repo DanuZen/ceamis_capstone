@@ -33,3 +33,9 @@ Thumbs.db
 
 # ── NestJS specific ───────────────────────────
 .nest/
+
+# ── Environment / Secrets ─────────────────────
+.env
+.env.local
+.env.production
+.env.staging

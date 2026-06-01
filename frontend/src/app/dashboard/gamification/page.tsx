@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Trophy, Flame, Star, Medal, Zap, Target, Shield } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { getBadges } from "@/app/admin/gamification/actions";
 
 const INITIAL_BADGES = [
   { id: 1, name: "Pencatat Setia", icon: "Target", color: "lime", xp: 100, requirement: "Catat 30 transaksi berturut-turut", unlocked: true },
@@ -27,18 +28,29 @@ const renderIcon = (iconName: string, size: number) => {
 
 export default function GamificationPage() {
   const { t } = useLanguage();
-  const [badges, setBadges] = useState(INITIAL_BADGES);
+  const [badges, setBadges] = useState<any[]>(INITIAL_BADGES);
 
   useEffect(() => {
-    const saved = localStorage.getItem("ceamis_badges");
-    if (saved) {
-      // Map saved badges. Note: unlocked state is mock for now
-      const parsed = JSON.parse(saved).map((b: any, index: number) => ({
-        ...b,
-        unlocked: index < 3 // Mock unlocking first 3
-      }));
-      setBadges(parsed);
-    }
+    const fetchBadges = async () => {
+      try {
+        const dbBadges = await getBadges();
+        if (dbBadges && dbBadges.length > 0) {
+          const parsed = dbBadges.map((b: any, index: number) => ({
+            ...b,
+            color: "lime", // Default fallback
+            requirement: b.desc,
+            unlocked: index < 3 // Mock unlocking first 3
+          }));
+          setBadges(parsed);
+        } else {
+          // Fallback if db is empty
+          setBadges(INITIAL_BADGES);
+        }
+      } catch (error) {
+        console.error("Failed to load badges:", error);
+      }
+    };
+    fetchBadges();
   }, []);
 
   return (
@@ -157,9 +169,14 @@ export default function GamificationPage() {
                 <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.125rem", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
                   {badge.name}
                 </div>
-                <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.5 }}>
+                <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.5, marginBottom: "0.5rem" }}>
                   {badge.requirement || (badge as any).desc}
                 </div>
+                {badge.requirementType && badge.requirementValue && (
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--color-purple)", borderTop: "1px dashed rgba(0,0,0,0.1)", paddingTop: "0.5rem", width: "100%" }}>
+                    Syarat: {badge.requirementType} ({badge.requirementValue})
+                  </div>
+                )}
               </div>
             ))}
           </div>

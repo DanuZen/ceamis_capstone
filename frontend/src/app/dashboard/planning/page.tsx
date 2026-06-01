@@ -36,7 +36,7 @@ const IconBox = ({ iconKey, size = 20, bg }: { iconKey: string; size?: number; b
       borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)",
       background: bg || "var(--color-bg)", boxShadow: "2px 2px 0px var(--color-navy)",
     }}>
-      <Icon size={size} color="var(--color-navy)" strokeWidth={2.5} />
+      <Icon size={size} color={bg === "var(--color-lime)" || !bg || bg === "var(--color-bg)" ? "var(--color-navy)" : "var(--color-white)"} strokeWidth={2.5} />
     </div>
   );
 };
@@ -338,10 +338,9 @@ export default function PlanningPage() {
       // 3. Calculate DTI Ratio from cached debts
       let totalDebt = 0;
       try {
-        const savedDebts = localStorage.getItem("ceamis_debts");
-        if (savedDebts) {
-          const debts = JSON.parse(savedDebts);
-          totalDebt = debts.filter((d: any) => d.type === "hutang" && !d.is_paid).reduce((acc: number, d: any) => acc + d.amount, 0);
+        const savedDebts = await getDebts(userData.id);
+        if (savedDebts && savedDebts.length > 0) {
+          totalDebt = savedDebts.filter((d: any) => d.type === "hutang" && d.status === "unpaid").reduce((acc: number, d: any) => acc + d.amount, 0);
         }
       } catch (e) {}
       const dti_ratio = (inc > 0 && totalDebt > 0) ? Math.min(totalDebt / (inc * 12), 1.0) : 0;
@@ -351,11 +350,13 @@ export default function PlanningPage() {
       const isSelfEmployed = onboardingData?.income_source === "bisnis" || onboardingData?.income_source === "freelance" ? 1 : 0;
       const isProfessional = onboardingData?.income_source === "gaji" ? 1 : 0;
 
-      // Retrieve answers from localStorage
+      // Retrieve answers from Prisma
       let answers: any = {};
       try {
-        const cachedAnswers = localStorage.getItem("ceamis_risk_answers");
-        if (cachedAnswers) answers = JSON.parse(cachedAnswers);
+        const cachedRisk = await getRiskProfile(userData.id);
+        if (cachedRisk && cachedRisk.answers) {
+          answers = JSON.parse(cachedRisk.answers);
+        }
       } catch (e) {}
 
       // 5. Construct payload
@@ -393,7 +394,18 @@ export default function PlanningPage() {
       if (!res.ok) throw new Error("API error");
       const data: RiskResult = await res.json();
       setRiskResult(data);
-      localStorage.setItem("ceamis_risk_profile", JSON.stringify(data));
+      if (userData?.id && !isGuest) {
+        await saveRiskProfile(userData.id, {
+          profile: data.risk_profile,
+          answers: JSON.stringify(answers),
+          aiRecommendation: JSON.stringify({
+            confidence: data.confidence,
+            probabilities: data.probabilities,
+            description: data.description,
+            suggestion: data.suggestion
+          })
+        });
+      }
     } catch {
       // fallback: derive dari jawaban secara lokal (mock)
       let answers: any = {};
@@ -414,7 +426,18 @@ export default function PlanningPage() {
         is_mock: true,
       };
       setRiskResult(mockData);
-      localStorage.setItem("ceamis_risk_profile", JSON.stringify(mockData));
+      if (userData?.id && !isGuest) {
+        await saveRiskProfile(userData.id, {
+          profile: mockData.risk_profile,
+          answers: JSON.stringify(answers),
+          aiRecommendation: JSON.stringify({
+            confidence: mockData.confidence,
+            probabilities: mockData.probabilities,
+            description: mockData.description,
+            suggestion: mockData.suggestion
+          })
+        });
+      }
     } finally {
       setRiskLoading(false);
     }
@@ -422,9 +445,25 @@ export default function PlanningPage() {
 
   // Load cached risk result
   useEffect(() => {
-    const cached = localStorage.getItem("ceamis_risk_profile");
-    if (cached) setRiskResult(JSON.parse(cached));
-  }, []);
+    const loadCachedRisk = async () => {
+      const cached = userData?.id ? await getRiskProfile(userData.id) : null;
+      if (cached) {
+        try {
+          const aiRec = cached.aiRecommendation ? JSON.parse(cached.aiRecommendation) : {};
+          const parsed = {
+            risk_profile: cached.profile,
+            confidence: aiRec.confidence || 0,
+            probabilities: aiRec.probabilities || { Konservatif: 0, Moderat: 0, Agresif: 0 },
+            description: aiRec.description || "",
+            suggestion: aiRec.suggestion || "",
+            is_mock: false
+          };
+          setRiskResult(parsed as RiskResult);
+        } catch (e) {}
+      }
+    };
+    loadCachedRisk();
+  }, [userData?.id]);
 
   useEffect(() => {
     const initData = async () => {
@@ -474,15 +513,14 @@ export default function PlanningPage() {
           }
         });
       } else {
-        // Get risk profile from cache, fallback to "Moderat"
+        // Get risk profile from DB, fallback to "Moderat"
         let riskProfile: "Konservatif" | "Moderat" | "Agresif" = "Moderat";
-        const cachedProfile = localStorage.getItem("ceamis_risk_profile");
-        if (cachedProfile) {
-          try {
-            const p = JSON.parse(cachedProfile);
-            if (p.risk_profile in RISK_BUDGET_CONFIG) riskProfile = p.risk_profile;
-          } catch (e) {}
-        }
+        try {
+          const cachedProfile = userData?.id ? await getRiskProfile(userData.id) : null;
+          if (cachedProfile && cachedProfile.profile in RISK_BUDGET_CONFIG) {
+            riskProfile = cachedProfile.profile as "Konservatif" | "Moderat" | "Agresif";
+          }
+        } catch (e) {}
 
         const config = RISK_BUDGET_CONFIG[riskProfile];
         const { needs: pNeeds, wants: pWants, savings: pSavings } = config.ratios;
@@ -654,18 +692,14 @@ export default function PlanningPage() {
 
   // Target percentages from risk profile (for header badge display)
   const getRiskTargetRatios = () => {
-    try {
-      const cached = localStorage.getItem("ceamis_risk_profile");
-      if (cached) {
-        const p = JSON.parse(cached);
-        const config = RISK_BUDGET_CONFIG[p.risk_profile as string];
-        if (config) return {
-          needs: Math.round(config.ratios.needs * 100),
-          wants: Math.round(config.ratios.wants * 100),
-          savings: Math.round(config.ratios.savings * 100),
-        };
-      }
-    } catch (e) {}
+    if (riskResult?.risk_profile) {
+      const config = RISK_BUDGET_CONFIG[riskResult.risk_profile];
+      if (config) return {
+        needs: Math.round(config.ratios.needs * 100),
+        wants: Math.round(config.ratios.wants * 100),
+        savings: Math.round(config.ratios.savings * 100),
+      };
+    }
     return { needs: 50, wants: 30, savings: 20 }; // Moderat fallback
   };
   const riskRatios = getRiskTargetRatios();
@@ -927,13 +961,13 @@ export default function PlanningPage() {
         })()}
 
         {[
-          { label: t("dashboard.planning.needs"), amount: totalNeeds, color: "lime", Icon: Home },
-          { label: t("dashboard.planning.wants"), amount: totalWants, color: "orange", Icon: Gamepad2 },
-          { label: t("dashboard.planning.savings"), amount: totalSavings, color: "purple", Icon: Banknote },
+          { label: t("dashboard.planning.needs"), amount: badgeNeedsRp, color: "lime", Icon: Home },
+          { label: t("dashboard.planning.wants"), amount: badgeWantsRp, color: "orange", Icon: Gamepad2 },
+          { label: t("dashboard.planning.savings"), amount: badgeSavingsRp, color: "purple", Icon: Banknote },
         ].map((s, idx) => (
           <div key={idx} className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", transition: "transform 0.2s" }}>
             <div style={{ background: `var(--color-${s.color})`, width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
-              <s.Icon size={24} color={s.color === "purple" ? "var(--color-white)" : "var(--color-navy)"} strokeWidth={2.5} />
+              <s.Icon size={24} color={s.color === "lime" ? "var(--color-navy)" : "var(--color-white)"} strokeWidth={2.5} />
             </div>
             <div style={{ overflow: "hidden" }}>
               <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{formatRp(s.amount)}</div>
@@ -952,8 +986,11 @@ export default function PlanningPage() {
           <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "800px", maxHeight: "800px", display: "flex", flexDirection: "column" }}>
             
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <Target size={24} /> {t("dashboard.planning.categoryBudget")}
+              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div style={{ width: "36px", height: "36px", background: "var(--color-bg)", borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                  <Target size={20} color="var(--color-navy)" strokeWidth={2.5} />
+                </div>
+                {t("dashboard.planning.categoryBudget")}
               </h3>
               
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -1010,13 +1047,13 @@ export default function PlanningPage() {
                 {activeFilter === "wants" && (
                   <div style={{ display: "inline-flex", alignItems: "center", gap: "0.85rem", background: "var(--color-white)", padding: "0.5rem 1rem 0.5rem 0.5rem", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
                     <div style={{ background: "var(--color-orange)", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
-                      <Sparkles size={22} color="var(--color-navy)" strokeWidth={2.5} />
+                      <Sparkles size={22} color="var(--color-white)" strokeWidth={2.5} />
                     </div>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
                       {t("dashboard.transactions.wants") || "Keinginan"}
                     </h3>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                      <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                      <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
                         {badgeWants}%
                       </div>
                       <div style={{ background: "var(--color-bg)", padding: "0.2rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
@@ -1117,7 +1154,7 @@ export default function PlanningPage() {
                 <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
                   <SearchX size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
                   <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
-                    Pencarian untuk "{searchQuery}" tidak ditemukan.
+                    {t("dashboard.planning.searchNoResult")} "{searchQuery}" {t("dashboard.planning.searchNoResultSuffix")}
                   </p>
                 </div>
               ) : (
@@ -1184,7 +1221,7 @@ export default function PlanningPage() {
             {riskLoading && (
               <div style={{ padding: "3rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem", background: "var(--color-white)", flex: 1 }}>
                 <Loader size={48} color="var(--color-purple)" style={{ animation: "spin 1s linear infinite" }} />
-                <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.1rem" }}>AI sedang memproses datamu...</span>
+                <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.1rem" }}>{t("dashboard.planning.aiLoading")}</span>
               </div>
             )}
 
@@ -1224,7 +1261,7 @@ export default function PlanningPage() {
                         <Sparkles size={24} color={info.accentColor} />
                       </div>
                       <div>
-                        <h4 style={{ margin: "0 0 0.5rem 0", fontFamily: "var(--font-heading)", fontWeight: 900, color: "var(--color-navy)", fontSize: "1.1rem" }}>Saran AI:</h4>
+                        <h4 style={{ margin: "0 0 0.5rem 0", fontFamily: "var(--font-heading)", fontWeight: 900, color: "var(--color-navy)", fontSize: "1.1rem" }}>{t("dashboard.planning.aiSuggestionLabel")}</h4>
                         <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.6, color: "var(--color-navy)", fontWeight: 600 }}>{riskResult.suggestion}</p>
                       </div>
                     </div>

@@ -3,31 +3,28 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Eye, X, FileQuestion, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-const INITIAL_QUIZZES = [
-  { id: 1, moduleId: 1, question: "Apa tujuan utama dari pencatatan keuangan pribadi?", points: 150, status: "active" },
-  { id: 2, moduleId: 2, question: "Apa fungsi utama dari Dana Darurat?", points: 150, status: "active" },
-  { id: 3, moduleId: 3, question: "Manakah contoh dari 'Wants' (Keinginan) dalam budgeting?", points: 150, status: "active" },
-  { id: 4, moduleId: 4, question: "Instrumen investasi apa yang umumnya memiliki risiko paling rendah?", points: 150, status: "draft" },
-];
+import { getQuizzes, createQuiz, updateQuiz, deleteQuiz } from "../education/actions";
 
 export default function AdminQuizzesPage() {
   const router = useRouter();
-  const [quizzes, setQuizzesState] = useState(INITIAL_QUIZZES);
+  const [quizzes, setQuizzesState] = useState<any[]>([]);
   const [popupMessage, setPopupMessage] = useState<{title: string, message: string, type: "success" | "error"} | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("ceamis_quizzes");
-    if (saved) {
-      setQuizzesState(JSON.parse(saved));
-    } else {
-      localStorage.setItem("ceamis_quizzes", JSON.stringify(INITIAL_QUIZZES));
+  const fetchQuizzes = async () => {
+    try {
+      const data = await getQuizzes();
+      setQuizzesState(data);
+    } catch (error) {
+      console.error("Failed to fetch quizzes:", error);
     }
+  };
+
+  useEffect(() => {
+    fetchQuizzes();
   }, []);
 
   const setQuizzes = (newQuizzes: any[]) => {
     setQuizzesState(newQuizzes);
-    localStorage.setItem("ceamis_quizzes", JSON.stringify(newQuizzes));
   };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -47,33 +44,42 @@ export default function AdminQuizzesPage() {
     setDeleteConfirmId(id);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteConfirmId !== null) {
-      setQuizzes(quizzes.filter(q => q.id !== deleteConfirmId));
+      await deleteQuiz(deleteConfirmId);
+      await fetchQuizzes();
       setDeleteConfirmId(null);
     }
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const newItem = {
-      id: editingItem ? editingItem.id : Date.now(),
+    const newItemData = {
       moduleId: Number(formData.get("moduleId")),
       question: formData.get("question") as string,
       points: Number(formData.get("points")),
       status: formData.get("status") as string || "active",
+      options: ["", "", "", ""], // default options if missing
+      correctAnswer: 0
     };
     
     if (editingItem) {
-      setQuizzes(quizzes.map(q => q.id === editingItem.id ? newItem : q));
+      await updateQuiz(editingItem.id, {
+        moduleId: newItemData.moduleId,
+        question: newItemData.question,
+        points: newItemData.points,
+        status: newItemData.status
+      });
+      await fetchQuizzes();
       setIsModalOpen(false);
     } else {
-      setQuizzes([...quizzes, newItem]);
+      const created = await createQuiz(newItemData);
+      await fetchQuizzes();
       setIsModalOpen(false);
       // Auto redirect to content editor
-      router.push(`/admin/quizzes/edit-quiz/${newItem.moduleId}`);
+      router.push(`/admin/quizzes/edit-quiz/${created.moduleId}`);
     }
   };
 
@@ -97,7 +103,6 @@ export default function AdminQuizzesPage() {
             <thead>
               <tr style={{ background: "var(--color-bg)", borderBottom: "3px solid var(--color-navy)" }}>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Pertanyaan Kuis</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>ID Modul</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>XP Points</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Status</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)", width: "120px", textAlign: "center" }}>Aksi</th>
@@ -107,7 +112,6 @@ export default function AdminQuizzesPage() {
               {quizzes.map((quiz, i) => (
                 <tr key={quiz.id} style={{ borderBottom: i < quizzes.length - 1 ? "2px solid rgba(10, 25, 47, 0.05)" : "none" }}>
                   <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>{quiz.question}</td>
-                  <td style={{ padding: "1rem 1.25rem", fontWeight: 800, color: "var(--color-purple)" }}>Modul #{quiz.moduleId}</td>
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <span className="badge-brutal" style={{ background: "var(--color-pink)", fontSize: "0.75rem", boxShadow: "none" }}>+{quiz.points} XP</span>
                   </td>

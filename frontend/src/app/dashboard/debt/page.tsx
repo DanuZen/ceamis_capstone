@@ -10,6 +10,8 @@ import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/components/ui/Toast";
 import { useTransactions } from "@/context/TransactionContext";
+import { useUser } from "@/context/UserContext";
+import { getDebts, saveDebts } from "@/app/dashboard/planning/actions";
 
 type DebtType = "utang" | "piutang";
 type DebtStatus = "belum_lunas" | "lunas" | "jatuh_tempo";
@@ -122,10 +124,18 @@ export default function DebtPage() {
   }, [transactions.length]);
 
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("ceamis_debts", JSON.stringify(entries));
+    if (isLoaded && userData?.id) {
+      const dataToSave = entries.map(e => ({
+        name: e.person,
+        type: e.type,
+        amount: e.amount,
+        dueDate: e.dueDate,
+        status: e.status,
+        icon: "utensils"
+      }));
+      saveDebts(userData.id, dataToSave).catch(e => console.error("Failed to save debts", e));
     }
-  }, [entries, isLoaded]);
+  }, [entries, isLoaded, userData?.id]);
 
   const filteredEntries = entries.filter(e => {
     if (activeTab !== "all" && e.type !== activeTab) return false;

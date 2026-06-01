@@ -129,7 +129,7 @@ export class AiService {
       console.warn('[AiService] Spending Cluster API unavailable, using fallback:', err?.message);
       return {
         cluster_label:     'Si Hemat',
-        dominant_category: Object.keys(payload.category_breakdown)[0] ?? 'Makan & Minum',
+        dominant_category: 'Makan & Minum',
         insight:           'Analisis AI tidak tersedia. Pertahankan pola keuangan yang baik!',
         needs_ratio:       0.6,
         wants_ratio:       0.3,

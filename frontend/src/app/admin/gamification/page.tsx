@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trophy, Star, Flame, Zap, Target, Shield, Edit, Plus, X } from "lucide-react";
+import { Trophy, Star, Flame, Zap, Target, Shield, Edit, Plus, X, Trash2 } from "lucide-react";
+import { getBadges, createBadge, updateBadge, deleteBadge } from "./actions";
 
 // Convert icon references to string names for localStorage compatibility
 const INITIAL_BADGES = [
@@ -32,36 +33,76 @@ const LEVEL_CONFIG = [
 ];
 
 export default function AdminGamificationPage() {
-  const [badges, setBadgesState] = useState(INITIAL_BADGES);
+  const [badges, setBadgesState] = useState<any[]>(INITIAL_BADGES);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<any | null>(null);
+
+  const fetchBadges = async () => {
+    try {
+      const data = await getBadges();
+      if (data && data.length > 0) {
+        setBadgesState(data.map((b: any) => ({
+          ...b,
+          color: "lime", // Default for now
+          xp: b.requirementValue,
+          requirement: b.desc
+        })));
+      } else {
+        setBadgesState(INITIAL_BADGES);
+      }
+    } catch (error) {
+      console.error("Failed to fetch badges", error);
+    }
+  };
 
   useEffect(() => {
-    const saved = localStorage.getItem("ceamis_badges");
-    if (saved) {
-      setBadgesState(JSON.parse(saved));
-    } else {
-      localStorage.setItem("ceamis_badges", JSON.stringify(INITIAL_BADGES));
-    }
+    fetchBadges();
   }, []);
 
   const setBadges = (newBadges: any[]) => {
     setBadgesState(newBadges);
-    localStorage.setItem("ceamis_badges", JSON.stringify(newBadges));
   };
 
-  const handleSaveBadge = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveBadge = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const newBadge = {
-      id: Date.now(),
+    
+    const newBadgeData = {
+      id: selectedBadge ? selectedBadge.id : formData.get("name")?.toString().toLowerCase().replace(/\s+/g, '_') || `badge_${Date.now()}`,
       name: formData.get("name") as string,
+      desc: formData.get("requirement") as string,
       icon: formData.get("icon") as string,
-      color: formData.get("color") as string,
-      xp: Number(formData.get("xp")),
-      requirement: formData.get("requirement") as string,
+      requirementType: formData.get("requirementType") as string,
+      requirementValue: Number(formData.get("requirementValue")),
+      xp: Number(formData.get("xp"))
     };
-    setBadges([...badges, newBadge]);
+    
+    if (selectedBadge) {
+      await updateBadge(selectedBadge.id, newBadgeData);
+    } else {
+      await createBadge(newBadgeData);
+    }
+    
+    await fetchBadges();
     setIsModalOpen(false);
+  };
+
+  const handleDeleteBadge = async () => {
+    if (selectedBadge && confirm("Hapus badge ini?")) {
+      await deleteBadge(selectedBadge.id);
+      await fetchBadges();
+      setIsModalOpen(false);
+    }
+  };
+
+  const openAddModal = () => {
+    setSelectedBadge(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (badge: any) => {
+    setSelectedBadge(badge);
+    setIsModalOpen(true);
   };
 
   return (
@@ -107,13 +148,20 @@ export default function AdminGamificationPage() {
       {/* Badges Grid */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
         <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--color-navy)", margin: 0 }}>Daftar Badge</h2>
-        <button onClick={() => setIsModalOpen(true)} className="btn-brutal" style={{ background: "var(--color-purple)", color: "var(--color-white)", padding: "0.5rem 1rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "3px 3px 0px var(--color-navy)" }}>
+        <button onClick={openAddModal} className="btn-brutal" style={{ background: "var(--color-purple)", color: "var(--color-white)", padding: "0.5rem 1rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "3px 3px 0px var(--color-navy)" }}>
           <Plus size={16} /> Tambah Badge
         </button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.25rem" }}>
         {badges.map((badge, i) => (
-          <div key={i} className="card-brutal" style={{ padding: "1.5rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+          <div key={i} className="card-brutal" style={{ padding: "1.5rem", display: "flex", gap: "1rem", alignItems: "flex-start", position: "relative" }}>
+            <button
+              onClick={() => openEditModal(badge)}
+              className="btn-brutal"
+              style={{ position: "absolute", top: "0.5rem", right: "0.5rem", padding: "0.4rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", boxShadow: "none" }}
+            >
+              <Edit size={16} color="var(--color-navy)" />
+            </button>
             <div style={{
               width: "52px", height: "52px", borderRadius: "50%", background: `var(--color-${badge.color})`,
               border: "3px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
@@ -123,8 +171,12 @@ export default function AdminGamificationPage() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", marginBottom: "0.25rem" }}>{badge.name}</div>
-              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", lineHeight: 1.4, marginBottom: "0.5rem" }}>{badge.requirement}</div>
-              <span style={{ fontSize: "0.75rem", fontWeight: 800, padding: "0.15rem 0.5rem", background: "var(--color-purple)", color: "var(--color-white)", borderRadius: "100px", border: "2px solid var(--color-navy)" }}>+{badge.xp} XP</span>
+              <div style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", lineHeight: 1.4, marginBottom: "0.5rem" }}>
+                {badge.desc || badge.requirement} 
+                <br/>
+                <span style={{ color: "var(--color-purple)", fontWeight: 700 }}>Syarat: {badge.requirementType} ({badge.requirementValue})</span>
+              </div>
+              <span style={{ fontSize: "0.75rem", fontWeight: 800, padding: "0.15rem 0.5rem", background: "var(--color-purple)", color: "var(--color-white)", borderRadius: "100px", border: "2px solid var(--color-navy)" }}>+{badge.xp || badge.requirementValue} XP</span>
             </div>
           </div>
         ))}
@@ -142,26 +194,42 @@ export default function AdminGamificationPage() {
               <X size={16} color="var(--color-white)" />
             </button>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Star size={24} color="var(--color-purple)" /> Tambah Badge
+              <Star size={24} color="var(--color-purple)" /> {selectedBadge ? "Edit Badge" : "Tambah Badge"}
             </h2>
             
             <form onSubmit={handleSaveBadge} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <div className="input-group-brutal">
                 <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Nama Badge</label>
-                <input name="name" required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Sang Juara" />
+                <input name="name" defaultValue={selectedBadge?.name || ""} required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Sang Juara" />
               </div>
               <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Persyaratan (Deskripsi)</label>
-                <input name="requirement" required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Capai level 5" />
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Persyaratan (Deskripsi UI)</label>
+                <input name="requirement" defaultValue={selectedBadge?.desc || selectedBadge?.requirement || ""} required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Selesaikan 5 Modul Edukasi" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Tipe Syarat (Sistem)</label>
+                  <select name="requirementType" defaultValue={selectedBadge?.requirementType || "module_completed"} className="input-brutal" style={{ width: "100%" }}>
+                    <option value="module_completed">Modul Diselesaikan</option>
+                    <option value="transaction_count">Jumlah Transaksi</option>
+                    <option value="login_streak">Login Streak (Hari)</option>
+                    <option value="budget_kept">Budget Terjaga (Minggu)</option>
+                    <option value="level_reached">Level Dicapai</option>
+                  </select>
+                </div>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Nilai Target (Sistem)</label>
+                  <input name="requirementValue" type="number" defaultValue={selectedBadge?.requirementValue || 5} required className="input-brutal" style={{ width: "100%" }} />
+                </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div className="input-group-brutal">
                   <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>XP Points</label>
-                  <input name="xp" type="number" defaultValue={100} required className="input-brutal" style={{ width: "100%" }} />
+                  <input name="xp" type="number" defaultValue={selectedBadge?.xp || 100} required className="input-brutal" style={{ width: "100%" }} />
                 </div>
                 <div className="input-group-brutal">
                   <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Warna Tema</label>
-                  <select name="color" className="input-brutal" style={{ width: "100%" }}>
+                  <select name="color" defaultValue={selectedBadge?.color || "lime"} className="input-brutal" style={{ width: "100%" }}>
                     <option value="lime">Lime</option>
                     <option value="purple">Purple</option>
                     <option value="orange">Orange</option>
@@ -171,7 +239,7 @@ export default function AdminGamificationPage() {
               </div>
               <div className="input-group-brutal">
                 <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Ikon</label>
-                <select name="icon" className="input-brutal" style={{ width: "100%" }}>
+                <select name="icon" defaultValue={selectedBadge?.icon || "Star"} className="input-brutal" style={{ width: "100%" }}>
                   <option value="Star">Star</option>
                   <option value="Target">Target</option>
                   <option value="Shield">Shield</option>
@@ -180,13 +248,23 @@ export default function AdminGamificationPage() {
                 </select>
               </div>
               
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1rem" }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-brutal" style={{ background: "var(--color-bg)", fontWeight: 700 }}>
-                  Batal
-                </button>
-                <button type="submit" className="btn-brutal btn-brutal--primary" style={{ fontWeight: 800, background: "var(--color-purple)", color: "var(--color-white)" }}>
-                  Simpan Badge
-                </button>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem" }}>
+                {selectedBadge ? (
+                  <button type="button" onClick={handleDeleteBadge} className="btn-brutal" style={{ background: "var(--color-pink)", color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.25rem", padding: "0.5rem 1rem", boxShadow: "3px 3px 0px var(--color-navy)" }}>
+                    <Trash2 size={16} /> Hapus
+                  </button>
+                ) : (
+                  <div></div>
+                )}
+                
+                <div style={{ display: "flex", gap: "1rem" }}>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="btn-brutal" style={{ background: "var(--color-bg)", fontWeight: 700 }}>
+                    Batal
+                  </button>
+                  <button type="submit" className="btn-brutal btn-brutal--primary" style={{ fontWeight: 800, background: "var(--color-purple)", color: "var(--color-white)" }}>
+                    Simpan Badge
+                  </button>
+                </div>
               </div>
             </form>
           </div>

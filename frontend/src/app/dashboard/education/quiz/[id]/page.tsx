@@ -8,76 +8,7 @@ import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/components/ui/Toast";
 
-const getQuizForModule = (moduleId: string) => {
-  switch (moduleId) {
-    case "1":
-      return [
-        {
-          question: "Apa tujuan utama dari pencatatan keuangan pribadi?",
-          options: ["Pamer kekayaan di medsos", "Mengetahui arus kas dengan jelas", "Membuang-buang waktu luang", "Syarat wajib pinjam uang"],
-          correctAnswer: 1,
-          explanation: "Pencatatan keuangan yang baik membantu memahami arus kas."
-        },
-        {
-          question: "Manakah yang merupakan komponen utama dalam anggaran (budget)?",
-          options: ["Pemasukan dan Pengeluaran", "Aset dan Liabilitas", "Utang dan Piutang", "Tabungan dan Investasi"],
-          correctAnswer: 0,
-          explanation: "Anggaran dasar membandingkan pemasukan dan pengeluaran."
-        },
-        {
-          question: "Kapan waktu terbaik untuk membuat anggaran bulanan?",
-          options: ["Di tengah bulan", "Setelah gajian habis", "Sebelum bulan berjalan dimulai", "Saat ingin belanja besar"],
-          correctAnswer: 2,
-          explanation: "Idealnya anggaran dibuat sebelum bulan berjalan agar terencana."
-        }
-      ];
-    case "2":
-      return [
-        {
-          question: "Apa fungsi utama dari Dana Darurat?",
-          options: ["Beli gadget terbaru", "Liburan tahunan mewah", "Menghadapi kondisi tak terduga", "Modal saham gorengan"],
-          correctAnswer: 2,
-          explanation: "Dana darurat untuk jaring pengaman situasi mendesak."
-        },
-        {
-          question: "Berapa idealnya besaran dana darurat untuk lajang tanpa tanggungan?",
-          options: ["1x pengeluaran bulanan", "3-6x pengeluaran bulanan", "12x pengeluaran bulanan", "Tidak perlu dana darurat"],
-          correctAnswer: 1,
-          explanation: "Lajang disarankan memiliki 3-6 kali pengeluaran bulanan."
-        }
-      ];
-    case "3":
-      return [
-        {
-          question: "Manakah contoh dari 'Wants' (Keinginan) dalam budgeting?",
-          options: ["Bayar sewa kos", "Beli beras", "Bayar listrik", "Langganan Netflix"],
-          correctAnswer: 3,
-          explanation: "Netflix adalah keinginan karena tidak wajib untuk bertahan hidup."
-        },
-        {
-          question: "Menurut metode 50/30/20, 30% dialokasikan untuk...",
-          options: ["Kebutuhan Pokok (Needs)", "Keinginan (Wants)", "Tabungan/Investasi", "Amal"],
-          correctAnswer: 1,
-          explanation: "Aturan 50/30/20 membagi 30% untuk wants/keinginan."
-        }
-      ];
-    default:
-      return [
-        {
-          question: "Instrumen investasi apa yang umumnya berisiko paling rendah?",
-          options: ["Koin Kripto", "Reksadana Pasar Uang", "Properti", "Saham Gorengan"],
-          correctAnswer: 1,
-          explanation: "RDPU sangat aman dan stabil."
-        },
-        {
-          question: "Diversifikasi dalam investasi bertujuan untuk?",
-          options: ["Menghindari pajak", "Memaksimalkan risiko", "Menyebar dan meminimalkan risiko", "Ikut-ikutan tren"],
-          correctAnswer: 2,
-          explanation: "Diversifikasi menyebar investasi ke berbagai aset untuk tekan risiko ('Don't put all eggs in one basket')."
-        }
-      ];
-  }
-};
+import { getQuizByModule } from "@/app/admin/education/actions";
 
 export default function QuizDetailPage() {
   const { addXp } = useUser();
@@ -93,21 +24,26 @@ export default function QuizDetailPage() {
   const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
-    const savedContent = localStorage.getItem(`ceamis_quiz_content_${id}`);
-    if (savedContent) {
-      const parsed = JSON.parse(savedContent);
-      setQuestions(parsed);
-      setAnswers(new Array(parsed.length).fill(null));
-    } else {
-      const fallback = getQuizForModule(id) || [{
-        question: "Belum ada pertanyaan untuk kuis ini.",
-        options: ["Pilih ini"],
-        correctAnswer: 0,
-        explanation: "Admin belum mengatur kuis ini."
-      }];
-      setQuestions(fallback);
-      setAnswers(new Array(fallback.length).fill(null));
-    }
+    const fetchData = async () => {
+      try {
+        const quizzes = await getQuizByModule(Number(id));
+        if (quizzes && quizzes.length > 0) {
+          setQuestions(quizzes);
+          setAnswers(new Array(quizzes.length).fill(null));
+        } else {
+          setQuestions([{
+            question: "Belum ada pertanyaan untuk kuis ini.",
+            options: ["Pilih ini"],
+            correctAnswer: 0,
+            explanation: "Admin belum mengatur kuis ini."
+          }]);
+          setAnswers([null]);
+        }
+      } catch (error) {
+        console.error("Failed to load quiz questions:", error);
+      }
+    };
+    fetchData();
   }, [id]);
 
   if (questions.length === 0) return null;

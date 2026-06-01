@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  schemas   = ["public", "auth"]
+}
+
+model EducationModule {
+  id        Int      @id @default(autoincrement())
+  title     String
+  category  String
+  reads     Int      @default(0)
+  status    String   @default("draft") // "published" | "draft"
+  points    Int      @default(200)
+  duration  String
+  desc      String
+  pages     EducationPage[]
+  quizzes   EducationQuiz[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EducationPage {
+  id        Int      @id @default(autoincrement())
+  moduleId  Int
+  module    EducationModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  subtitle  String
+  text      String
+  pageOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EducationQuiz {
+  id            Int      @id @default(autoincrement())
+  moduleId      Int
+  module        EducationModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  question      String
+  options       String[]
+  correctAnswer Int
+  points        Int      @default(150)
+  status        String   @default("active")
+  explanation   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

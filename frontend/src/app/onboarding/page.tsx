@@ -199,8 +199,8 @@ export default function OnboardingPage() {
       setIsSubmitting(false);
       
       if (user) {
-        const emailParam = user.email ? encodeURIComponent(user.email) : "";
-        router.push(`/auth?verify=1&email=${emailParam}`);
+        // Langsung masuk ke dashboard, lewati popup verifikasi email
+        router.push("/dashboard");
       } else {
         router.push("/auth/register");
       }

@@ -79,7 +79,7 @@ export default function AdminSidebar({ isOpen = true }: { isOpen?: boolean }) {
   return (
     <aside className="sidebar" style={{ background: "var(--color-navy)" }}>
       {/* Logo Section */}
-      <div className="sidebar__logo" style={{ padding: "2rem 1.5rem 1rem 1.5rem" }}>
+      <div className="sidebar__logo">
         <div style={{
           width: "72px", height: "72px", display: "flex", alignItems: "center",
           justifyContent: "center"

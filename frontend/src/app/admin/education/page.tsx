@@ -1,32 +1,80 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Eye, X, BookOpen, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, X, BookOpen, FileText, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getModules, createModule, updateModule, deleteModule } from "./actions";
 
-const INITIAL_MODULES = [
-  { id: 1, title: "Cara Membuat Anggaran Bulanan", category: "Dasar", reads: 342, status: "published", points: 200 },
-  { id: 2, title: "Investasi Reksadana untuk Pemula", category: "Investasi", reads: 218, status: "published", points: 200 },
-  { id: 3, title: "Mengelola Utang dengan Cerdas", category: "Utang", reads: 156, status: "published", points: 200 },
-  { id: 4, title: "Cara Menabung ala Gen-Z", category: "Dasar", reads: 0, status: "draft", points: 200 },
-];
+const BrutalSelect = ({ name, options, defaultValue }: { name: string, options: {value: string, label: string}[], defaultValue: string }) => {
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState(defaultValue);
+  const selectedOpt = options.find(o => o.value === val) || options[0];
+
+  return (
+    <div style={{ position: "relative" }}>
+      <input type="hidden" name={name} value={val} />
+      <button 
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="input-brutal"
+        style={{ 
+          padding: "0.75rem", fontSize: "1rem", fontWeight: 700, 
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: "var(--color-white)", cursor: "pointer"
+        }}
+      >
+        <span>{selectedOpt.label}</span>
+        <ChevronDown size={18} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+      </button>
+      
+      {open && (
+        <div className="no-scrollbar" style={{
+          position: "absolute", top: "100%", left: 0, width: "100%", marginTop: "0.5rem",
+          background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+          boxShadow: "4px 4px 0px var(--color-navy)", zIndex: 10, maxHeight: "250px", overflowY: "auto", display: "flex", flexDirection: "column"
+        }}>
+          {options.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => { setVal(opt.value); setOpen(false); }}
+              style={{
+                padding: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", border: "none",
+                background: val === opt.value ? "var(--color-purple)" : "transparent",
+                color: val === opt.value ? "var(--color-white)" : "var(--color-navy)",
+                fontWeight: 700, fontSize: "1rem", textAlign: "left", cursor: "pointer", borderBottom: "2px solid rgba(10,25,47,0.05)"
+              }}
+              onMouseEnter={(e) => { if(val !== opt.value) e.currentTarget.style.background = "var(--color-bg)" }}
+              onMouseLeave={(e) => { if(val !== opt.value) e.currentTarget.style.background = "transparent" }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function AdminEducationPage() {
   const router = useRouter();
-  const [modules, setModulesState] = useState(INITIAL_MODULES);
+  const [modules, setModulesState] = useState<any[]>([]);
   
-  useEffect(() => {
-    const saved = localStorage.getItem("ceamis_modules");
-    if (saved) {
-      setModulesState(JSON.parse(saved));
-    } else {
-      localStorage.setItem("ceamis_modules", JSON.stringify(INITIAL_MODULES));
+  const fetchModules = async () => {
+    try {
+      const data = await getModules();
+      setModulesState(data);
+    } catch (error) {
+      console.error("Failed to load modules:", error);
     }
+  };
+
+  useEffect(() => {
+    fetchModules();
   }, []);
 
   const setModules = (newModules: any[]) => {
     setModulesState(newModules);
-    localStorage.setItem("ceamis_modules", JSON.stringify(newModules));
   };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -46,46 +94,45 @@ export default function AdminEducationPage() {
     setDeleteConfirmId(id);
   };
   
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteConfirmId !== null) {
-      setModules(modules.filter(m => m.id !== deleteConfirmId));
+      await deleteModule(deleteConfirmId);
+      await fetchModules();
       setDeleteConfirmId(null);
     }
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
     if (editingItem) {
       const updatedItem = {
-        id: editingItem.id,
         title: formData.get("title") as string,
         category: formData.get("category") as string,
-        reads: editingItem.reads,
-        status: "published", // Default hardcoded for now since field is removed
+        status: editingItem.status || "draft",
         points: Number(formData.get("points")) || 200,
         desc: formData.get("desc") as string,
         duration: formData.get("duration") as string,
       };
-      setModules(modules.map(m => m.id === editingItem.id ? updatedItem : m));
+      await updateModule(editingItem.id, updatedItem);
+      await fetchModules();
       setIsModalOpen(false);
     } else {
-      const newModule = {
-        id: Date.now(),
+      const newModuleData = {
         title: formData.get("title") as string,
         category: formData.get("category") as string,
-        reads: 0,
-        status: "published", // Default hardcoded
+        status: "draft",
         points: Number(formData.get("points")) || 200,
         desc: formData.get("desc") as string,
         duration: formData.get("duration") as string,
       };
-      setModules([...modules, newModule]);
+      const created = await createModule(newModuleData);
+      await fetchModules();
       setIsModalOpen(false);
       
       // Auto redirect to content editor
-      router.push(`/admin/education/edit-module/${newModule.id}`);
+      router.push(`/admin/education/edit-module/${created.id}`);
     }
   };
 
@@ -110,6 +157,7 @@ export default function AdminEducationPage() {
               <tr style={{ background: "var(--color-bg)", borderBottom: "3px solid var(--color-navy)" }}>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Judul Modul</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Kategori</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Status</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>XP Points</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)", width: "160px", textAlign: "center" }}>Aksi</th>
               </tr>
@@ -120,6 +168,11 @@ export default function AdminEducationPage() {
                   <td style={{ padding: "1rem 1.25rem", fontWeight: 700, color: "var(--color-navy)" }}>{mod.title}</td>
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <span className="badge-brutal" style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem", background: "var(--color-bg)", boxShadow: "none" }}>{mod.category}</span>
+                  </td>
+                  <td style={{ padding: "1rem 1.25rem" }}>
+                    <span className="badge-brutal" style={{ background: mod.status === "published" ? "var(--color-lime)" : "var(--color-border)", fontSize: "0.75rem", padding: "0.2rem 0.6rem", boxShadow: "none" }}>
+                      {mod.status === "published" ? "Published" : "Draft"}
+                    </span>
                   </td>
                   <td style={{ padding: "1rem 1.25rem" }}>
                     <span className="badge-brutal" style={{ background: "var(--color-lime)", fontSize: "0.75rem", padding: "0.2rem 0.6rem", boxShadow: "none" }}>+{mod.points || 200} XP</span>
@@ -142,7 +195,7 @@ export default function AdminEducationPage() {
               
               {modules.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)", fontWeight: 600 }}>
+                  <td colSpan={6} style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)", fontWeight: 600 }}>
                     Belum ada data modul.
                   </td>
                 </tr>
@@ -175,11 +228,15 @@ export default function AdminEducationPage() {
               </div>
               <div className="input-group-brutal">
                 <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Kategori</label>
-                <select name="category" defaultValue={editingItem?.category || "Dasar"} className="input-brutal" style={{ width: "100%" }}>
-                  <option value="Dasar">Dasar</option>
-                  <option value="Investasi">Investasi</option>
-                  <option value="Utang">Utang</option>
-                </select>
+                <BrutalSelect 
+                  name="category"
+                  defaultValue={editingItem?.category || "Dasar"}
+                  options={[
+                    { value: "Dasar", label: "Dasar" },
+                    { value: "Investasi", label: "Investasi" },
+                    { value: "Utang", label: "Utang" }
+                  ]}
+                />
               </div>
               <div className="input-group-brutal">
                 <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Deskripsi Singkat</label>

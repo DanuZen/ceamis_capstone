@@ -2,108 +2,57 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BookOpen, Award, PlayCircle, Clock } from "lucide-react";
+import { BookOpen, Award, PlayCircle, Clock, Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
-
-type Module = {
-  id: number;
-  level: string;
-  color: string;
-  progress: number;
-  title?: string;
-  desc?: string;
-  duration?: string;
-  category?: string;
-  status?: string;
-};
-
-const initialModules: Module[] = [
-  {
-    id: 1,
-    level: "Beginner",
-    color: "lime",
-    progress: 0,
-  },
-  {
-    id: 2,
-    level: "Beginner",
-    color: "purple",
-    progress: 0,
-  },
-  {
-    id: 3,
-    level: "Intermediate",
-    color: "orange",
-    progress: 0,
-  },
-  {
-    id: 4,
-    level: "Intermediate",
-    color: "lime",
-    progress: 0,
-  },
-  {
-    id: 5,
-    level: "Advanced",
-    color: "purple",
-    progress: 0,
-  },
-  {
-    id: 6,
-    level: "Advanced",
-    color: "orange",
-    progress: 0,
-  },
-];
+import { getModules, getQuizzes } from "@/app/admin/education/actions";
 
 export default function EducationPage() {
   const { unlockBadge } = useUser();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
-  const [modules, setModules] = useState(initialModules);
+  const [modules, setModules] = useState<any[]>([]);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [completedQuizzes, setCompletedQuizzes] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"modules" | "quizzes">("modules");
+  const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Load modules from localStorage
-    const savedModules = localStorage.getItem("ceamis_modules");
-    let baseModules = savedModules ? JSON.parse(savedModules).filter((m: any) => m.status === "published") : initialModules;
-    
-    // Add progress to modules
-    const updatedModules = baseModules.map((mod: any) => {
-      const saved = localStorage.getItem(`ceamis_module_${mod.id}_progress`);
-      return {
-        ...mod,
-        level: mod.category || mod.level || "Beginner",
-        color: mod.color || ["lime", "purple", "orange"][mod.id % 3], // fallback color
-        progress: saved ? parseInt(saved) : 0
-      };
-    });
-    setModules(updatedModules);
+    const fetchData = async () => {
+      try {
+        const fetchedModules = await getModules();
+        const baseModules = fetchedModules.filter((m: any) => m.status === "published");
+        
+        // Add progress to modules
+        const updatedModules = baseModules.map((mod: any) => {
+          const saved = localStorage.getItem(`ceamis_module_${mod.id}_progress`);
+          return {
+            ...mod,
+            level: mod.category || mod.level || "Beginner",
+            color: mod.color || ["lime", "purple", "orange"][mod.id % 3], // fallback color
+            progress: saved ? parseInt(saved) : 0
+          };
+        });
+        setModules(updatedModules);
 
-    // Get finished quizzes based on module IDs
-    const quizzesFinished = updatedModules.filter((mod: any) => {
-      return localStorage.getItem(`ceamis_quiz_${mod.id}_completed`) === "true";
-    }).map((mod: any) => mod.id);
-    setCompletedQuizzes(quizzesFinished);
+        // Get finished quizzes based on module IDs
+        const quizzesFinished = updatedModules.filter((mod: any) => {
+          return localStorage.getItem(`ceamis_quiz_${mod.id}_completed`) === "true";
+        }).map((mod: any) => mod.id);
+        setCompletedQuizzes(quizzesFinished);
 
-    // Load quizzes from localStorage
-    const savedQuizzes = localStorage.getItem("ceamis_quizzes");
-    if (savedQuizzes) {
-      setQuizzes(JSON.parse(savedQuizzes).filter((q: any) => q.status === "active"));
-    } else {
-      // Fallback
-      setQuizzes([
-        { id: 1, moduleId: 1, question: "Apa tujuan utama dari pencatatan keuangan pribadi?", points: 150, status: "active" },
-        { id: 2, moduleId: 2, question: "Apa fungsi utama dari Dana Darurat?", points: 150, status: "active" },
-        { id: 3, moduleId: 3, question: "Manakah contoh dari 'Wants' (Keinginan) dalam budgeting?", points: 150, status: "active" },
-        { id: 4, moduleId: 4, question: "Instrumen investasi apa yang umumnya memiliki risiko paling rendah?", points: 150, status: "draft" }
-      ].filter(q => q.status === "active"));
-    }
+        // Load quizzes from database
+        const fetchedQuizzes = await getQuizzes();
+        setQuizzes(fetchedQuizzes.filter((q: any) => q.status === "active"));
+      } catch (error) {
+        console.error("Failed to load education data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const totalModulesCompleted = modules.filter(m => m.progress === 100).length;
@@ -179,12 +128,25 @@ export default function EducationPage() {
       <div className="card-brutal animate-bounce-in" style={{ marginBottom: "3rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", padding: "2rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem", margin: 0 }}>
-            <Award size={28} color="var(--color-orange)" strokeWidth={2.5} />
+            <div style={{
+              width: "44px",
+              height: "44px",
+              background: "var(--color-orange)",
+              border: "2.5px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)",
+              boxShadow: "3px 3px 0px var(--color-navy)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}>
+              <Award size={22} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
             {t("dashboard.education.progressTitle")}
           </h3>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} / {initialModules.length} {t("dashboard.education.modulesCompletedBadge")}</span>
-            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {initialModules.length} {t("dashboard.education.quizzesCompletedBadge")}</span>
+            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} / {modules.length} {t("dashboard.education.modulesCompletedBadge")}</span>
+            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {modules.length} {t("dashboard.education.quizzesCompletedBadge")}</span>
           </div>
         </div>
         <div className="progress-brutal" style={{ height: "24px", border: "3px solid var(--color-navy)" }}>
@@ -245,16 +207,26 @@ export default function EducationPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: "1.5rem",
             }}
           >
-            {filteredModules.length === 0 && (
+            {isLoading ? (
               <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
-                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>{t("dashboard.education.searchNotFound1")}{searchQuery}{t("dashboard.education.searchNotFound2")}</p>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  <Loader2 className="animate-spin" size={20} /> Memuat modul...
+                </p>
+              </div>
+            ) : filteredModules.length === 0 && (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>
+                  {searchQuery 
+                    ? <>{t("dashboard.education.searchNotFound1")}{searchQuery}{t("dashboard.education.searchNotFound2")}</>
+                    : "Materi pembelajaran akan segera hadir."}
+                </p>
               </div>
             )}
-            {filteredModules.map((mod, index) => {
+            {!isLoading && filteredModules.map((mod, index) => {
               const accentColor = `var(--color-${mod.color})`;
               return (
                 <Link 
@@ -326,11 +298,22 @@ export default function EducationPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: "1.5rem",
             }}
           >
-            {quizzes.map((quiz, index) => {
+            {isLoading ? (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  <Loader2 className="animate-spin" size={20} /> Memuat kuis...
+                </p>
+              </div>
+            ) : quizzes.length === 0 && (
+              <div style={{ gridColumn: "1 / -1", padding: "3rem", textAlign: "center", border: "3px dashed var(--color-navy)", borderRadius: "var(--radius-brutal)", background: "var(--color-white)" }}>
+                <p style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-navy)" }}>Belum ada kuis yang tersedia saat ini.</p>
+              </div>
+            )}
+            {!isLoading && quizzes.map((quiz, index) => {
               const mod: any = modules.find(m => m.id === quiz.moduleId) || { title: `Modul #${quiz.moduleId}` };
               return (
                 <Link 

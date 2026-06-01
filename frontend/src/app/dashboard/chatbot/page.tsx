@@ -55,11 +55,11 @@ function renderMarkdown(text: string): React.ReactNode {
 
         // Heading
         if (trimmed.startsWith("### "))
-          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.95rem", color: "var(--color-lime)", marginTop: "0.25rem", letterSpacing: "0.5px" }}>{renderInline(trimmed.slice(4))}</div>;
+          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.15rem", color: "inherit", marginTop: "0.5rem", marginBottom: "0.25rem", letterSpacing: "0.5px" }}>{renderInline(trimmed.slice(4))}</div>;
         if (trimmed.startsWith("## "))
-          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.05rem", color: "var(--color-lime)", borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: "0.25rem" }}>{renderInline(trimmed.slice(3))}</div>;
+          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.3rem", color: "inherit", borderBottom: "2px solid rgba(0,0,0,0.1)", paddingBottom: "0.25rem", marginTop: "0.75rem", marginBottom: "0.5rem" }}>{renderInline(trimmed.slice(3))}</div>;
         if (trimmed.startsWith("# "))
-          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.15rem", color: "var(--color-lime)" }}>{renderInline(trimmed.slice(2))}</div>;
+          return <div key={bi} style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.5rem", color: "inherit", marginTop: "1rem", marginBottom: "0.5rem" }}>{renderInline(trimmed.slice(2))}</div>;
 
         // List items
         const lines = trimmed.split("\n");
@@ -68,18 +68,18 @@ function renderMarkdown(text: string): React.ReactNode {
 
         if (isBulletList)
           return (
-            <ul key={bi} style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+            <ul key={bi} style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
               {lines.map((l, li) => (
-                <li key={li} style={{ fontSize: "0.9375rem", lineHeight: 1.55 }}>{renderInline(l.replace(/^[-*•]\s/, "").trim())}</li>
+                <li key={li} style={{ fontSize: "1rem", lineHeight: 1.6 }}>{renderInline(l.replace(/^[-*•]\s/, "").trim())}</li>
               ))}
             </ul>
           );
 
         if (isNumList)
           return (
-            <ol key={bi} style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+            <ol key={bi} style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
               {lines.map((l, li) => (
-                <li key={li} style={{ fontSize: "0.9375rem", lineHeight: 1.55 }}>{renderInline(l.replace(/^\d+\.\s/, "").trim())}</li>
+                <li key={li} style={{ fontSize: "1rem", lineHeight: 1.6 }}>{renderInline(l.replace(/^\d+\.\s/, "").trim())}</li>
               ))}
             </ol>
           );
@@ -102,7 +102,7 @@ function renderMarkdown(text: string): React.ReactNode {
 
         // Regular paragraph
         return (
-          <p key={bi} style={{ margin: 0, fontSize: "0.9375rem", lineHeight: 1.65 }}>
+          <p key={bi} style={{ margin: 0, fontSize: "1rem", lineHeight: 1.7, color: "inherit" }}>
             {lines.map((l, li) => (
               <span key={li}>{renderInline(l)}{li < lines.length - 1 && <br />}</span>
             ))}
@@ -152,7 +152,7 @@ export default function ChatbotPage() {
 
   // ── Ping AI service sekali saat mount ───────────────────────────────────
   useEffect(() => {
-    fetch(`${AI_URL}/health`, { signal: AbortSignal.timeout(3000) })
+    fetch(`${AI_URL}/health`, { signal: AbortSignal.timeout(10000) })
       .then(r => setIsConnected(r.ok))
       .catch(() => setIsConnected(false));
   }, []);
@@ -307,7 +307,7 @@ export default function ChatbotPage() {
 
       {/* ── Chat Messages ─────────────────────────────────────────────────── */}
       <div
-        className="card-brutal"
+        className="card-brutal no-scrollbar"
         style={{
           flex: 1, overflowY: "auto", padding: "1.25rem",
           display: "flex", flexDirection: "column", gap: "1.25rem",
@@ -324,21 +324,21 @@ export default function ChatbotPage() {
               alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
               maxWidth: "82%",
               padding: "0.875rem 1.125rem",
-              borderRadius: "var(--radius-brutal-sm)",
+              borderRadius: "var(--radius-brutal-md)",
               border: msg.isError ? "3px dashed var(--color-orange)" : "3px solid var(--color-navy)",
               background: msg.role === "user"
-                ? "var(--color-lime)"
+                ? "var(--color-purple)"
                 : msg.isError
                   ? "rgba(255,165,0,0.08)"
-                  : "var(--color-navy)",
-              color: msg.role === "user" ? "var(--color-navy)" : "var(--color-white)",
-              boxShadow: msg.isError ? "none" : "4px 4px 0px var(--color-navy)",
+                  : "var(--color-white)",
+              color: msg.role === "user" ? "var(--color-white)" : "var(--color-navy)",
+              boxShadow: msg.isError ? "none" : (msg.role === "user" ? "4px 4px 0px var(--color-lime)" : "4px 4px 0px var(--color-purple)"),
             }}
           >
             {/* Bot label */}
             {msg.role === "assistant" && (
-              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.7rem", marginBottom: "0.4rem", color: msg.isError ? "var(--color-orange)" : "var(--color-lime)", display: "flex", alignItems: "center", gap: "0.3rem", textTransform: "uppercase", letterSpacing: "1px" }}>
-                <Bot size={11} strokeWidth={3} /> {msg.isError ? t("dashboard.chatbot.connError") : t("dashboard.chatbot.title")}
+              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", marginBottom: "0.6rem", color: msg.isError ? "var(--color-orange)" : "var(--color-purple)", display: "flex", alignItems: "center", gap: "0.4rem", textTransform: "uppercase", letterSpacing: "1px", borderBottom: "2px solid rgba(0,0,0,0.05)", paddingBottom: "0.4rem" }}>
+                <Bot size={16} strokeWidth={2.5} /> {msg.isError ? t("dashboard.chatbot.connError") : t("dashboard.chatbot.title")}
                 {msg.triggered === "sensitive" && (
                   <span style={{ marginLeft: "0.4rem", fontSize: "0.6rem", background: "var(--color-orange)", color: "var(--color-navy)", padding: "0.05rem 0.3rem", borderRadius: "100px", fontWeight: 900 }}>⚠ {t("dashboard.chatbot.sensitive")}</span>
                 )}
@@ -356,19 +356,18 @@ export default function ChatbotPage() {
             className="animate-slide-up"
             style={{
               alignSelf: "flex-start", padding: "1rem 1.5rem",
-              borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
-              background: "var(--color-navy)", boxShadow: "6px 6px 0px var(--color-purple)",
-              display: "flex", flexDirection: "column", gap: "0.6rem", position: "relative", overflow: "hidden",
+              borderRadius: "var(--radius-brutal-md)", border: "3px solid var(--color-navy)",
+              background: "var(--color-white)", boxShadow: "4px 4px 0px var(--color-purple)",
+              display: "flex", alignItems: "center", gap: "1rem", position: "relative",
             }}
           >
-            <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "2px", background: "rgba(182,255,68,0.3)", boxShadow: "0 0 12px var(--color-lime)", animation: "scan 2s linear infinite" }} />
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.75rem", color: "var(--color-lime)", display: "flex", alignItems: "center", gap: "0.4rem", textTransform: "uppercase", letterSpacing: "2px" }}>
-              <Bot size={14} strokeWidth={3} className="animate-pulse" />
-              <Zap size={12} fill="var(--color-lime)" /> {t("dashboard.chatbot.camiThinking")}
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", color: "var(--color-purple)", display: "flex", alignItems: "center", gap: "0.5rem", textTransform: "uppercase", letterSpacing: "1px" }}>
+              <Bot size={16} strokeWidth={2.5} className="animate-pulse" />
+              {t("dashboard.chatbot.camiThinking")}
             </div>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div style={{ display: "flex", gap: "0.4rem", paddingBottom: "0.2rem" }}>
               {[0, 0.2, 0.4].map((delay, i) => (
-                <div key={i} style={{ width: "10px", height: "10px", background: i % 2 === 0 ? "var(--color-lime)" : "var(--color-purple)", borderRadius: "var(--radius-brutal-sm)", border: "2px solid rgba(255,255,255,0.3)", animation: `bounce 0.6s infinite alternate ${delay}s` }} />
+                <div key={i} style={{ width: "8px", height: "8px", background: i % 2 === 0 ? "var(--color-purple)" : "var(--color-lime)", borderRadius: "50%", border: "2px solid var(--color-navy)", animation: `bounce 0.6s infinite alternate ${delay}s` }} />
               ))}
             </div>
           </div>

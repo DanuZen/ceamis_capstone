@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronRight, CheckCircle, Save, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { getModules, getModulePages, saveModulePages, updateModule } from "../../actions";
 
 export default function EditModulePage() {
   const params = useParams();
@@ -18,34 +19,48 @@ export default function EditModulePage() {
   const [popupMessage, setPopupMessage] = useState<{title: string, message: string, type: "success" | "error"} | null>(null);
 
   useEffect(() => {
-    // 1. Fetch title from modules
-    const savedModules = localStorage.getItem("ceamis_modules");
-    if (savedModules) {
-      const parsed = JSON.parse(savedModules);
-      const mod = parsed.find((m: any) => m.id.toString() === id);
-      if (mod && mod.title) {
-        setModuleTitle(mod.title);
-      } else {
-        setModuleTitle(t(`dashboard.education.modules.${parseInt(id) - 1}.title`));
-      }
-    } else {
-      setModuleTitle(t(`dashboard.education.modules.${parseInt(id) - 1}.title`));
-    }
+    const fetchData = async () => {
+      try {
+        const modules = await getModules();
+        const mod = modules.find((m: any) => m.id.toString() === id);
+        if (mod && mod.title) {
+          setModuleTitle(mod.title);
+        } else {
+          setModuleTitle(t(`dashboard.education.modules.${parseInt(id) - 1}.title`));
+        }
 
-    // 2. Fetch content
-    const savedContent = localStorage.getItem(`ceamis_module_content_${id}`);
-    if (savedContent) {
-      setContent(JSON.parse(savedContent));
-    } else {
-      const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true }) || t(`dashboard.education.detail.moduleData.1`, { returnObjects: true });
-      const contentArray = Array.isArray(translatedContent) ? translatedContent : [{ subtitle: "Halaman Baru", text: "Isi konten di sini..." }];
-      setContent(contentArray);
-    }
+        const pages = await getModulePages(Number(id));
+        if (pages && pages.length > 0) {
+          setContent(pages);
+        } else {
+          // If no pages exist in DB, check if it's a legacy module (ID 1-10) with JSON translation
+          const translatedContent = t(`dashboard.education.detail.moduleData.${id}`, { returnObjects: true });
+          const contentArray = Array.isArray(translatedContent) ? translatedContent : [];
+          
+          if (contentArray.length > 0) {
+            setContent(contentArray);
+          } else {
+            // New custom module: force admin to start with an empty page
+            setContent([{ subtitle: "", text: "" }]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch module data:", error);
+      }
+    };
+    fetchData();
   }, [id, t]);
 
-  const handleSave = () => {
-    localStorage.setItem(`ceamis_module_content_${id}`, JSON.stringify(content));
-    setPopupMessage({ title: "Berhasil!", message: "Konten modul berhasil disimpan!", type: "success" });
+  const handleSave = async () => {
+    await saveModulePages(Number(id), content);
+    await updateModule(Number(id), { status: "published" });
+    setPopupMessage({ title: "Berhasil!", message: "Konten modul berhasil dipublikasikan!", type: "success" });
+  };
+
+  const handleSaveAsDraft = async () => {
+    await saveModulePages(Number(id), content);
+    await updateModule(Number(id), { status: "draft" });
+    setPopupMessage({ title: "Draft Disimpan!", message: "Konten berhasil disimpan sebagai draft.", type: "success" });
   };
 
   const handleAddPage = () => {
@@ -89,8 +104,11 @@ export default function EditModulePage() {
           </button>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <button onClick={handleSaveAsDraft} className="btn-brutal" style={{ padding: "0.5rem 1rem", background: "var(--color-border)", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
+             <Save size={18} /> Simpan Draft
+          </button>
           <button onClick={handleSave} className="btn-brutal btn-brutal--primary" style={{ padding: "0.5rem 1rem", background: "var(--color-purple)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-             <Save size={18} /> Simpan Konten
+             <CheckCircle size={18} /> Publikasikan
           </button>
         </div>
       </div>
