@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTransactions, TransactionType } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
+import { aiApi } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/components/ui/Toast";
 
@@ -183,45 +184,36 @@ export default function TransactionsPage() {
 
     setLoadingCluster(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000"}/api/v1/analyze`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id:            userData.id || "guest"
-          }),
-        }
-      );
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
+      const data = await aiApi.getSpendingCluster({
+        user_id: userData.id || "guest"
+      });
 
       // Map respons API → state lokal
-      const rData = data.data;
-      if (rData) {
+      const rData = data;
+      if (rData && !rData.is_mock) {
         const topCategory = Object.keys(breakdown).length > 0 
           ? Object.keys(breakdown).reduce((a, b) => breakdown[a] > breakdown[b] ? a : b) 
           : "Lainnya";
           
         setCluster({
-          cluster_label:      rData.persona || MOCK_CLUSTER.cluster_label,
-          dominant_category:  topCategory,
-          insight:            rData.description || MOCK_CLUSTER.insight,
-          needs_ratio:        rData.metrics_summary?.wants_ratio !== undefined ? 100 - Math.round(rData.metrics_summary.wants_ratio * 100) - Math.round(rData.metrics_summary.saving_rate * 100) : MOCK_CLUSTER.needs_ratio,
-          wants_ratio:        rData.metrics_summary?.wants_ratio !== undefined ? Math.round(rData.metrics_summary.wants_ratio * 100) : MOCK_CLUSTER.wants_ratio,
-          savings_ratio:      rData.metrics_summary?.saving_rate !== undefined ? Math.round(rData.metrics_summary.saving_rate * 100) : MOCK_CLUSTER.savings_ratio,
-          trend:              "stable",
+          cluster_label:      rData.cluster_label || MOCK_CLUSTER.cluster_label,
+          dominant_category:  rData.dominant_category || topCategory,
+          insight:            rData.insight || MOCK_CLUSTER.insight,
+          needs_ratio:        rData.needs_ratio !== undefined ? rData.needs_ratio : MOCK_CLUSTER.needs_ratio,
+          wants_ratio:        rData.wants_ratio !== undefined ? rData.wants_ratio : MOCK_CLUSTER.wants_ratio,
+          savings_ratio:      rData.savings_ratio !== undefined ? rData.savings_ratio : MOCK_CLUSTER.savings_ratio,
+          trend:              rData.trend || "stable",
           is_mock:            false,
         });
 
         // Update label user di seluruh aplikasi (Header & Dashboard)
-        if (rData.persona) {
-          updateUserData({ label: rData.persona });
+        if (rData.cluster_label) {
+          updateUserData({ label: rData.cluster_label });
           // Simpan di key terpisah agar tidak ditimpa saat refreshUser() fetch dari API
-          localStorage.setItem("ceamis_cluster_label", rData.persona);
+          localStorage.setItem("ceamis_cluster_label", rData.cluster_label);
         }
       } else {
-        throw new Error("Invalid API format");
+        throw new Error("Invalid API format or mock data returned");
       }
     } catch {
       // API belum ready → pakai mock, tetapi tetap update label
@@ -241,7 +233,8 @@ export default function TransactionsPage() {
 
   const handleQuickInput = (presetDesc: string, presetAmount: string) => {
     setDesc(presetDesc);
-    setAmount(presetAmount);
+    setAmountRaw(presetAmount);
+    setAmount(presetAmount.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
     setType("pengeluaran");
     setIsQuickInput(true);
   };

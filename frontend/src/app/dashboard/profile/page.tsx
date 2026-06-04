@@ -83,8 +83,11 @@ export default function ProfilePage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setEditForm({ ...editForm, avatarUrl: url });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditForm({ ...editForm, avatarUrl: reader.result as string });
+      };
+      reader.readAsDataURL(file);
     }
   };
 

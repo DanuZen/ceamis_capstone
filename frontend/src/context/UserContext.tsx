@@ -106,6 +106,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await usersApi.getProfile(user.id);
       const mapped = mapApiToUserData(profile);
+      
+      // Fix for Issue 1: user_profiles table doesn't have an email column, so fallback to auth user data.
+      if (!mapped.email && user.email) {
+        mapped.email = user.email;
+      }
+      if (mapped.name === "User" && (user.user_metadata?.full_name || user.email)) {
+        mapped.name = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+      }
 
       // Merge API badges with any locally persisted badges to avoid race-condition overwrite
       const localRaw = localStorage.getItem("ceamis_user");
@@ -128,8 +136,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
               }
             }
             // Preserve AI-generated label from localStorage.
-            // API hanya menyimpan label default "Pemula", sedangkan label
-            // seperti "Si Hemat" / "Si Impulsif" diset oleh analisis cluster lokal.
             if (local.label && local.label !== defaultUser.label) {
               mapped.label = local.label;
             }
@@ -138,8 +144,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
 
       // ── Restore AI-generated cluster label ────────────────────────────────
-      // Key ini hanya ditulis oleh analisis spending cluster di halaman Transaksi,
-      // TIDAK pernah ditimpa saat fetch dari API, sehingga label persisten lintas reload.
       const clusterLabel = localStorage.getItem("ceamis_cluster_label");
       if (clusterLabel) {
         mapped.label = clusterLabel;

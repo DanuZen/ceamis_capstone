@@ -47,7 +47,8 @@ export default function ReportsPage() {
   const currentYearStr = selectedYear.toString();
   
   const filteredTransactions = transactions.filter(tx => {
-    return tx.date.includes(currentMonthStr) && tx.date.includes(currentYearStr);
+    const d = new Date(tx.created_at);
+    return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
   });
 
   const income = filteredTransactions.filter(tx => tx.type === "pemasukan").reduce((sum, tx) => sum + tx.amount, 0);

@@ -124,16 +124,28 @@ export class AiService {
           { timeout: 10000 },
         ),
       );
-      return data;
+      
+      const rData = data.data; // Extracted from FastAPI response { status, data: { persona, ... } }
+      
+      return {
+        cluster_label:     rData?.persona || 'Si Hemat',
+        dominant_category: 'Lainnya', // Usually computed on frontend based on breakdown
+        insight:           rData?.description || 'Pengeluaran kamu terdistribusi cukup merata. Pola keuangan kamu terkontrol — pertahankan!',
+        needs_ratio:       rData?.metrics_summary?.wants_ratio !== undefined ? 100 - Math.round(rData.metrics_summary.wants_ratio * 100) - Math.round(rData.metrics_summary.saving_rate * 100) : 60,
+        wants_ratio:       rData?.metrics_summary?.wants_ratio !== undefined ? Math.round(rData.metrics_summary.wants_ratio * 100) : 30,
+        savings_ratio:     rData?.metrics_summary?.saving_rate !== undefined ? Math.round(rData.metrics_summary.saving_rate * 100) : 10,
+        trend:             'stable',
+        is_mock:           false,
+      };
     } catch (err) {
       console.warn('[AiService] Spending Cluster API unavailable, using fallback:', err?.message);
       return {
         cluster_label:     'Si Hemat',
         dominant_category: 'Makan & Minum',
         insight:           'Analisis AI tidak tersedia. Pertahankan pola keuangan yang baik!',
-        needs_ratio:       0.6,
-        wants_ratio:       0.3,
-        savings_ratio:     0.1,
+        needs_ratio:       60,
+        wants_ratio:       30,
+        savings_ratio:     10,
         trend:             'stable',
         is_mock:           true,
       };

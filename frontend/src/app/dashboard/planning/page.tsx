@@ -19,6 +19,7 @@ import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 import { useLanguage } from "@/context/LanguageContext";
 import { onboardingApi } from "@/lib/api";
 import { translateCategoryName } from "@/lib/translateCategory";
+import { getDebts, getRiskProfile, saveRiskProfile } from "./actions";
 
 // ── Icon Mapping (replaces emojis) ──────────────
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {

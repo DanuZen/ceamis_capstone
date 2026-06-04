@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Wallet, 
@@ -19,6 +20,7 @@ import {
 import { useTransactions } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { aiApi } from "@/lib/api";
 
 interface FeatureCard {
   href: string;
@@ -33,6 +35,34 @@ export default function DashboardPage() {
   const { transactions } = useTransactions();
   const { userData } = useUser();
   const { t } = useLanguage();
+
+  const [insight, setInsight] = useState<string | null>(null);
+  const [loadingInsight, setLoadingInsight] = useState(false);
+
+  useEffect(() => {
+    const fetchInsight = async () => {
+      setLoadingInsight(true);
+      try {
+        const res = await aiApi.getSpendingCluster({ user_id: userData.id || "guest" });
+        if (res && !res.is_mock && res.insight) {
+          setInsight(res.insight);
+        } else {
+          setInsight(t("dashboard.insightDesc"));
+        }
+      } catch {
+        setInsight(t("dashboard.insightDesc"));
+      } finally {
+        setLoadingInsight(false);
+      }
+    };
+    
+    // Only fetch if we have transactions to analyze
+    if (userData.id && transactions.length > 0) {
+      fetchInsight();
+    } else {
+      setInsight(t("dashboard.insightDesc"));
+    }
+  }, [userData.id, transactions.length, t]);
 
   const featureCards: FeatureCard[] = [
     {
@@ -205,7 +235,7 @@ export default function DashboardPage() {
                   <div className="badge-brutal badge-brutal--purple" style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}>{t("dashboard.aiConfidence") || "AI Confidence"}: 89%</div>
                 </div>
                 <p style={{ fontSize: "1.0625rem", lineHeight: 1.6, marginBottom: "1.25rem", color: "var(--color-navy)", fontWeight: 600 }}>
-                  {t("dashboard.insightDesc")}
+                  {loadingInsight ? t("dashboard.transactions?.analyzing") || "Sedang menganalisis pola keuanganmu..." : (insight || t("dashboard.insightDesc"))}
                 </p>
                 <button className="btn-brutal btn-brutal--sm" style={{ background: "var(--color-navy)", color: "var(--color-white)", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
                   {t("dashboard.viewDetails")} <ArrowRight size={16} />

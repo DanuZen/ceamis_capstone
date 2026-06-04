@@ -40,7 +40,7 @@ const mapApiToLocal = (t: ApiTransaction): Transaction => ({
   id: t.id,
   description: t.description,
   desc: t.description,        // backward compat alias
-  amount: t.amount,
+  amount: Number(t.amount) || 0,
   type: t.type,
   category: t.category,
   tag: t.tag,

@@ -35,6 +35,7 @@ export default function DebtPage() {
   const { t } = useLanguage();
   const { showToast } = useToast();
   const { addTransaction, transactions } = useTransactions();
+  const { userData } = useUser();
   const [entries, setEntries] = useState<DebtEntry[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "utang" | "piutang">("all");
