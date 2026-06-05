@@ -2,12 +2,15 @@ export const translateCategoryName = (category: string, t: any) => {
   const mapping: Record<string, string> = {
     // Income
     "Gaji": "dashboard.transactions.catSalary",
+    "Gaji Utama": "dashboard.transactions.catSalary",
     "Salary": "dashboard.transactions.catSalary",
     "Bonus": "dashboard.transactions.catBonus",
     "Hasil Bisnis": "dashboard.transactions.catBusiness",
     "Business": "dashboard.transactions.catBusiness",
     "Lainnya": "dashboard.transactions.catOther",
     "Other": "dashboard.transactions.catOther",
+    "Pemasukan Lainnya": "dashboard.transactions.catOther",
+    "Pinjaman Masuk": "dashboard.transactions.catDebtIn",
 
     // Needs
     "Makanan & Minuman": "dashboard.transactions.catFood",
@@ -23,6 +26,7 @@ export const translateCategoryName = (category: string, t: any) => {
 
     // Wants
     "Belanja": "dashboard.transactions.catShopping",
+    "Belanja Pribadi": "dashboard.transactions.catShopping",
     "Shopping": "dashboard.transactions.catShopping",
     "Hiburan": "dashboard.transactions.catEntertainment",
     "Entertainment": "dashboard.transactions.catEntertainment",
@@ -35,6 +39,7 @@ export const translateCategoryName = (category: string, t: any) => {
 
     // Savings
     "Dana Darurat": "dashboard.transactions.catEmergency",
+    "Alokasi Dana Darurat": "dashboard.transactions.catEmergency",
     "Emergency Fund": "dashboard.transactions.catEmergency",
     "Reksadana": "dashboard.transactions.catMutualFund",
     "Mutual Fund": "dashboard.transactions.catMutualFund",
@@ -49,7 +54,12 @@ export const translateCategoryName = (category: string, t: any) => {
     "Makan & Minum": "dashboard.transactions.catFood",
     "Hiburan & Rekreasi": "dashboard.transactions.catEntertainment",
     "Belanja & Lifestyle": "dashboard.transactions.catShopping",
-    "Kopi & Jajan": "dashboard.transactions.catSnacks"
+    "Kopi & Jajan": "dashboard.transactions.catSnacks",
+
+    // Debts & Loans
+    "Utang": "dashboard.transactions.catDebtPay",
+    "Piutang Keluar": "dashboard.transactions.catLoanOut",
+    "Bayar Utang": "dashboard.transactions.catDebtPay"
   };
 
   const translationKey = mapping[category];

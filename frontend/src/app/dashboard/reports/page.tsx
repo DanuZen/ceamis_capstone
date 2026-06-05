@@ -58,28 +58,32 @@ export default function ReportsPage() {
 
   // Category breakdown
   const categoryMap = new Map<string, number>();
+  const categoryColors = ["lime", "purple", "orange", "pink"];
+  
   filteredTransactions.filter(tx => tx.type === "pengeluaran").forEach(tx => {
-    categoryMap.set(tx.category, (categoryMap.get(tx.category) || 0) + tx.amount);
+    const translatedName = translateCategoryName(tx.category, t);
+    categoryMap.set(translatedName, (categoryMap.get(translatedName) || 0) + tx.amount);
   });
 
-  const CATEGORY_DATA = Array.from(categoryMap.entries()).map(([name, amount]) => ({
+  const CATEGORY_DATA = Array.from(categoryMap.entries()).map(([name, amount], index) => ({
     name,
     amount,
     percentage: expense > 0 ? Math.round((amount / expense) * 100) : 0,
-    color: CATEGORY_COLORS[name] || CATEGORY_COLORS["default"]
+    color: CATEGORY_COLORS[name] || categoryColors[index % categoryColors.length]
   })).sort((a, b) => b.amount - a.amount);
 
   // Income category breakdown
   const incomeCategoryMap = new Map<string, number>();
   filteredTransactions.filter(tx => tx.type === "pemasukan").forEach(tx => {
-    incomeCategoryMap.set(tx.category, (incomeCategoryMap.get(tx.category) || 0) + tx.amount);
+    const translatedName = translateCategoryName(tx.category, t);
+    incomeCategoryMap.set(translatedName, (incomeCategoryMap.get(translatedName) || 0) + tx.amount);
   });
 
-  const INCOME_CATEGORY_DATA = Array.from(incomeCategoryMap.entries()).map(([name, amount]) => ({
+  const INCOME_CATEGORY_DATA = Array.from(incomeCategoryMap.entries()).map(([name, amount], index) => ({
     name,
     amount,
     percentage: income > 0 ? Math.round((amount / income) * 100) : 0,
-    color: CATEGORY_COLORS[name] || CATEGORY_COLORS["default"]
+    color: CATEGORY_COLORS[name] || categoryColors[index % categoryColors.length]
   })).sort((a, b) => b.amount - a.amount);
 
   const MONTHLY_SUMMARY = {
@@ -460,7 +464,7 @@ export default function ReportsPage() {
             {INCOME_CATEGORY_DATA.map((cat) => (
               <div key={cat.name}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
-                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{translateCategoryName(cat.name, t)}</span>
+                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{cat.name}</span>
                   <span style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem" }}>
                     {formatRupiah(cat.amount)}
                   </span>
@@ -498,7 +502,7 @@ export default function ReportsPage() {
             {CATEGORY_DATA.map((cat) => (
               <div key={cat.name}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
-                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{translateCategoryName(cat.name, t)}</span>
+                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{cat.name}</span>
                   <span style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.9375rem" }}>
                     {formatRupiah(cat.amount)}
                   </span>

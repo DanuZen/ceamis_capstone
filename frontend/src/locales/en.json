@@ -329,7 +329,10 @@
       "catMutualFund": "Mutual Fund Investment",
       "catStock": "Stock Investment",
       "catDream": "Dream Savings",
-      "catVehicle": "Vehicle Savings"
+      "catVehicle": "Vehicle Savings",
+      "catDebtIn": "Loan Received",
+      "catLoanOut": "Loan Given",
+      "catDebtPay": "Debt Repayment"
     },
     "gamification": {
       "title": "Achievements",

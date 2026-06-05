@@ -328,8 +328,11 @@
       "catEmergency": "Alokasi Dana Darurat",
       "catMutualFund": "Investasi Reksadana",
       "catStock": "Investasi Saham",
-      "catDream": "Tabungan Impian",
-      "catVehicle": "Tabungan Kendaraan"
+      "catDream": "Tabungan Mimpi",
+      "catVehicle": "Tabungan Kendaraan",
+      "catDebtIn": "Pinjaman Masuk",
+      "catLoanOut": "Piutang Keluar",
+      "catDebtPay": "Utang"
     },
     "gamification": {
       "title": "Pencapaian",
