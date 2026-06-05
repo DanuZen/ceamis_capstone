@@ -75,6 +75,7 @@ ceamis/
 │   └── models/            # Model Machine Learning hasil pelatihan (.pkl, .h5)
 └── docs/                  # Pusat Dokumentasi Lengkap Proyek
 ```
+Catatan: Berkas model Machine Learning hasil pelatihan untuk direktori ai-service/models/ dapat diunduh melalui [Tautan Google Drive Model AI CEAMIS](https://drive.google.com/drive/folders/1w-o9hI_MvdU4Od1sKxT0G02hv9cRQL_E?usp=sharing).
 
 ## Panduan Menjalankan Proyek Lokal (Development)
 
