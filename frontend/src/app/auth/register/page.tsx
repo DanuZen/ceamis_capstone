@@ -233,6 +233,7 @@ export default function RegisterPage() {
           background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)",
           borderRight: "1px solid rgba(255, 255, 255, 0.1)",
           padding: "5rem",
+          display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
           color: "var(--color-white)",
