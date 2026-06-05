@@ -1,7 +1,5 @@
 # CEAMIS Capstone
 
-Repository utama proyek **CEAMIS (Customer Engagement and Monitoring Information System)** yang digunakan untuk pengembangan dan implementasi solusi analitik data. Salah satu komponen pada repository ini adalah dashboard interaktif berbasis Streamlit yang digunakan untuk visualisasi, eksplorasi data, serta monitoring hasil analisis.
-
 ## Dashboard Streamlit
 
 Dashboard Streamlit telah berhasil dideploy dan dapat diakses secara publik melalui tautan berikut:
