@@ -71,6 +71,7 @@ export async function saveBadgesBulk(badges: any[]) {
         name: b.name,
         desc: b.desc,
         icon: b.icon,
+        color: b.color || "lime",
         requirementType: b.requirementType,
         requirementValue: b.requirementValue,
         xp: b.xp || 100

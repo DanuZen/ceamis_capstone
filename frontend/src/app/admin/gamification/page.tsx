@@ -151,7 +151,7 @@ export default function AdminGamificationPage() {
       if (data && data.length > 0) {
         setBadgesState(data.map((b: any) => ({
           ...b,
-          color: "lime", // Default for now
+          color: b.color || "lime", // Use actual color from DB
           xp: b.xp || b.requirementValue,
           requirement: b.desc
         })));

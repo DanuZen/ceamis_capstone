@@ -3,7 +3,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { 
   Search, Calendar, Star, Flame, Bell, ChevronDown, 
-  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus, X
+  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus, X,
+  Shield, Medal, Trophy
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -11,6 +12,7 @@ import { useUser } from "@/context/UserContext";
 import { useGuest } from "@/context/GuestContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/lib/supabase/client";
+import { getBadges } from "@/app/admin/gamification/actions";
 
 interface NavbarProps {
   toggleSidebar?: () => void;
@@ -29,6 +31,13 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const [allBadges, setAllBadges] = useState<any[]>([]);
+
+  useEffect(() => {
+    getBadges().then(data => {
+      if (data && data.length > 0) setAllBadges(data);
+    }).catch(console.error);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -601,24 +610,20 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
                     ) : (
                       <>
                         {userData.unlockedBadges.slice(0, 3).map((badgeId, i) => {
-                          const badgeMap: Record<string, { icon: React.ElementType; bg: string }> = {
-                            firstStep: { icon: Target, bg: "lime" },
-                            onFire: { icon: Flame, bg: "orange" },
-                            consistent: { icon: Zap, bg: "purple" },
-                            champion: { icon: Star, bg: "orange" },
-                            aiExplorer: { icon: Star, bg: "lime" },
-                            hematMaster: { icon: Zap, bg: "purple" },
-                            bookworm: { icon: Star, bg: "lime" },
-                            legendary: { icon: Star, bg: "orange" },
+                          const badgeData = allBadges.find(b => b.id === badgeId);
+                          const bg = badgeData?.color || "lime";
+                          
+                          const ICON_MAP: Record<string, React.ElementType> = {
+                            Target, Shield, Flame, Zap, Star, Medal, Trophy
                           };
-                          const b = badgeMap[badgeId] || { icon: Star, bg: "lime" };
-                          const IconComp = b.icon;
+                          const IconComp = badgeData?.icon ? ICON_MAP[badgeData.icon] || Star : Star;
+
                           return (
-                            <div key={i} title={badgeId} style={{ 
-                              width: "40px", height: "40px", borderRadius: "50%", background: `var(--color-${b.bg})`, 
+                            <div key={i} title={badgeData?.name || badgeId} style={{ 
+                              width: "40px", height: "40px", borderRadius: "50%", background: `var(--color-${bg})`, 
                               border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center" 
                             }}>
-                              <IconComp size={20} color="var(--color-navy)" />
+                              <IconComp size={20} color={bg === "lime" ? "var(--color-navy)" : "var(--color-white)"} />
                             </div>
                           );
                         })}
