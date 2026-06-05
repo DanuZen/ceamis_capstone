@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trophy, Star, Flame, Zap, Target, Shield, Edit, Plus, X, Trash2, ChevronDown, Activity } from "lucide-react";
+import { Trophy, Star, Flame, Zap, Target, Shield, Edit, Plus, X, Trash2, ChevronDown, Activity, CheckCircle2 } from "lucide-react";
 import { getBadges, createBadge, updateBadge, deleteBadge } from "./actions";
 import { useLanguage } from "@/context/LanguageContext";
+import { useToast } from "@/components/ui/Toast";
 
 const BrutalSelect = ({ name, options, defaultValue }: { name: string, options: {value: string, label: string}[], defaultValue: string }) => {
   const [open, setOpen] = useState(false);
@@ -140,9 +141,17 @@ const AI_SPENDING_PROFILES = [
 
 export default function AdminGamificationPage() {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [badges, setBadgesState] = useState<any[]>(INITIAL_BADGES);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<any | null>(null);
+  
+  // Level state
+  const [levels, setLevels] = useState<any[]>(LEVEL_CONFIG);
+  const [isLevelModalOpen, setIsLevelModalOpen] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState<any | null>(null);
+  const [levelToDelete, setLevelToDelete] = useState<number | null>(null);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const fetchBadges = async () => {
@@ -214,6 +223,48 @@ export default function AdminGamificationPage() {
     setIsModalOpen(true);
   };
 
+  const handleEditLevel = (lv: any) => {
+    setSelectedLevel(lv);
+    setIsLevelModalOpen(true);
+  };
+
+  const handleDeleteLevel = (levelNum: number) => {
+    setLevelToDelete(levelNum);
+    setDeleteConfirmationText("");
+  };
+
+  const executeDeleteLevel = () => {
+    if (deleteConfirmationText.toUpperCase() !== "HAPUS") {
+      showToast(t("admin.gamification.invalidConfirmation") || "Teks konfirmasi tidak sesuai", "error");
+      return;
+    }
+    setLevels(prev => prev.filter(l => l.level !== levelToDelete));
+    setLevelToDelete(null);
+    showToast(t("admin.gamification.levelDeleted") || "Level berhasil dihapus", "success");
+  };
+
+  const handleSaveLevel = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const updatedLevel = {
+      level: Number(formData.get("level")),
+      xpMin: Number(formData.get("xpMin")),
+      xpMax: Number(formData.get("xpMax")),
+      label: formData.get("label") as string,
+    };
+    
+    setLevels(prev => {
+      const exists = prev.find(l => l.level === updatedLevel.level);
+      if (exists) {
+        return prev.map(l => l.level === updatedLevel.level ? updatedLevel : l);
+      }
+      return [...prev, updatedLevel].sort((a, b) => a.level - b.level);
+    });
+    
+    setIsLevelModalOpen(false);
+    showToast(t("admin.gamification.levelSaved") || "Level berhasil disimpan", "success");
+  };
+
   const openEditModal = (badge: any) => {
     setSelectedBadge(badge);
     setIsModalOpen(true);
@@ -253,17 +304,22 @@ export default function AdminGamificationPage() {
             </tr>
           </thead>
           <tbody>
-            {LEVEL_CONFIG.map((lv, i) => (
-              <tr key={lv.level} style={{ borderBottom: i < LEVEL_CONFIG.length - 1 ? "1px solid rgba(0,0,0,0.08)" : "none" }}>
+            {levels.map((lv, i) => (
+              <tr key={lv.level} style={{ borderBottom: i < levels.length - 1 ? "1px solid rgba(0,0,0,0.08)" : "none" }}>
                 <td style={{ padding: "0.85rem 1rem" }}>
                   <span style={{ fontWeight: 900, fontSize: "1rem", color: "var(--color-navy)", background: "var(--color-lime)", padding: "0.2rem 0.75rem", borderRadius: "100px", border: "2px solid var(--color-navy)" }}>LVL {lv.level}</span>
                 </td>
                 <td style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--color-text-muted)" }}>{lv.xpMin.toLocaleString()} - {lv.xpMax.toLocaleString()} XP</td>
                 <td style={{ padding: "0.85rem 1rem", fontWeight: 800, color: "var(--color-purple)" }}>{lv.label}</td>
                 <td style={{ padding: "0.85rem 1rem" }}>
-                  <button className="btn-brutal" style={{ padding: "0.4rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", boxShadow: "none" }}>
-                    <Edit size={16} color="var(--color-navy)" />
-                  </button>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button onClick={() => handleEditLevel(lv)} className="btn-brutal" style={{ padding: "0.4rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", boxShadow: "none" }}>
+                      <Edit size={16} color="var(--color-navy)" />
+                    </button>
+                    <button onClick={() => handleDeleteLevel(lv.level)} className="btn-brutal" style={{ padding: "0.4rem", background: "var(--color-pink)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", boxShadow: "none" }}>
+                      <Trash2 size={16} color="var(--color-navy)" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -443,6 +499,93 @@ export default function AdminGamificationPage() {
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Level Modal */}
+      {isLevelModalOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 25, 47, 0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1rem" }}>
+          <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", width: "100%", maxWidth: "400px", position: "relative" }}>
+            <button 
+              onClick={() => setIsLevelModalOpen(false)}
+              className="btn-brutal"
+              style={{ position: "absolute", top: "1rem", right: "1rem", padding: "0.5rem", background: "var(--color-danger, #e74c3c)", boxShadow: "none" }}
+            >
+              <X size={16} color="var(--color-white)" />
+            </button>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)" }}>
+              {t("admin.gamification.editLevel") || "Edit Konfigurasi Level"}
+            </h2>
+            
+            <form onSubmit={handleSaveLevel} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              <div className="input-group-brutal">
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.gamification.colLevel") || "Level"}</label>
+                <input name="level" type="number" readOnly defaultValue={selectedLevel?.level} required className="input-brutal" style={{ width: "100%", background: "#f0f0f0", cursor: "not-allowed" }} />
+              </div>
+              <div className="input-group-brutal">
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.gamification.colLabel") || "Nama Level"}</label>
+                <input name="label" defaultValue={selectedLevel?.label} required className="input-brutal" style={{ width: "100%" }} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.gamification.minXp") || "XP Minimal"}</label>
+                  <input name="xpMin" type="number" defaultValue={selectedLevel?.xpMin} required className="input-brutal" style={{ width: "100%" }} />
+                </div>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.gamification.maxXp") || "XP Maksimal"}</label>
+                  <input name="xpMax" type="number" defaultValue={selectedLevel?.xpMax} required className="input-brutal" style={{ width: "100%" }} />
+                </div>
+              </div>
+              <button type="submit" className="btn-brutal" style={{ width: "100%", padding: "1rem", fontSize: "1rem", fontWeight: 800, background: "var(--color-lime)", color: "var(--color-navy)", display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem" }}>
+                <CheckCircle2 size={20} /> {t("admin.gamification.form.save") || "Simpan Level"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Level Delete Double-Verification Modal */}
+      {levelToDelete !== null && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 25, 47, 0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }}>
+          <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", width: "100%", maxWidth: "450px", padding: "2rem", textAlign: "center" }}>
+            <div style={{ width: "64px", height: "64px", background: "var(--color-pink)", borderRadius: "50%", margin: "0 auto 1.5rem", display: "flex", alignItems: "center", justifyContent: "center", border: "3px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
+              <Trash2 size={32} color="var(--color-white)" />
+            </div>
+            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", color: "var(--color-navy)", marginBottom: "1rem" }}>
+              {t("admin.gamification.warningDelete") || "Peringatan Hapus Level"}
+            </h3>
+            <p style={{ color: "var(--color-text-muted)", marginBottom: "1.5rem", fontWeight: 500, lineHeight: 1.5 }}>
+              {t("admin.gamification.doubleVerifyDesc") || "Tindakan ini tidak dapat dibatalkan. Untuk melanjutkan, ketik"} <strong style={{ color: "var(--color-danger)" }}>HAPUS</strong> {t("admin.gamification.doubleVerifyDesc2") || "di bawah ini."}
+            </p>
+            <input 
+              type="text" 
+              className="input-brutal" 
+              value={deleteConfirmationText}
+              onChange={(e) => setDeleteConfirmationText(e.target.value)}
+              placeholder="HAPUS"
+              style={{ width: "100%", marginBottom: "2rem", textAlign: "center", fontSize: "1.25rem", letterSpacing: "2px", textTransform: "uppercase" }} 
+            />
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+              <button type="button" onClick={() => setLevelToDelete(null)} className="btn-brutal" style={{ background: "var(--color-bg)", fontWeight: 700, flex: 1 }}>
+                {t("admin.form.cancel") || "Batal"}
+              </button>
+              <button 
+                type="button" 
+                onClick={executeDeleteLevel} 
+                disabled={deleteConfirmationText.toUpperCase() !== "HAPUS"} 
+                className="btn-brutal" 
+                style={{ 
+                  background: deleteConfirmationText.toUpperCase() === "HAPUS" ? "var(--color-pink)" : "var(--color-bg)", 
+                  color: deleteConfirmationText.toUpperCase() === "HAPUS" ? "var(--color-white)" : "var(--color-text-muted)", 
+                  fontWeight: 800, flex: 1, 
+                  boxShadow: deleteConfirmationText.toUpperCase() === "HAPUS" ? "3px 3px 0px var(--color-navy)" : "none", 
+                  cursor: deleteConfirmationText.toUpperCase() === "HAPUS" ? "pointer" : "not-allowed" 
+                }}
+              >
+                {t("admin.form.delete") || "Hapus"}
+              </button>
+            </div>
           </div>
         </div>
       )}
