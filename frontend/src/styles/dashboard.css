@@ -345,4 +345,65 @@
   margin: 0 auto;
   box-shadow: 2px 2px 0px var(--color-navy) !important;
 }
+
+/* ═══════════════════════════════════════════════
+   MOBILE RESPONSIVE — DASHBOARD
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Core layout fix: sidebar is fixed so content must not have margin */
+  .dashboard-content {
+    margin-left: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Also handle the collapsed variant on mobile */
+  .dashboard-layout--collapsed .dashboard-content {
+    margin-left: 0 !important;
+  }
+
+  /* Navbar compact */
+  .navbar {
+    padding: 0 0.875rem !important;
+    height: 60px !important;
+  }
+
+  /* Main page padding */
+  .dashboard-main {
+    padding: 1rem !important;
+    overflow-x: hidden;
+  }
+
+  /* Cards: reduce padding and shadow */
+  .card-brutal {
+    padding: 1rem !important;
+    box-shadow: 3px 3px 0px var(--card-shadow-color, var(--color-navy)) !important;
+  }
+
+  /* Force all content to fit in viewport */
+  .dashboard-main > * {
+    max-width: 100% !important;
+    overflow-x: hidden;
+  }
+
+  /* Reduce heading sizes */
+  h1, h2 {
+    font-size: clamp(1.25rem, 5vw, 1.75rem) !important;
+  }
+
+  h3 {
+    font-size: clamp(1rem, 4vw, 1.25rem) !important;
+  }
+
+  /* Buttons: compact on mobile */
+  .btn-brutal {
+    font-size: 0.8125rem !important;
+  }
+
+  /* Fix remaining horizontal overflow */
+  body, html {
+    overflow-x: hidden;
+  }
+}
 
