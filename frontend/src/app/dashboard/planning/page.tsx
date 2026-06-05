@@ -16,6 +16,7 @@ import { useTransactions } from "@/context/TransactionContext";
 import { useGuest } from "@/context/GuestContext";
 import { useUser } from "@/context/UserContext";
 import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
+import { useToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/context/LanguageContext";
 import { onboardingApi } from "@/lib/api";
 import { translateCategoryName } from "@/lib/translateCategory";
@@ -300,6 +301,7 @@ export default function PlanningPage() {
   const { isGuest } = useGuest();
   const { userData } = useUser();
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [budget, setBudget] = useState<BudgetCategory[]>([]);
   const [targets, setTargets] = useState<SavingsTarget[]>([]);
   const [activeView, setActiveView] = useState<"budget" | "targets">("budget");
@@ -755,7 +757,7 @@ export default function PlanningPage() {
   const handleDeleteCategory = (id: string, type: string) => {
     const typeItems = budget.filter(b => b.type === type);
     if (typeItems.length <= 1) {
-      alert("Tidak dapat menghapus seluruh kategori. Minimal harus tersisa satu kategori pada tipe ini.");
+      showToast("Tidak dapat menghapus seluruh kategori. Minimal harus tersisa satu kategori pada tipe ini.", "error");
       return;
     }
     setBudget(budget.filter(b => b.id !== id));

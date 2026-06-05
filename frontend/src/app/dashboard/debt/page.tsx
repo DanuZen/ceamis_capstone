@@ -207,6 +207,8 @@ export default function DebtPage() {
     const entry = entries.find(e => e.id === id);
     if (!entry) return;
 
+    if (entry.status === "lunas") return; // Cannot uncheck
+
     if (entry.status !== "lunas") {
       addTransaction({
         amount: entry.amount,
@@ -219,7 +221,7 @@ export default function DebtPage() {
 
     setEntries(entries.map(e =>
       e.id === id
-        ? { ...e, status: e.status === "lunas" ? "belum_lunas" : "lunas" }
+        ? { ...e, status: "lunas" }
         : e
     ));
   };
@@ -506,21 +508,14 @@ export default function DebtPage() {
 
               {/* Actions */}
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button onClick={() => toggleStatus(entry.id)} className="btn-brutal" style={{
+                <button onClick={() => toggleStatus(entry.id)} disabled={entry.status === "lunas"} className="btn-brutal" style={{
                   width: "36px", height: "36px", padding: 0, display: "flex",
                   alignItems: "center", justifyContent: "center",
                   background: entry.status === "lunas" ? "var(--color-lime)" : "var(--color-white)",
-                  boxShadow: "2px 2px 0px var(--color-navy)",
-                }} title={entry.status === "lunas" ? t("dashboard.debt.markUnpaid") : t("dashboard.debt.markPaid")}>
+                  boxShadow: entry.status === "lunas" ? "none" : "2px 2px 0px var(--color-navy)",
+                  cursor: entry.status === "lunas" ? "not-allowed" : "pointer"
+                }} title={entry.status === "lunas" ? t("dashboard.debt.paid") : t("dashboard.debt.markPaid")}>
                   <CheckCircle2 size={16} color="var(--color-navy)" />
-                </button>
-                <button onClick={() => deleteEntry(entry.id)} className="btn-brutal" style={{
-                  width: "36px", height: "36px", padding: 0, display: "flex",
-                  alignItems: "center", justifyContent: "center",
-                  background: "var(--color-white)",
-                  boxShadow: "2px 2px 0px var(--color-navy)",
-                }} title={t("dashboard.debt.delete")}>
-                  <X size={16} color="var(--color-navy)" />
                 </button>
               </div>
             </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Eye, X, BookOpen, FileText, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getModules, createModule, updateModule, deleteModule } from "./actions";
+import { useLanguage } from "@/context/LanguageContext";
 
 const BrutalSelect = ({ name, options, defaultValue }: { name: string, options: {value: string, label: string}[], defaultValue: string }) => {
   const [open, setOpen] = useState(false);
@@ -58,6 +59,7 @@ const BrutalSelect = ({ name, options, defaultValue }: { name: string, options: 
 
 export default function AdminEducationPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [modules, setModulesState] = useState<any[]>([]);
   
   const fetchModules = async () => {
@@ -138,15 +140,27 @@ export default function AdminEducationPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", color: "var(--color-navy)", marginBottom: "0.5rem" }}>Manajemen Modul Edukasi</h1>
-          <p style={{ color: "var(--color-text-muted)", fontWeight: 500 }}>
-            Kelola modul materi pembelajaran untuk pengguna (CRUD).
-          </p>
+      <div style={{ marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+          <div style={{
+            width: "72px", height: "72px", background: "var(--color-purple)",
+            borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
+            boxShadow: "4px 4px 0px var(--color-navy)", display: "flex",
+            alignItems: "center", justifyContent: "center", flexShrink: 0
+          }}>
+            <BookOpen size={40} color="var(--color-white)" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
+              {t("admin.education.title")}
+            </h1>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
+              {t("admin.education.desc")}
+            </p>
+          </div>
         </div>
-        <button onClick={openAddModal} className="btn-brutal" style={{ background: "var(--color-lime)", padding: "0.75rem 1.5rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "3px 3px 0px var(--color-navy)" }}>
-          <Plus size={18} /> Tambah Modul
+        <button onClick={openAddModal} className="btn-brutal" style={{ background: "var(--color-lime)", color: "var(--color-navy)", padding: "0.75rem 1.5rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "3px 3px 0px var(--color-navy)", marginLeft: "auto" }}>
+          <Plus size={18} /> {t("admin.education.addModule")}
         </button>
       </div>
 
@@ -155,10 +169,10 @@ export default function AdminEducationPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", minWidth: "600px" }}>
             <thead>
               <tr style={{ background: "var(--color-bg)", borderBottom: "3px solid var(--color-navy)" }}>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Judul Modul</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Kategori</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Status</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>XP Points</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>{t("admin.dashboard.colTitle")}</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>{t("admin.dashboard.colCategory")}</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>{t("admin.dashboard.colStatus")}</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>{t("admin.dashboard.colXp")}</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)", width: "160px", textAlign: "center" }}>Aksi</th>
               </tr>
             </thead>
@@ -196,7 +210,7 @@ export default function AdminEducationPage() {
               {modules.length === 0 && (
                 <tr>
                   <td colSpan={6} style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                    Belum ada data modul.
+                    {t("admin.dashboard.noModules")}
                   </td>
                 </tr>
               )}
@@ -218,16 +232,16 @@ export default function AdminEducationPage() {
             </button>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <BookOpen size={24} color="var(--color-lime)" />
-              {editingItem ? "Edit" : "Tambah"} Modul
+              {editingItem ? t("admin.education.editModule") : t("admin.education.addModule")}
             </h2>
             
             <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Judul Modul</label>
-                <input name="title" defaultValue={editingItem?.title} required className="input-brutal" style={{ width: "100%" }} placeholder="Masukkan judul modul..." />
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.education.form.titleLabel")}</label>
+                <input name="title" defaultValue={editingItem?.title} required className="input-brutal" style={{ width: "100%" }} placeholder={t("admin.education.form.titlePlaceholder")} />
               </div>
               <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Kategori</label>
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.education.form.category")}</label>
                 <BrutalSelect 
                   name="category"
                   defaultValue={editingItem?.category || "Dasar"}
@@ -239,25 +253,34 @@ export default function AdminEducationPage() {
                 />
               </div>
               <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Deskripsi Singkat</label>
-                <input name="desc" defaultValue={editingItem?.desc || ""} required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: Belajar cara mengelola uang..." />
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.education.form.descLabel")}</label>
+                <input name="description" defaultValue={editingItem?.description || ""} required className="input-brutal" style={{ width: "100%" }} placeholder={t("admin.education.form.descPlaceholder")} />
               </div>
-              <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Estimasi Waktu</label>
-                <input name="duration" defaultValue={editingItem?.duration || "5 menit"} required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: 5 menit" />
-              </div>
-              <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>XP Points</label>
-                <input name="points" type="number" defaultValue={editingItem?.points || 200} required className="input-brutal" style={{ width: "100%" }} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.education.form.estTime")}</label>
+                  <input name="duration" defaultValue={editingItem?.duration || "5 menit"} required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: 5 menit" />
+                </div>
+                <div className="input-group-brutal">
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.gamification.form.xp")}</label>
+                  <input name="points" type="number" defaultValue={editingItem?.points || 200} required className="input-brutal" style={{ width: "100%" }} />
+                </div>
               </div>
               
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1rem" }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-brutal" style={{ background: "var(--color-white)", fontWeight: 700 }}>
-                  Batal
-                </button>
-                <button type="submit" className="btn-brutal btn-brutal--primary" style={{ fontWeight: 800, color: "var(--color-white)" }}>
-                  Simpan Data
-                </button>
+              <div style={{ display: "flex", justifyContent: editingItem ? "space-between" : "flex-end", gap: "1rem", marginTop: "1rem" }}>
+                {editingItem && (
+                  <button type="button" onClick={() => handleDelete(editingItem.id)} className="btn-brutal" style={{ background: "var(--color-danger, #e74c3c)", color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.25rem", padding: "0.5rem 1rem", boxShadow: "3px 3px 0px var(--color-navy)" }}>
+                    <Trash2 size={16} /> {t("admin.form.delete")}
+                  </button>
+                )}
+                <div style={{ display: "flex", gap: "1rem" }}>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="btn-brutal" style={{ background: "var(--color-bg)", fontWeight: 700 }}>
+                    {t("admin.form.cancel")}
+                  </button>
+                  <button type="submit" className="btn-brutal btn-brutal--primary" style={{ fontWeight: 800, background: "var(--color-purple)", color: "var(--color-white)" }}>
+                    {t("admin.form.save")}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -269,10 +292,10 @@ export default function AdminEducationPage() {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 25, 47, 0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1rem" }}>
           <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", width: "100%", maxWidth: "400px", padding: "2rem", textAlign: "center", border: "3px solid var(--color-navy)" }}>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1rem", color: "var(--color-danger, #e74c3c)" }}>
-              Hapus Modul?
+              {t("admin.form.delete")}?
             </h2>
             <p style={{ fontSize: "1.1rem", color: "var(--color-navy)", fontWeight: 600, marginBottom: "1.5rem" }}>
-              Yakin ingin menghapus modul ini? Tindakan ini tidak dapat dibatalkan.
+              {t("admin.form.confirmDelete")}
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
               <button 
@@ -280,14 +303,14 @@ export default function AdminEducationPage() {
                 className="btn-brutal" 
                 style={{ padding: "0.75rem 1.5rem", background: "var(--color-white)", color: "var(--color-navy)", fontWeight: 700 }}
               >
-                Batal
+                {t("admin.form.cancel")}
               </button>
               <button 
                 onClick={confirmDelete}
                 className="btn-brutal" 
                 style={{ padding: "0.75rem 1.5rem", background: "var(--color-danger, #e74c3c)", color: "var(--color-white)", fontWeight: 800 }}
               >
-                Hapus
+                {t("admin.form.delete")}
               </button>
             </div>
           </div>

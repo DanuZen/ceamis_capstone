@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { 
   Search, Calendar, Star, Flame, Bell, ChevronDown, 
-  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus
+  User, LogOut, Target, Users, Zap, PanelLeft, UserPlus, X
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -25,6 +25,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -135,13 +136,53 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
+      const isNavSearch = pathname === "/dashboard" || pathname === "/dashboard/transactions";
+      if (isNavSearch && searchQuery.trim()) {
+        const navPages = [
+          { name: t("navbar.searchDashboard") || "Dashboard", path: "/dashboard" },
+          { name: t("navbar.searchTransaction") || "Transactions", path: "/dashboard/transactions" },
+          { name: t("navbar.searchHistory") || "History", path: "/dashboard/history" },
+          { name: t("navbar.searchPlanning") || "Planning", path: "/dashboard/planning" },
+          { name: t("navbar.searchDebt") || "Debt", path: "/dashboard/debt" },
+          { name: t("navbar.searchEducation") || "Education", path: "/dashboard/education" },
+          { name: t("navbar.searchChatbot") || "AI Chatbot", path: "/dashboard/chatbot" },
+          { name: t("navbar.searchProfile") || "Profile", path: "/dashboard/profile" },
+        ];
+        const match = navPages.find(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (match) {
+          router.push(match.path);
+          setSearchQuery("");
+          setIsSearchFocused(false);
+          return;
+        }
+      }
+
       if (searchQuery.trim()) {
-        router.push(`${pathname}?search=${encodeURIComponent(searchQuery)}`);
+        if (isNavSearch) {
+          router.push(`/dashboard/history?search=${encodeURIComponent(searchQuery)}`);
+        } else {
+          router.push(`${pathname}?search=${encodeURIComponent(searchQuery)}`);
+        }
       } else {
         router.push(`${pathname}`);
       }
     }
   };
+
+  const isNavSearch = pathname === "/dashboard" || pathname === "/dashboard/transactions";
+  const navPages = [
+    { name: language === "id" ? "Dashboard" : "Dashboard", path: "/dashboard", desc: language === "id" ? "Halaman Utama CEAMIS" : "Main Dashboard" },
+    { name: language === "id" ? "Transaksi" : "Transactions", path: "/dashboard/transactions", desc: language === "id" ? "Input Pemasukan & Pengeluaran" : "Input New Transaction" },
+    { name: language === "id" ? "Riwayat" : "History", path: "/dashboard/history", desc: language === "id" ? "Riwayat Transaksi & Filter" : "Transaction History" },
+    { name: language === "id" ? "Perencanaan" : "Planning", path: "/dashboard/planning", desc: language === "id" ? "Atur Anggaran / Budget" : "Manage Budgeting" },
+    { name: language === "id" ? "Utang & Piutang" : "Debt", path: "/dashboard/debt", desc: language === "id" ? "Catatan Utang Piutang" : "Debt Management" },
+    { name: language === "id" ? "Edukasi" : "Education", path: "/dashboard/education", desc: language === "id" ? "Modul Belajar Keuangan" : "Financial Education" },
+    { name: language === "id" ? "Profil" : "Profile", path: "/dashboard/profile", desc: language === "id" ? "Pengaturan Akun" : "Profile Settings" },
+  ];
+  const filteredNavPages = navPages.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <>
@@ -304,45 +345,121 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
         </div>
 
         {/* Global Search */}
-        <div className="navbar-search" style={{ position: "relative", width: "300px" }}>
-          <Search size={18} color="var(--color-text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
-          <input 
-            type="text" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleSearch}
-            placeholder={
-              pathname.includes("quiz") ? t("navbar.searchQuiz") :
-              pathname.includes("education") ? t("navbar.searchEducation") :
-              pathname.includes("planning") ? t("navbar.searchPlanning") :
-              pathname.includes("debt") ? t("navbar.searchDebt") :
-              pathname.includes("history") ? t("navbar.searchHistory") :
-              pathname.includes("reports") ? t("navbar.searchReports") :
-              pathname.includes("chatbot") ? t("navbar.searchChatbot") :
-              pathname.includes("warnings") ? t("navbar.searchWarnings") :
-              pathname.includes("gamification") ? t("navbar.searchGamification") :
-              pathname.includes("profile") ? t("navbar.searchProfile") :
-              pathname.includes("transactions") ? t("navbar.searchTransaction") :
-              t("navbar.searchDefault")
-            }
-            className="input-brutal"
-            style={{ 
-              width: "100%", 
-              padding: "0.6rem 1rem 0.6rem 2.5rem", 
-              fontSize: "0.875rem",
-              background: "var(--color-white)",
-              border: "2px solid var(--color-navy)",
-              borderRadius: "var(--radius-brutal-sm)",
-              transition: "all 0.2s ease",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.boxShadow = "3px 3px 0px var(--color-navy)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          />
-        </div>
+        {!pathname.includes("chatbot") && (
+          <div className="navbar-search" style={{ position: "relative", width: "300px" }}>
+            <Search size={18} color="var(--color-text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              placeholder={
+                isNavSearch ? (language === "id" ? "Apa yang kamu cari?" : "What are you looking for?") :
+                pathname.includes("quiz") ? t("navbar.searchQuiz") :
+                pathname.includes("education") ? t("navbar.searchEducation") :
+                pathname.includes("planning") ? t("navbar.searchPlanning") :
+                pathname.includes("debt") ? t("navbar.searchDebt") :
+                pathname.includes("history") ? t("navbar.searchHistory") :
+                pathname.includes("reports") ? t("navbar.searchReports") :
+                pathname.includes("warnings") ? t("navbar.searchWarnings") :
+                pathname.includes("gamification") ? t("navbar.searchGamification") :
+                pathname.includes("profile") ? t("navbar.searchProfile") :
+                t("navbar.searchDefault")
+              }
+              className="input-brutal"
+              style={{ 
+                width: "100%", 
+                padding: "0.6rem 2.5rem 0.6rem 2.5rem", 
+                fontSize: "0.875rem",
+                background: "var(--color-white)",
+                border: "2px solid var(--color-navy)",
+                borderRadius: "var(--radius-brutal-sm)",
+                transition: "all 0.2s ease",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.boxShadow = "3px 3px 0px var(--color-navy)";
+                setIsSearchFocused(true);
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.boxShadow = "none";
+                setTimeout(() => setIsSearchFocused(false), 200);
+              }}
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => {
+                  setSearchQuery("");
+                  router.push(pathname);
+                }}
+                style={{ 
+                  position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", 
+                  background: "transparent", border: "none", cursor: "pointer", 
+                  display: "flex", alignItems: "center", justifyContent: "center", 
+                  padding: "0.2rem", borderRadius: "50%", color: "var(--color-text-muted)" 
+                }}
+              >
+                <X size={16} strokeWidth={2.5} />
+              </button>
+            )}
+
+            {/* Navigation Suggestions */}
+            {isNavSearch && isSearchFocused && searchQuery && (
+              <div style={{
+                position: "absolute", top: "calc(100% + 0.5rem)", left: 0, width: "100%",
+                background: "var(--color-white)", border: "2px solid var(--color-navy)",
+                borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)",
+                zIndex: 50, maxHeight: "300px", overflowY: "auto"
+              }}>
+                {filteredNavPages.map((page, i) => (
+                  <div 
+                    key={i} 
+                    onClick={() => {
+                      router.push(page.path);
+                      setSearchQuery("");
+                      setIsSearchFocused(false);
+                    }}
+                    style={{
+                      padding: "0.75rem 1rem", borderBottom: i === filteredNavPages.length - 1 ? "none" : "1px solid rgba(0,0,0,0.1)",
+                      cursor: "pointer", display: "flex", flexDirection: "column", gap: "0.25rem",
+                      background: "transparent", transition: "background 0.2s"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.05)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  >
+                    <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>{page.name}</span>
+                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 600 }}>{page.desc}</span>
+                  </div>
+                ))}
+                {filteredNavPages.length === 0 && (
+                  <div style={{ padding: "1rem", fontSize: "0.85rem", color: "var(--color-text-muted)", textAlign: "center", fontWeight: 600 }}>
+                    {language === "id" ? "Tidak ada halaman yang cocok." : "No pages found."}
+                  </div>
+                )}
+                {searchQuery.trim() && (
+                  <div 
+                    onClick={() => {
+                      router.push(`/dashboard/history?search=${encodeURIComponent(searchQuery)}`);
+                      setSearchQuery("");
+                      setIsSearchFocused(false);
+                    }}
+                    style={{
+                      padding: "0.75rem 1rem", borderTop: "2px dashed rgba(0,0,0,0.1)",
+                      cursor: "pointer", display: "flex", flexDirection: "column", gap: "0.25rem",
+                      background: "var(--color-lime)", transition: "background 0.2s"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-bg)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "var(--color-lime)"}
+                  >
+                    <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>
+                      <Search size={14} style={{ display: "inline", marginRight: "0.5rem", verticalAlign: "middle" }} />
+                      {language === "id" ? `Cari "${searchQuery}" di Riwayat` : `Search "${searchQuery}" in History`}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>

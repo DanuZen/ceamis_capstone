@@ -145,8 +145,8 @@ export default function EducationPage() {
             {t("dashboard.education.progressTitle")}
           </h3>
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} / {modules.length} {t("dashboard.education.modulesCompletedBadge")}</span>
-            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} / {modules.length} {t("dashboard.education.quizzesCompletedBadge")}</span>
+            <span className="badge-brutal badge-brutal--lime" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalModulesCompleted} {t("dashboard.education.modulesCompletedBadge")}</span>
+            <span className="badge-brutal badge-brutal--orange" style={{ fontSize: "0.9rem", padding: "0.4rem 0.8rem" }}>{totalQuizzesCompleted} {t("dashboard.education.quizzesCompletedBadge")}</span>
           </div>
         </div>
         <div className="progress-brutal" style={{ height: "24px", border: "3px solid var(--color-navy)" }}>

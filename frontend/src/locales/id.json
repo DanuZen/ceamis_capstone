@@ -208,13 +208,34 @@
       "quizQ3": "Apakah kamu berinvestasi secara rutin?",
       "quizQ4": "Seberapa jelas tujuan finansial kamu?",
       "quizQ5": "Seberapa disiplin kamu mengikuti anggaran bulanan?",
-      "quizQ1O1": "< 5%", "quizQ1O2": "5–15%", "quizQ1O3": "15–30%", "quizQ1O4": "> 30%",
-      "quizQ2O1": "Belum ada", "quizQ2O2": "1–2 bulan", "quizQ2O3": "3–5 bulan", "quizQ2O4": "> 6 bulan",
-      "quizQ3O1": "Sama sekali tidak", "quizQ3O2": "Kadang-kadang", "quizQ3O3": "Rutin 5–10%", "quizQ3O4": "Rutin > 10%",
-      "quizQ4O1": "Belum ada tujuan", "quizQ4O2": "Agak kurang jelas", "quizQ4O3": "Cukup jelas", "quizQ4O4": "Sangat spesifik",
-      "quizQ5O1": "Jarang", "quizQ5O2": "Kadang-kadang", "quizQ5O3": "Sering", "quizQ5O4": "Selalu",
-      "iconTarget": "Target", "iconTabungan": "Tabungan", "iconRumah": "Rumah", "iconKendaraan": "Kendaraan",
-      "iconLaptop": "Laptop", "iconTravel": "Liburan", "iconGadget": "Gadget", "iconPendidikan": "Pendidikan"
+      "quizQ1O1": "< 5%",
+      "quizQ1O2": "5–15%",
+      "quizQ1O3": "15–30%",
+      "quizQ1O4": "> 30%",
+      "quizQ2O1": "Belum ada",
+      "quizQ2O2": "1–2 bulan",
+      "quizQ2O3": "3–5 bulan",
+      "quizQ2O4": "> 6 bulan",
+      "quizQ3O1": "Sama sekali tidak",
+      "quizQ3O2": "Kadang-kadang",
+      "quizQ3O3": "Rutin 5–10%",
+      "quizQ3O4": "Rutin > 10%",
+      "quizQ4O1": "Belum ada tujuan",
+      "quizQ4O2": "Agak kurang jelas",
+      "quizQ4O3": "Cukup jelas",
+      "quizQ4O4": "Sangat spesifik",
+      "quizQ5O1": "Jarang",
+      "quizQ5O2": "Kadang-kadang",
+      "quizQ5O3": "Sering",
+      "quizQ5O4": "Selalu",
+      "iconTarget": "Target",
+      "iconTabungan": "Tabungan",
+      "iconRumah": "Rumah",
+      "iconKendaraan": "Kendaraan",
+      "iconLaptop": "Laptop",
+      "iconTravel": "Liburan",
+      "iconGadget": "Gadget",
+      "iconPendidikan": "Pendidikan"
     },
     "history": {
       "title": "Riwayat Transaksi",
@@ -321,14 +342,38 @@
       "moreXpToReach": "XP lagi untuk mencapai",
       "badgeCollection": "Koleksi Badge",
       "badges": {
-        "firstStep": { "name": "Langkah Pertama", "desc": "Catat transaksi pertamamu" },
-        "onFire": { "name": "Semangat!", "desc": "Aktif 3 hari berturut-turut" },
-        "consistent": { "name": "Konsisten", "desc": "Aktif 7 hari berturut-turut" },
-        "champion": { "name": "Sang Juara", "desc": "Aktif 30 hari berturut-turut" },
-        "aiExplorer": { "name": "Penjelajah AI", "desc": "Baca 5 Wawasan AI" },
-        "hematMaster": { "name": "Master Hemat", "desc": "Tekan pengeluaran hingga 20%" },
-        "bookworm": { "name": "Rajin Belajar", "desc": "Selesaikan 3 modul edukasi" },
-        "legendary": { "name": "Legendaris", "desc": "Kumpulkan semua badge" }
+        "firstStep": {
+          "name": "Langkah Pertama",
+          "desc": "Catat transaksi pertamamu"
+        },
+        "onFire": {
+          "name": "Semangat!",
+          "desc": "Aktif 3 hari berturut-turut"
+        },
+        "consistent": {
+          "name": "Konsisten",
+          "desc": "Aktif 7 hari berturut-turut"
+        },
+        "champion": {
+          "name": "Sang Juara",
+          "desc": "Aktif 30 hari berturut-turut"
+        },
+        "aiExplorer": {
+          "name": "Penjelajah AI",
+          "desc": "Baca 5 Wawasan AI"
+        },
+        "hematMaster": {
+          "name": "Master Hemat",
+          "desc": "Tekan pengeluaran hingga 20%"
+        },
+        "bookworm": {
+          "name": "Rajin Belajar",
+          "desc": "Selesaikan 3 modul edukasi"
+        },
+        "legendary": {
+          "name": "Legendaris",
+          "desc": "Kumpulkan semua badge"
+        }
       }
     },
     "chatbot": {
@@ -378,10 +423,18 @@
       "sendToMyEmail": "Kirim ke Emailku",
       "sendingEmail": "Mengirim Email...",
       "months": {
-        "Januari": "Januari", "Februari": "Februari", "Maret": "Maret",
-        "April": "April", "Mei": "Mei", "Juni": "Juni", "Juli": "Juli",
-        "Agustus": "Agustus", "September": "September", "Oktober": "Oktober",
-        "November": "November", "Desember": "Desember"
+        "Januari": "Januari",
+        "Februari": "Februari",
+        "Maret": "Maret",
+        "April": "April",
+        "Mei": "Mei",
+        "Juni": "Juni",
+        "Juli": "Juli",
+        "Agustus": "Agustus",
+        "September": "September",
+        "Oktober": "Oktober",
+        "November": "November",
+        "Desember": "Desember"
       }
     },
     "debt": {
@@ -711,5 +764,160 @@
     "leaderboardMock": "* Data ini merupakan ilustrasi dari sistem pemeringkatan dalam aplikasi",
     "footerCopy": "© 2026 CEAMIS — Hak Cipta Dilindungi",
     "footerMotto": "Kelola Uang, Jaga Pikiran, Amankan Masa Depan"
+  },
+  "admin": {
+    "sidebar": {
+      "groups": {
+        "overview": "OVERVIEW",
+        "management": "MANAJEMEN"
+      },
+      "dashboard": "Dashboard",
+      "education": "Modul Edukasi",
+      "quizzes": "Kuis Edukasi",
+      "gamification": "Gamifikasi",
+      "logout": "Keluar Panel",
+      "adminSubtitle": "ADMINISTRATOR"
+    },
+    "navbar": {
+      "systemLog": "Log Sistem",
+      "new": "Baru",
+      "markRead": "Tandai sudah dibaca",
+      "allRead": "Semua sudah dibaca",
+      "searchPlaceholder": "Cari di admin...",
+      "searchDashboard": "Dashboard",
+      "searchEducation": "Modul Edukasi",
+      "searchQuizzes": "Kuis Edukasi",
+      "searchGamification": "Gamifikasi",
+      "searchNoResult": "Pencarian tidak ditemukan",
+      "logout": "Keluar Panel"
+    },
+    "dashboard": {
+      "title": "Dasbor Admin",
+      "desc": "Pantau aktivitas dan statistik utama aplikasi CEAMIS.",
+      "stats": {
+        "users": "Total Pengguna",
+        "transactions": "Transaksi Bulan Ini",
+        "activeModules": "Modul Aktif",
+        "badges": "Badge Aktif",
+        "quizzes": "Total Kuis"
+      },
+      "latestModules": "Modul Edukasi Terbaru",
+      "latestQuizzes": "Kuis Terbaru",
+      "colTitle": "Judul",
+      "colCategory": "Kategori",
+      "colStatus": "Status",
+      "colQuestion": "Pertanyaan",
+      "colModuleId": "ID Modul",
+      "colXp": "XP",
+      "noModules": "Tidak ada modul",
+      "noQuizzes": "Tidak ada kuis",
+      "draft": "Draft",
+      "published": "Dipublikasikan"
+    },
+    "gamification": {
+      "title": "Manajemen Gamifikasi",
+      "desc": "Atur lencana (badges) dan wawasan AI untuk pengguna.",
+      "badgesTitle": "Daftar Badge",
+      "addBadge": "Tambah Badge",
+      "editBadge": "Edit Badge",
+      "aiProfileTitle": "Profil Pengeluaran AI",
+      "aiProfileDesc": "Label ini diberikan secara otomatis oleh model AI.",
+      "form": {
+        "name": "Nama Badge",
+        "reqDesc": "Deskripsi Persyaratan",
+        "reqType": "Jenis Persyaratan",
+        "reqValue": "Nilai Target",
+        "color": "Warna Badge",
+        "icon": "Ikon Badge",
+        "xp": "Poin XP"
+      },
+      "req": {
+        "transactionCount": "Jumlah Transaksi",
+        "loginStreak": "Aktif Berturut-turut (Hari)",
+        "moduleCompleted": "Modul Selesai Dibaca",
+        "budgetKept": "Anggaran Terjaga (Minggu)",
+        "levelReached": "Level Dicapai",
+        "aiInsight": "Wawasan AI Dibaca",
+        "badgeCount": "Total Badge Dikumpulkan"
+      },
+      "levelConfig": "Konfigurasi Level",
+      "colLevel": "Level",
+      "colXpReq": "XP Dibutuhkan",
+      "colLabel": "Label / Gelar",
+      "colAction": "Aksi",
+      "aiAutoLabel": "Ditetapkan otomatis oleh AI",
+      "target": "Target"
+    },
+    "education": {
+      "title": "Modul Edukasi",
+      "desc": "Kelola artikel edukasi finansial untuk pengguna.",
+      "addModule": "Tambah Modul",
+      "editModule": "Edit Modul",
+      "form": {
+        "titleLabel": "Judul Modul",
+        "titlePlaceholder": "Masukkan judul modul...",
+        "category": "Kategori",
+        "descLabel": "Deskripsi Singkat",
+        "descPlaceholder": "Contoh: Belajar cara mengelola uang...",
+        "estTime": "Estimasi Waktu"
+      }
+    },
+    "editModule": {
+      "back": "Kembali ke Manajemen Modul",
+      "saveDraft": "Simpan Draft",
+      "publish": "Publikasikan",
+      "pageList": "Daftar Halaman",
+      "addPage": "Tambah Halaman",
+      "newPage": "Halaman Baru",
+      "typeHere": "Ketik isi materi di sini...",
+      "editorMode": "Mode Editor Konten",
+      "pageOf": "Halaman {current} dari {total}",
+      "titleNote": "Judul modul dapat diedit melalui tombol Edit di halaman daftar modul.",
+      "subtitleLabel": "Sub-judul Halaman",
+      "contentLabel": "Isi Materi",
+      "minPageErr": "Modul harus memiliki minimal 1 halaman.",
+      "successTitle": "Berhasil!",
+      "successMsg": "Konten modul berhasil dipublikasikan!",
+      "draftTitle": "Draft Tersimpan!",
+      "draftMsg": "Konten berhasil disimpan sebagai draft."
+    },
+    "quizzes": {
+      "title": "Kuis Edukasi",
+      "desc": "Kelola bank soal kuis edukasi.",
+      "addQuiz": "Tambah Kuis",
+      "editQuiz": "Edit Kuis",
+      "form": {
+        "questionLabel": "Pertanyaan",
+        "questionPlaceholder": "Tuliskan pertanyaan kuis...",
+        "moduleId": "Nomor Modul Terkait",
+        "moduleIdPlaceholder": "Contoh: 1",
+        "status": "Status",
+        "active": "Aktif",
+        "draft": "Draft"
+      }
+    },
+    "editQuiz": {
+      "back": "Kembali ke Manajemen Kuis",
+      "saveQuestions": "Simpan Pertanyaan",
+      "questionList": "Daftar Pertanyaan",
+      "addQuestion": "Tambah Pertanyaan",
+      "newQuestion": "Pertanyaan Baru",
+      "editorMode": "Editor Kuis",
+      "questionOf": "Soal {current} dari {total}",
+      "questionLabel": "Pertanyaan",
+      "optionsLabel": "Pilihan Jawaban (Pilih yang benar)",
+      "explanationLabel": "Penjelasan Jawaban (Muncul setelah dijawab)",
+      "minQuestionErr": "Kuis harus memiliki minimal 1 pertanyaan.",
+      "successTitle": "Berhasil!",
+      "successMsg": "Pertanyaan kuis berhasil disimpan!"
+    },
+    "form": {
+      "cancel": "Batal",
+      "save": "Simpan Data",
+      "saveQuiz": "Simpan Kuis",
+      "saveBadge": "Simpan Badge",
+      "delete": "Hapus",
+      "confirmDelete": "Yakin ingin menghapus?"
+    }
   }
 }

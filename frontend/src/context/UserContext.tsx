@@ -121,11 +121,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
         try {
           const local = JSON.parse(localRaw);
           if (local.id === user.id) {
-            // Merge badges (union)
-            if (Array.isArray(local.unlockedBadges)) {
+            // Remove badge merge (union) to prevent deleted badges from resurrecting
+            // Always trust DB unlockedBadges so it stays in sync with admin deletions
+            /* if (Array.isArray(local.unlockedBadges)) {
               const merged = Array.from(new Set([...mapped.unlockedBadges, ...local.unlockedBadges]));
               mapped.unlockedBadges = merged;
-            }
+            } */
             // Take the higher XP/level (local may have unsync'd gains)
             if (typeof local.xp === "number" && typeof local.level === "number") {
               const localTotal = local.level * 1000 + local.xp;
@@ -139,8 +140,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
             if (local.label && local.label !== defaultUser.label) {
               mapped.label = local.label;
             }
+            // Preserve avatarUrl if API doesn't have it or we want local priority
+            if (local.avatarUrl) {
+              mapped.avatarUrl = local.avatarUrl;
+            }
           }
         } catch { /* ignore */ }
+      }
+
+      // Preserve avatar photo: dedicated cache takes highest priority
+      const cachedAvatar = localStorage.getItem(`ceamis_avatar_${user.id}`);
+      if (cachedAvatar) {
+        mapped.avatarUrl = cachedAvatar;
       }
 
       // ── Restore AI-generated cluster label ────────────────────────────────
@@ -191,13 +202,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setUserData(prev => {
       const updated = { ...prev, ...data };
       localStorage.setItem("ceamis_user", JSON.stringify(updated));
+
+      // Store avatar separately so it survives API refresh overwrites
+      if (data.avatarUrl && updated.id) {
+        localStorage.setItem(`ceamis_avatar_${updated.id}`, data.avatarUrl);
+      }
       
-      // Sync to API in background
+      // Sync to API in background (avatar_url may fail if base64 is large - that's ok, we use localStorage cache)
       if (updated.id) {
         usersApi.updateProfile(updated.id, {
           name: updated.name,
           phone: updated.phone,
-          avatar_url: updated.avatarUrl,
         } as any).catch(err => console.warn("Failed to sync profile:", err));
       }
       

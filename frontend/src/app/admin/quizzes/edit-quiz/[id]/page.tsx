@@ -43,7 +43,7 @@ export default function EditQuizPage() {
 
   const handleSave = async () => {
     await saveModuleQuizzes(Number(id), content);
-    setPopupMessage({ title: "Berhasil!", message: "Pertanyaan kuis berhasil disimpan!", type: "success" });
+    setPopupMessage({ title: t("admin.editQuiz.successTitle") || "Berhasil!", message: t("admin.editQuiz.successMsg") || "Pertanyaan kuis berhasil disimpan!", type: "success" });
   };
 
   const handleAddQuestion = () => {
@@ -58,7 +58,7 @@ export default function EditQuizPage() {
 
   const handleRemoveQuestion = (indexToRemove: number) => {
     if (content.length <= 1) {
-      setPopupMessage({ title: "Oops!", message: "Kuis harus memiliki minimal 1 pertanyaan.", type: "error" });
+      setPopupMessage({ title: "Oops!", message: t("admin.editQuiz.minQuestionErr") || "Kuis harus memiliki minimal 1 pertanyaan.", type: "error" });
       return;
     }
     const newContent = content.filter((_, i) => i !== indexToRemove);
@@ -100,12 +100,12 @@ export default function EditQuizPage() {
       <div style={{ marginBottom: "2rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link href="/admin/quizzes" style={{ textDecoration: "none" }}>
           <button className="btn-brutal" style={{ padding: "0.5rem 1rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-            <ArrowLeft size={18} /> Kembali ke Manajemen Kuis
+            <ArrowLeft size={18} /> {t("admin.editQuiz.back") || "Kembali ke Manajemen Kuis"}
           </button>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <button onClick={handleSave} className="btn-brutal btn-brutal--primary" style={{ padding: "0.5rem 1rem", background: "var(--color-purple)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800, color: "var(--color-white)" }}>
-             <Save size={18} /> Simpan Pertanyaan
+             <Save size={18} /> {t("admin.editQuiz.saveQuestions") || "Simpan Pertanyaan"}
           </button>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function EditQuizPage() {
       <div style={{ display: "flex", flexDirection: "row-reverse", gap: "2rem", flex: 1, overflow: "hidden" }}>
         {/* Sidebar Nav */}
         <div style={{ width: "280px", background: "var(--color-white)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem", height: "fit-content", border: "2.5px solid var(--color-navy)", borderRadius: "12px", overflowY: "auto", maxHeight: "100%" }}>
-          <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>Daftar Pertanyaan</h4>
+          <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>{t("admin.editQuiz.questionList") || "Daftar Pertanyaan"}</h4>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {content.map((item, index) => (
               <div key={index} style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -141,7 +141,7 @@ export default function EditQuizPage() {
                   title={item.question}
                 >
                   <ChevronRight size={14} style={{ minWidth: "14px" }} />
-                  {item.question.length > 15 ? item.question.substring(0, 15) + "..." : item.question || "Pertanyaan Baru"}
+                  {item.question.length > 15 ? item.question.substring(0, 15) + "..." : item.question || (t("admin.editQuiz.newQuestion") || "Pertanyaan Baru")}
                 </button>
                 <button onClick={() => handleRemoveQuestion(index)} style={{ padding: "0.5rem", background: "var(--color-danger, #e74c3c)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Trash2 size={16} color="white" />
@@ -153,7 +153,7 @@ export default function EditQuizPage() {
               className="btn-brutal"
               style={{ marginTop: "0.5rem", padding: "0.5rem", background: "var(--color-lime)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontWeight: 800 }}
             >
-              <Plus size={16} /> Tambah Pertanyaan
+              <Plus size={16} /> {t("admin.editQuiz.addQuestion") || "Tambah Pertanyaan"}
             </button>
           </div>
         </div>
@@ -176,10 +176,10 @@ export default function EditQuizPage() {
           <div style={{ marginBottom: "2.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-navy)", marginBottom: "1rem" }}>
               <BookOpen size={24} color="var(--color-navy)" />
-              <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>Editor Kuis</span>
+              <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>{t("admin.editQuiz.editorMode") || "Editor Kuis"}</span>
               <span style={{ color: "var(--color-navy)", opacity: 0.2 }}>•</span>
               <span style={{ color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                Soal {currentPage + 1} dari {content.length}
+                {t("admin.editQuiz.questionOf") ? t("admin.editQuiz.questionOf").replace("{current}", String(currentPage + 1)).replace("{total}", String(content.length)) : `Soal ${currentPage + 1} dari ${content.length}`}
               </span>
             </div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", margin: 0, lineHeight: 1.1, fontWeight: 900 }}>{quizTitle}</h1>
@@ -187,7 +187,7 @@ export default function EditQuizPage() {
 
           <div style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             <div className="input-group-brutal" style={{ marginBottom: 0 }}>
-              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Pertanyaan</label>
+              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.editQuiz.questionLabel") || "Pertanyaan"}</label>
               <textarea 
                 value={content[currentPage].question} 
                 onChange={(e) => handleQuestionChange(e.target.value)}
@@ -197,7 +197,7 @@ export default function EditQuizPage() {
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block" }}>Pilihan Ganda (Pilih jawaban yang benar)</label>
+              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block" }}>{t("admin.editQuiz.optionsLabel") || "Pilihan Ganda (Pilih jawaban yang benar)"}</label>
               {content[currentPage].options.map((opt: string, optIndex: number) => (
                 <div key={optIndex} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                   <input 
@@ -218,7 +218,7 @@ export default function EditQuizPage() {
             </div>
 
             <div className="input-group-brutal" style={{ flex: 1, display: "flex", flexDirection: "column", marginTop: "1rem" }}>
-              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Penjelasan (Muncul setelah dijawab)</label>
+              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.editQuiz.explanationLabel") || "Penjelasan (Muncul setelah dijawab)"}</label>
               <textarea 
                 value={content[currentPage].explanation}
                 onChange={(e) => handleExplanationChange(e.target.value)}

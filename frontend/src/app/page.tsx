@@ -555,7 +555,7 @@ export default function LandingPage() {
         <div className="landing-footer__inner">
           <div className="landing-footer__brand">
             <div className="landing-nav__logo" style={{ width: 56, height: 56, background: "transparent", border: "none", boxShadow: "none" }}>
-              <img src="/images/logo_white.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              <img src="/images/logo_color.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <div>
               <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.125rem", color: "var(--color-white)" }}>CEAMIS</div>

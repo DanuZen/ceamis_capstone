@@ -2,43 +2,32 @@
 
 import { useState, useRef } from "react";
 import { 
-  Trophy, Flame, Star, Medal, Zap, Target, 
+  Trophy, Flame, Star, Medal, Zap, Target, Shield,
   User, Edit3, Calendar, TrendingUp, Award,
   ChevronRight, CheckCircle2, X, Save, Upload
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTransactions } from "@/context/TransactionContext";
+import { useToast } from "@/components/ui/Toast";
+import { getBadges } from "@/app/admin/gamification/actions";
 import React from "react";
 
-// Badge definitions (static metadata)
-const badgeDefinitions = [
-  { id: "firstStep", icon: Target, color: "lime" },
-  { id: "onFire", icon: Flame, color: "orange" },
-  { id: "consistent", icon: Zap, color: "purple" },
-  { id: "champion", icon: Trophy, color: "orange" },
-  { id: "aiExplorer", icon: Star, color: "lime" },
-  { id: "hematMaster", icon: Medal, color: "purple" },
-  { id: "bookworm", icon: Star, color: "lime" },
-  { id: "legendary", icon: Trophy, color: "orange" },
-];
-
-// Stats data
-const stats = [
-  { label: "Total Transaksi", value: "127", icon: TrendingUp, color: "purple" },
-  { label: "Hari Aktif", value: "34", icon: Calendar, color: "lime" },
-  { label: "Badge Diraih", value: "4/8", icon: Award, color: "orange" },
-];
+const BADGE_ICON_MAP: Record<string, React.ElementType> = {
+  Target, Shield, Flame, Zap, Star, Medal, Trophy
+};
 
 export default function ProfilePage() {
   const { userData, updateUserData } = useUser();
   const { transactions } = useTransactions();
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<"badges" | "stats">("badges");
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [eduDone, setEduDone] = useState(0);
+  const [dbBadges, setDbBadges] = useState<any[]>([]);
 
   React.useEffect(() => {
     let doneCount = 0;
@@ -46,6 +35,19 @@ export default function ProfilePage() {
       if (localStorage.getItem(`ceamis_module_${i}_progress`) === "100") doneCount++;
     }
     setEduDone(doneCount);
+    // Fetch badges from DB and clean up stale unlocked badge IDs
+    getBadges().then(data => {
+      if (data && data.length > 0) {
+        setDbBadges(data);
+        const validIds = new Set(data.map((b: any) => b.id));
+        const staleIds = (userData.unlockedBadges || []).filter(id => !validIds.has(id));
+        if (staleIds.length > 0) {
+          const cleaned = (userData.unlockedBadges || []).filter(id => validIds.has(id));
+          updateUserData({ unlockedBadges: cleaned });
+        }
+      }
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const txCount = transactions.length;
@@ -67,8 +69,9 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState({ ...userData });
 
   const handleSaveProfile = () => {
-    updateUserData(editForm);
+    updateUserData({ name: editForm.name, phone: editForm.phone, avatarUrl: editForm.avatarUrl });
     setIsEditing(false);
+    showToast("Profil berhasil disimpan!", "success");
   };
 
   const getInitials = (name: string) => {
@@ -457,18 +460,20 @@ export default function ProfilePage() {
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 900, color: "var(--color-navy)", lineHeight: 1 }}>
-                {userData.unlockedBadges?.length || 0}<span style={{ fontSize: "1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>/{badgeDefinitions.length}</span>
+                {userData.unlockedBadges?.length || 0}<span style={{ fontSize: "1rem", color: "var(--color-text-muted)", fontWeight: 700 }}>/{dbBadges.length || 8}</span>
               </div>
               <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--color-purple)", marginTop: "0.25rem" }}>{t("dashboard.profile.badgesEarnedLabel")}</div>
             </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
-            {badgeDefinitions.map((badge, idx) => {
+            {dbBadges.map((badge) => {
               const isUnlocked = userData.unlockedBadges?.includes(badge.id);
+              const badgeColor = badge.color || "lime";
+              const IconComp = BADGE_ICON_MAP[badge.icon] || Star;
               return (
                 <div
-                  key={idx}
+                  key={badge.id}
                   className="card-brutal"
                   style={{
                     padding: "1.25rem",
@@ -478,7 +483,7 @@ export default function ProfilePage() {
                     background: isUnlocked ? "var(--color-white)" : "var(--color-bg)",
                     opacity: isUnlocked ? 1 : 0.6,
                     border: isUnlocked ? "2px solid var(--color-navy)" : "2px dashed var(--color-text-muted)",
-                    boxShadow: isUnlocked ? `3px 3px 0px var(--color-${badge.color})` : "none"
+                    boxShadow: isUnlocked ? `3px 3px 0px var(--color-${badgeColor})` : "none"
                   }}
                 >
                   <div
@@ -486,7 +491,7 @@ export default function ProfilePage() {
                       width: "48px",
                       height: "48px",
                       borderRadius: "50%",
-                      background: isUnlocked ? `var(--color-${badge.color})` : "transparent",
+                      background: isUnlocked ? `var(--color-${badgeColor})` : "transparent",
                       border: "2px solid var(--color-navy)",
                       display: "flex",
                       alignItems: "center",
@@ -494,14 +499,14 @@ export default function ProfilePage() {
                       flexShrink: 0
                     }}
                   >
-                    <badge.icon size={24} color="var(--color-navy)" />
+                    <IconComp size={24} color="var(--color-navy)" />
                   </div>
                   <div>
                     <h4 style={{ margin: "0 0 0.25rem 0", fontFamily: "var(--font-heading)", fontSize: "1.0625rem", color: "var(--color-navy)" }}>
-                      {t(`dashboard.gamification.badges.${badge.id}.name`)}
+                      {badge.name}
                     </h4>
                     <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--color-text-muted)", fontWeight: 600, lineHeight: 1.4 }}>
-                      {t(`dashboard.gamification.badges.${badge.id}.desc`)}
+                      {badge.desc}
                     </p>
                     {isUnlocked && (
                       <div
@@ -648,13 +653,13 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.profile.email")}</label>
-                <input 
-                  type="email" 
-                  value={editForm.email} 
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="input-brutal" 
-                  style={{ width: "100%", padding: "0.85rem", border: "2px solid var(--color-navy)", boxShadow: "3px 3px 0px var(--color-navy)" }} 
-                />
+                <div
+                  className="input-brutal"
+                  style={{ width: "100%", padding: "0.85rem", border: "2px solid rgba(10,25,47,0.2)", boxShadow: "none", background: "rgba(0,0,0,0.04)", color: "var(--color-text-muted)", fontWeight: 600, borderRadius: "var(--radius-brutal-sm)", fontSize: "0.95rem" }}
+                >
+                  {userData.email}
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginTop: "0.35rem", fontWeight: 600 }}>Email tidak dapat diubah melalui profil ini.</div>
               </div>
               <div>
                 <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.profile.phone")}</label>

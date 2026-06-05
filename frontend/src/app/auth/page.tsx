@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { ShieldCheck, User, Eye, EyeOff, Zap, LogIn, ArrowLeft, Mail, X, ExternalLink, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/context/LanguageContext";
+import { useToast } from "@/components/ui/Toast";
 
 
 
@@ -13,6 +14,7 @@ export default function AuthPage() {
   const router = useRouter();
   const supabase = createClient();
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +60,23 @@ export default function AuthPage() {
     }
   };
 
-
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError("Masukkan email Anda terlebih dahulu di kolom email untuk mereset sandi.");
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/update-password`,
+    });
+    setIsLoading(false);
+    if (resetError) {
+      setError(resetError.message);
+    } else {
+      showToast("Tautan reset sandi telah dikirim ke email Anda!", "success");
+    }
+  };
   const handleRegister = async () => {
     if (!email || !password) {
       setError(t("auth.emptyFields"));
@@ -253,9 +271,10 @@ export default function AuthPage() {
         className="desktop-panel"
         style={{
           flex: 1,
+          display: "flex",
           background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)",
           borderRight: "1px solid rgba(255, 255, 255, 0.1)",
-          padding: "5rem",
+          padding: "4rem",
           flexDirection: "column",
           justifyContent: "space-between",
           color: "var(--color-white)",
@@ -280,14 +299,15 @@ export default function AuthPage() {
         </div>
 
         {/* Center Content */}
-        <div style={{ position: "relative", zIndex: 10, marginTop: "2rem" }}>
+        <div style={{ position: "relative", zIndex: 10, marginTop: "3rem" }}
+        >
 
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "4rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem", color: "var(--color-white)", textShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "3.5rem", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.25rem", color: "var(--color-white)", textShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
             Control Every<br/>
             <span style={{ color: "var(--color-lime)" }}>Awful Money</span><br/>
             Impulse System
           </h2>
-          <p style={{ fontSize: "1.2rem", fontWeight: 500, lineHeight: 1.6, maxWidth: "90%", marginBottom: "3rem", color: "rgba(255, 255, 255, 0.85)" }}>
+          <p style={{ fontSize: "1.05rem", fontWeight: 500, lineHeight: 1.6, maxWidth: "90%", marginBottom: "2.5rem", color: "rgba(255, 255, 255, 0.85)" }}>
             {t("auth.leftDesc")}
           </p>
 
@@ -469,23 +489,38 @@ export default function AuthPage() {
                 </div>
               </div>
 
-              {/* Remember Me Checkbox */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.25rem" }}>
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+              {/* Remember Me Checkbox & Forgot Password */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.25rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    style={{
+                      width: "18px", height: "18px",
+                      accentColor: "var(--color-purple)",
+                      cursor: "pointer",
+                      border: "2px solid var(--color-navy)"
+                    }}
+                  />
+                  <label htmlFor="rememberMe" style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", cursor: "pointer" }}>
+                    Ingat saya
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetPassword}
+                  disabled={isLoading}
                   style={{
-                    width: "18px", height: "18px",
-                    accentColor: "var(--color-purple)",
-                    cursor: "pointer",
-                    border: "2px solid var(--color-navy)"
+                    background: "none", border: "none", padding: 0,
+                    color: "var(--color-purple)", fontSize: "0.85rem",
+                    fontWeight: 800, cursor: isLoading ? "wait" : "pointer", 
+                    textDecoration: "underline"
                   }}
-                />
-                <label htmlFor="rememberMe" style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", cursor: "pointer" }}>
-                  Ingat saya
-                </label>
+                >
+                  Lupa Sandi?
+                </button>
               </div>
 
               <button

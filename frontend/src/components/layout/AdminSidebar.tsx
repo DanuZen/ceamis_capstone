@@ -6,6 +6,8 @@ import {
   LayoutDashboard, BookOpen, Trophy, LogOut, FileQuestion
 } from "lucide-react";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 // ── Admin Navigation Groups ──────────────────────
 interface NavItem {
   href: string;
@@ -19,25 +21,26 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const adminNavGroups: NavGroup[] = [
-  {
-    title: "OVERVIEW",
-    items: [
-      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, color: "lime" },
-    ],
-  },
-  {
-    title: "MANAJEMEN",
-    items: [
-      { href: "/admin/education", label: "Modul Edukasi", icon: BookOpen, color: "lime" },
-      { href: "/admin/quizzes", label: "Kuis Edukasi", icon: FileQuestion, color: "purple" },
-      { href: "/admin/gamification", label: "Gamifikasi", icon: Trophy, color: "orange" },
-    ],
-  },
-];
-
 export default function AdminSidebar({ isOpen = true }: { isOpen?: boolean }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  const adminNavGroups: NavGroup[] = [
+    {
+      title: t("admin.sidebar.groups.overview"),
+      items: [
+        { href: "/admin/dashboard", label: t("admin.sidebar.dashboard"), icon: LayoutDashboard, color: "lime" },
+      ],
+    },
+    {
+      title: t("admin.sidebar.groups.management"),
+      items: [
+        { href: "/admin/education", label: t("admin.sidebar.education"), icon: BookOpen, color: "lime" },
+        { href: "/admin/quizzes", label: t("admin.sidebar.quizzes"), icon: FileQuestion, color: "purple" },
+        { href: "/admin/gamification", label: t("admin.sidebar.gamification"), icon: Trophy, color: "orange" },
+      ],
+    },
+  ];
 
   const renderNavItem = (item: NavItem) => {
     const isActive =
@@ -88,7 +91,7 @@ export default function AdminSidebar({ isOpen = true }: { isOpen?: boolean }) {
         </div>
         <div className="sidebar-text" style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontSize: "1.5rem", fontWeight: 900, letterSpacing: "2px", color: "var(--color-white)", lineHeight: 1 }}>CEAMIS</span>
-          <span style={{ fontSize: "0.6rem", fontWeight: 800, color: "var(--color-danger, #e74c3c)", letterSpacing: "1px", marginTop: "0.25rem" }}>ADMINISTRATOR</span>
+          <span style={{ fontSize: "0.6rem", fontWeight: 800, color: "var(--color-danger, #e74c3c)", letterSpacing: "1px", marginTop: "0.25rem" }}>{t("admin.sidebar.adminSubtitle")}</span>
         </div>
       </div>
 
@@ -137,7 +140,7 @@ export default function AdminSidebar({ isOpen = true }: { isOpen?: boolean }) {
             }}
           >
             <LogOut size={18} strokeWidth={2.5} style={{ minWidth: "18px" }} />
-            <span className="sidebar-text" style={{ whiteSpace: "nowrap" }}>Keluar Panel</span>
+            <span className="sidebar-text" style={{ whiteSpace: "nowrap" }}>{t("admin.sidebar.logout")}</span>
           </button>
         </Link>
       </div>

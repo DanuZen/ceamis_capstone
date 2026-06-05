@@ -208,13 +208,34 @@
       "quizQ3": "Do you invest regularly?",
       "quizQ4": "How clearly defined are your financial goals?",
       "quizQ5": "How consistently do you stick to your monthly budget?",
-      "quizQ1O1": "< 5%", "quizQ1O2": "5–15%", "quizQ1O3": "15–30%", "quizQ1O4": "> 30%",
-      "quizQ2O1": "None yet", "quizQ2O2": "1–2 months", "quizQ2O3": "3–5 months", "quizQ2O4": "> 6 months",
-      "quizQ3O1": "Not at all", "quizQ3O2": "Occasionally", "quizQ3O3": "Regularly (5–10%)", "quizQ3O4": "Regularly (> 10%)",
-      "quizQ4O1": "No clear goals yet", "quizQ4O2": "Somewhat vague", "quizQ4O3": "Fairly clear", "quizQ4O4": "Very specific",
-      "quizQ5O1": "Rarely", "quizQ5O2": "Sometimes", "quizQ5O3": "Often", "quizQ5O4": "Always",
-      "iconTarget": "Goal", "iconTabungan": "Savings", "iconRumah": "House", "iconKendaraan": "Vehicle",
-      "iconLaptop": "Gadget", "iconTravel": "Travel", "iconGadget": "Electronics", "iconPendidikan": "Education"
+      "quizQ1O1": "< 5%",
+      "quizQ1O2": "5–15%",
+      "quizQ1O3": "15–30%",
+      "quizQ1O4": "> 30%",
+      "quizQ2O1": "None yet",
+      "quizQ2O2": "1–2 months",
+      "quizQ2O3": "3–5 months",
+      "quizQ2O4": "> 6 months",
+      "quizQ3O1": "Not at all",
+      "quizQ3O2": "Occasionally",
+      "quizQ3O3": "Regularly (5–10%)",
+      "quizQ3O4": "Regularly (> 10%)",
+      "quizQ4O1": "No clear goals yet",
+      "quizQ4O2": "Somewhat vague",
+      "quizQ4O3": "Fairly clear",
+      "quizQ4O4": "Very specific",
+      "quizQ5O1": "Rarely",
+      "quizQ5O2": "Sometimes",
+      "quizQ5O3": "Often",
+      "quizQ5O4": "Always",
+      "iconTarget": "Goal",
+      "iconTabungan": "Savings",
+      "iconRumah": "House",
+      "iconKendaraan": "Vehicle",
+      "iconLaptop": "Gadget",
+      "iconTravel": "Travel",
+      "iconGadget": "Electronics",
+      "iconPendidikan": "Education"
     },
     "history": {
       "title": "Transaction History",
@@ -257,6 +278,7 @@
       "tipsTitle": "FINANCIAL TIP:",
       "tipsDesc": "\"Bringing your own water bottle can shave a noticeable amount off your monthly expenses.\"",
       "formTitle": "Transaction Form",
+      "formDesc": "Manually log the details of your income, expenses, or savings here.",
       "formIncomeLabel": "SOURCE OF INCOME?",
       "formIncomePlaceholder": "e.g. \"Monthly Salary\" or \"Freelance Work\"",
       "formSaveLabel": "WHAT ARE YOU SAVING FOR?",
@@ -320,14 +342,38 @@
       "moreXpToReach": "more XP to reach",
       "badgeCollection": "Badge Collection",
       "badges": {
-        "firstStep": { "name": "First Step", "desc": "Log your very first transaction" },
-        "onFire": { "name": "On a Roll!", "desc": "3-day activity streak" },
-        "consistent": { "name": "Consistent", "desc": "7-day activity streak" },
-        "champion": { "name": "Champion", "desc": "30-day activity streak" },
-        "aiExplorer": { "name": "AI Explorer", "desc": "Read 5 AI Insights" },
-        "hematMaster": { "name": "Frugal Master", "desc": "Reduce expenses by 20%" },
-        "bookworm": { "name": "Bookworm", "desc": "Complete 3 education modules" },
-        "legendary": { "name": "Legendary", "desc": "Collect all available badges" }
+        "firstStep": {
+          "name": "First Step",
+          "desc": "Log your very first transaction"
+        },
+        "onFire": {
+          "name": "On a Roll!",
+          "desc": "3-day activity streak"
+        },
+        "consistent": {
+          "name": "Consistent",
+          "desc": "7-day activity streak"
+        },
+        "champion": {
+          "name": "Champion",
+          "desc": "30-day activity streak"
+        },
+        "aiExplorer": {
+          "name": "AI Explorer",
+          "desc": "Read 5 AI Insights"
+        },
+        "hematMaster": {
+          "name": "Frugal Master",
+          "desc": "Reduce expenses by 20%"
+        },
+        "bookworm": {
+          "name": "Bookworm",
+          "desc": "Complete 3 education modules"
+        },
+        "legendary": {
+          "name": "Legendary",
+          "desc": "Collect all available badges"
+        }
       }
     },
     "chatbot": {
@@ -377,10 +423,18 @@
       "sendToMyEmail": "Send to My Email",
       "sendingEmail": "Sending Email...",
       "months": {
-        "Januari": "January", "Februari": "February", "Maret": "March",
-        "April": "April", "Mei": "May", "Juni": "June", "Juli": "July",
-        "Agustus": "August", "September": "September", "Oktober": "October",
-        "November": "November", "Desember": "December"
+        "Januari": "January",
+        "Februari": "February",
+        "Maret": "March",
+        "April": "April",
+        "Mei": "May",
+        "Juni": "June",
+        "Juli": "July",
+        "Agustus": "August",
+        "September": "September",
+        "Oktober": "October",
+        "November": "November",
+        "Desember": "December"
       }
     },
     "debt": {
@@ -710,5 +764,160 @@
     "leaderboardMock": "* The data above is a simulated example of the CEAMIS leaderboard.",
     "footerCopy": "© 2026 CEAMIS — All Rights Reserved",
     "footerMotto": "Smart Finances, Mindful Spending, Secure the Future"
+  },
+  "admin": {
+    "sidebar": {
+      "groups": {
+        "overview": "OVERVIEW",
+        "management": "MANAGEMENT"
+      },
+      "dashboard": "Dashboard",
+      "education": "Education Modules",
+      "quizzes": "Education Quizzes",
+      "gamification": "Gamification",
+      "logout": "Exit Panel",
+      "adminSubtitle": "ADMINISTRATOR"
+    },
+    "navbar": {
+      "systemLog": "System Log",
+      "new": "New",
+      "markRead": "Mark all as read",
+      "allRead": "All caught up",
+      "searchPlaceholder": "Search admin...",
+      "searchDashboard": "Dashboard",
+      "searchEducation": "Education Modules",
+      "searchQuizzes": "Education Quizzes",
+      "searchGamification": "Gamification",
+      "searchNoResult": "No results found",
+      "logout": "Exit Panel"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "desc": "Monitor core activities and statistics of the CEAMIS application.",
+      "stats": {
+        "users": "Total Users",
+        "transactions": "Monthly Transactions",
+        "activeModules": "Active Modules",
+        "badges": "Active Badges",
+        "quizzes": "Total Quizzes"
+      },
+      "latestModules": "Latest Education Modules",
+      "latestQuizzes": "Latest Quizzes",
+      "colTitle": "Title",
+      "colCategory": "Category",
+      "colStatus": "Status",
+      "colQuestion": "Question",
+      "colModuleId": "Module ID",
+      "colXp": "XP",
+      "noModules": "No modules found",
+      "noQuizzes": "No quizzes found",
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "gamification": {
+      "title": "Gamification Management",
+      "desc": "Manage badges and AI insights for users.",
+      "badgesTitle": "Badge List",
+      "addBadge": "Add Badge",
+      "editBadge": "Edit Badge",
+      "aiProfileTitle": "AI Spending Profiles",
+      "aiProfileDesc": "These labels are automatically assigned by the AI model.",
+      "form": {
+        "name": "Badge Name",
+        "reqDesc": "Requirement Description",
+        "reqType": "Requirement Type",
+        "reqValue": "Target Value",
+        "color": "Badge Color",
+        "icon": "Badge Icon",
+        "xp": "XP Points"
+      },
+      "req": {
+        "transactionCount": "Transaction Count",
+        "loginStreak": "Login Streak (Days)",
+        "moduleCompleted": "Education Modules Completed",
+        "budgetKept": "Budget Kept (Weeks)",
+        "levelReached": "Level Reached",
+        "aiInsight": "AI Insights Read",
+        "badgeCount": "Total Badges Collected"
+      },
+      "levelConfig": "Level Configuration",
+      "colLevel": "Level",
+      "colXpReq": "XP Required",
+      "colLabel": "Label / Title",
+      "colAction": "Action",
+      "aiAutoLabel": "Automatically set by AI",
+      "target": "Target"
+    },
+    "education": {
+      "title": "Education Modules",
+      "desc": "Manage financial education articles for users.",
+      "addModule": "Add Module",
+      "editModule": "Edit Module",
+      "form": {
+        "titleLabel": "Module Title",
+        "titlePlaceholder": "Enter module title...",
+        "category": "Category",
+        "descLabel": "Short Description",
+        "descPlaceholder": "Example: Learn how to manage money...",
+        "estTime": "Estimated Time"
+      }
+    },
+    "editModule": {
+      "back": "Back to Module Management",
+      "saveDraft": "Save Draft",
+      "publish": "Publish",
+      "pageList": "Page List",
+      "addPage": "Add Page",
+      "newPage": "New Page",
+      "typeHere": "Type your content here...",
+      "editorMode": "Content Editor Mode",
+      "pageOf": "Page {current} of {total}",
+      "titleNote": "Module title can be edited via the Edit button on the module list page.",
+      "subtitleLabel": "Page Subtitle",
+      "contentLabel": "Page Content",
+      "minPageErr": "Module must have at least 1 page.",
+      "successTitle": "Success!",
+      "successMsg": "Module content has been published!",
+      "draftTitle": "Draft Saved!",
+      "draftMsg": "Content has been saved as a draft."
+    },
+    "quizzes": {
+      "title": "Education Quizzes",
+      "desc": "Manage the education quiz question bank.",
+      "addQuiz": "Add Quiz",
+      "editQuiz": "Edit Quiz",
+      "form": {
+        "questionLabel": "Question",
+        "questionPlaceholder": "Write quiz question...",
+        "moduleId": "Related Module ID",
+        "moduleIdPlaceholder": "Example: 1",
+        "status": "Status",
+        "active": "Active",
+        "draft": "Draft"
+      }
+    },
+    "editQuiz": {
+      "back": "Back to Quiz Management",
+      "saveQuestions": "Save Questions",
+      "questionList": "Question List",
+      "addQuestion": "Add Question",
+      "newQuestion": "New Question",
+      "editorMode": "Quiz Editor",
+      "questionOf": "Question {current} of {total}",
+      "questionLabel": "Question",
+      "optionsLabel": "Answer Choices (Select the correct one)",
+      "explanationLabel": "Answer Explanation (Shown after answering)",
+      "minQuestionErr": "Quiz must have at least 1 question.",
+      "successTitle": "Success!",
+      "successMsg": "Quiz questions saved successfully!"
+    },
+    "form": {
+      "cancel": "Cancel",
+      "save": "Save Data",
+      "saveQuiz": "Save Quiz",
+      "saveBadge": "Save Badge",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete?"
+    }
   }
 }

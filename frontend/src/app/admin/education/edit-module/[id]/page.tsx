@@ -54,23 +54,23 @@ export default function EditModulePage() {
   const handleSave = async () => {
     await saveModulePages(Number(id), content);
     await updateModule(Number(id), { status: "published" });
-    setPopupMessage({ title: "Berhasil!", message: "Konten modul berhasil dipublikasikan!", type: "success" });
+    setPopupMessage({ title: t("admin.editModule.successTitle") || "Berhasil!", message: t("admin.editModule.successMsg") || "Konten modul berhasil dipublikasikan!", type: "success" });
   };
 
   const handleSaveAsDraft = async () => {
     await saveModulePages(Number(id), content);
     await updateModule(Number(id), { status: "draft" });
-    setPopupMessage({ title: "Draft Disimpan!", message: "Konten berhasil disimpan sebagai draft.", type: "success" });
+    setPopupMessage({ title: t("admin.editModule.draftTitle") || "Draft Disimpan!", message: t("admin.editModule.draftMsg") || "Konten berhasil disimpan sebagai draft.", type: "success" });
   };
 
   const handleAddPage = () => {
-    setContent([...content, { subtitle: "Halaman Baru", text: "Ketik isi materi di sini..." }]);
+    setContent([...content, { subtitle: t("admin.editModule.newPage") || "Halaman Baru", text: t("admin.editModule.typeHere") || "Ketik isi materi di sini..." }]);
     setCurrentPage(content.length);
   };
 
   const handleRemovePage = (indexToRemove: number) => {
     if (content.length <= 1) {
-      setPopupMessage({ title: "Oops!", message: "Modul harus memiliki minimal 1 halaman.", type: "error" });
+      setPopupMessage({ title: "Oops!", message: t("admin.editModule.minPageErr") || "Modul harus memiliki minimal 1 halaman.", type: "error" });
       return;
     }
     const newContent = content.filter((_, i) => i !== indexToRemove);
@@ -100,15 +100,15 @@ export default function EditModulePage() {
       <div style={{ marginBottom: "2rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link href="/admin/education" style={{ textDecoration: "none" }}>
           <button className="btn-brutal" style={{ padding: "0.5rem 1rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-            <ArrowLeft size={18} /> Kembali ke Manajemen Modul
+            <ArrowLeft size={18} /> {t("admin.editModule.back") || "Kembali ke Manajemen Modul"}
           </button>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <button onClick={handleSaveAsDraft} className="btn-brutal" style={{ padding: "0.5rem 1rem", background: "var(--color-border)", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-             <Save size={18} /> Simpan Draft
+             <Save size={18} /> {t("admin.editModule.saveDraft") || "Simpan Draft"}
           </button>
           <button onClick={handleSave} className="btn-brutal btn-brutal--primary" style={{ padding: "0.5rem 1rem", background: "var(--color-purple)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 800 }}>
-             <CheckCircle size={18} /> Publikasikan
+             <CheckCircle size={18} /> {t("admin.editModule.publish") || "Publikasikan"}
           </button>
         </div>
       </div>
@@ -116,7 +116,7 @@ export default function EditModulePage() {
       <div style={{ display: "flex", flexDirection: "row-reverse", gap: "2rem", flex: 1, overflow: "hidden" }}>
         {/* Sidebar Nav */}
         <div style={{ width: "280px", background: "var(--color-white)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem", height: "fit-content", border: "2.5px solid var(--color-navy)", borderRadius: "12px" }}>
-          <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>Daftar Halaman</h4>
+          <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>{t("admin.editModule.pageList") || "Daftar Halaman"}</h4>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {content.map((item, index) => (
               <div key={index} style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -140,7 +140,7 @@ export default function EditModulePage() {
                   }}
                 >
                   <ChevronRight size={14} />
-                  {item.subtitle || "Halaman Baru"}
+                  {item.subtitle || t("admin.editModule.newPage") || "Halaman Baru"}
                 </button>
                 <button onClick={() => handleRemovePage(index)} style={{ padding: "0.5rem", background: "var(--color-danger, #e74c3c)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Trash2 size={16} color="white" />
@@ -152,7 +152,7 @@ export default function EditModulePage() {
               className="btn-brutal"
               style={{ marginTop: "0.5rem", padding: "0.5rem", background: "var(--color-lime)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontWeight: 800 }}
             >
-              <Plus size={16} /> Tambah Halaman
+              <Plus size={16} /> {t("admin.editModule.addPage") || "Tambah Halaman"}
             </button>
           </div>
         </div>
@@ -174,19 +174,19 @@ export default function EditModulePage() {
           <div style={{ marginBottom: "2.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-navy)", marginBottom: "1rem" }}>
               <BookOpen size={24} color="var(--color-navy)" />
-              <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>Mode Editor Konten</span>
+              <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>{t("admin.editModule.editorMode") || "Mode Editor Konten"}</span>
               <span style={{ color: "var(--color-navy)", opacity: 0.2 }}>•</span>
               <span style={{ color: "var(--color-navy)", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                Halaman {currentPage + 1} dari {content.length}
+                {t("admin.editModule.pageOf") ? t("admin.editModule.pageOf").replace("{current}", String(currentPage + 1)).replace("{total}", String(content.length)) : `Halaman ${currentPage + 1} dari ${content.length}`}
               </span>
             </div>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", margin: 0, lineHeight: 1.1, fontWeight: 900 }}>{moduleTitle}</h1>
-            <p style={{ color: "var(--color-orange)", fontWeight: 700, fontSize: "0.875rem", marginTop: "0.5rem" }}>* Judul modul diedit pada popup Edit Metadata di halaman sebelumnya.</p>
+            <p style={{ color: "var(--color-orange)", fontWeight: 700, fontSize: "0.875rem", marginTop: "0.5rem" }}>* {t("admin.editModule.titleNote") || "Judul modul diedit pada popup Edit Metadata di halaman sebelumnya."}</p>
           </div>
 
           <div style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             <div className="input-group-brutal" style={{ marginBottom: 0 }}>
-              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Sub-judul Halaman (Subtitle)</label>
+              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.editModule.subtitleLabel") || "Sub-judul Halaman"}</label>
               <input 
                 value={content[currentPage].subtitle} 
                 onChange={(e) => handleSubtitleChange(e.target.value)}
@@ -196,7 +196,7 @@ export default function EditModulePage() {
             </div>
             
             <div className="input-group-brutal" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Isi Materi (Text)</label>
+              <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.editModule.contentLabel") || "Isi Materi"}</label>
               <textarea 
                 value={content[currentPage].text}
                 onChange={(e) => handleTextChange(e.target.value)}

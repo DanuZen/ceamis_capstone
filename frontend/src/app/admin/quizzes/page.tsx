@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Eye, X, FileQuestion, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getQuizzes, createQuiz, updateQuiz, deleteQuiz } from "../education/actions";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AdminQuizzesPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [quizzes, setQuizzesState] = useState<any[]>([]);
   const [popupMessage, setPopupMessage] = useState<{title: string, message: string, type: "success" | "error"} | null>(null);
@@ -85,15 +87,27 @@ export default function AdminQuizzesPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", color: "var(--color-navy)", marginBottom: "0.5rem" }}>Manajemen Kuis Edukasi</h1>
-          <p style={{ color: "var(--color-text-muted)", fontWeight: 500 }}>
-            Kelola daftar pertanyaan kuis, XP yang didapat, dan tautan ke modul materi.
-          </p>
+      <div style={{ marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+          <div style={{
+            width: "72px", height: "72px", background: "var(--color-purple)",
+            borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
+            boxShadow: "4px 4px 0px var(--color-navy)", display: "flex",
+            alignItems: "center", justifyContent: "center", flexShrink: 0
+          }}>
+            <FileQuestion size={40} color="var(--color-white)" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
+              {t("admin.quizzes.title")}
+            </h1>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
+              {t("admin.quizzes.desc")}
+            </p>
+          </div>
         </div>
-        <button onClick={openAddModal} className="btn-brutal" style={{ background: "var(--color-purple)", color: "var(--color-white)", padding: "0.75rem 1.5rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "3px 3px 0px var(--color-navy)" }}>
-          <Plus size={18} /> Tambah Kuis
+        <button onClick={openAddModal} className="btn-brutal" style={{ background: "var(--color-purple)", color: "var(--color-white)", padding: "0.75rem 1.5rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "3px 3px 0px var(--color-navy)", marginLeft: "auto" }}>
+          <Plus size={18} /> {t("admin.quizzes.addQuiz")}
         </button>
       </div>
 
@@ -102,9 +116,9 @@ export default function AdminQuizzesPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", minWidth: "600px" }}>
             <thead>
               <tr style={{ background: "var(--color-bg)", borderBottom: "3px solid var(--color-navy)" }}>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Pertanyaan Kuis</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>XP Points</th>
-                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>Status</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>{t("admin.dashboard.colQuestion")}</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>{t("admin.dashboard.colXp")}</th>
+                <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)" }}>{t("admin.dashboard.colStatus")}</th>
                 <th style={{ padding: "1.25rem", fontWeight: 800, color: "var(--color-navy)", width: "120px", textAlign: "center" }}>Aksi</th>
               </tr>
             </thead>
@@ -120,7 +134,7 @@ export default function AdminQuizzesPage() {
                       padding: "0.25rem 0.75rem", fontSize: "0.75rem", boxShadow: "none",
                       background: quiz.status === "active" ? "var(--color-lime)" : "var(--color-orange)",
                     }}>
-                      {quiz.status === "active" ? "Aktif" : "Draft"}
+                      {quiz.status === "active" ? t("admin.dashboard.published") || "Aktif" : t("admin.dashboard.draft") || "Draft"}
                     </span>
                   </td>
                   <td style={{ padding: "1rem 1.25rem" }}>
@@ -142,7 +156,7 @@ export default function AdminQuizzesPage() {
               {quizzes.length === 0 && (
                 <tr>
                   <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)", fontWeight: 600 }}>
-                    Belum ada data kuis edukasi.
+                    {t("admin.dashboard.noQuizzes")}
                   </td>
                 </tr>
               )}
@@ -164,18 +178,18 @@ export default function AdminQuizzesPage() {
             </button>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1.5rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <FileQuestion size={24} color="var(--color-purple)" />
-              {editingItem ? "Edit Kuis" : "Tambah Kuis"}
+              {editingItem ? t("admin.quizzes.editQuiz") : t("admin.quizzes.addQuiz")}
             </h2>
             
             <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Pertanyaan</label>
-                <textarea name="question" defaultValue={editingItem?.question} required className="input-brutal" style={{ width: "100%", minHeight: "80px", resize: "vertical" }} placeholder="Tuliskan pertanyaan kuis..." />
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.quizzes.form.questionLabel")}</label>
+                <textarea name="question" defaultValue={editingItem?.question} required className="input-brutal" style={{ width: "100%", minHeight: "80px", resize: "vertical" }} placeholder={t("admin.quizzes.form.questionPlaceholder")} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div className="input-group-brutal">
-                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>ID Modul (Terkait)</label>
-                  <input name="moduleId" type="number" defaultValue={editingItem?.moduleId} required className="input-brutal" style={{ width: "100%" }} placeholder="Contoh: 1" />
+                  <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.quizzes.form.moduleId")}</label>
+                  <input name="moduleId" type="number" defaultValue={editingItem?.moduleId} required className="input-brutal" style={{ width: "100%" }} placeholder={t("admin.quizzes.form.moduleIdPlaceholder")} />
                 </div>
                 <div className="input-group-brutal">
                   <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>XP Points</label>
@@ -183,19 +197,19 @@ export default function AdminQuizzesPage() {
                 </div>
               </div>
               <div className="input-group-brutal">
-                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>Status</label>
+                <label style={{ fontWeight: 800, color: "var(--color-navy)", display: "block", marginBottom: "0.5rem" }}>{t("admin.quizzes.form.status")}</label>
                 <select name="status" defaultValue={editingItem?.status || "active"} className="input-brutal" style={{ width: "100%" }}>
-                  <option value="active">Aktif</option>
-                  <option value="draft">Draft</option>
+                  <option value="active">{t("admin.quizzes.form.active")}</option>
+                  <option value="draft">{t("admin.quizzes.form.draft")}</option>
                 </select>
               </div>
               
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "1rem" }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-brutal" style={{ background: "var(--color-bg)", fontWeight: 700 }}>
-                  Batal
+                  {t("admin.form.cancel")}
                 </button>
                 <button type="submit" className="btn-brutal btn-brutal--primary" style={{ fontWeight: 800, background: "var(--color-purple)", color: "var(--color-white)" }}>
-                  Simpan Kuis
+                  {t("admin.form.saveQuiz")}
                 </button>
               </div>
             </form>
@@ -229,10 +243,10 @@ export default function AdminQuizzesPage() {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(10, 25, 47, 0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1rem" }}>
           <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", width: "100%", maxWidth: "400px", padding: "2rem", textAlign: "center", border: "3px solid var(--color-navy)" }}>
             <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", marginBottom: "1rem", color: "var(--color-danger, #e74c3c)" }}>
-              Hapus Kuis?
+              {t("admin.form.delete")}?
             </h2>
             <p style={{ fontSize: "1.1rem", color: "var(--color-navy)", fontWeight: 600, marginBottom: "1.5rem" }}>
-              Yakin ingin menghapus kuis ini? Tindakan ini tidak dapat dibatalkan.
+              {t("admin.form.confirmDelete")}
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
               <button 
@@ -240,14 +254,14 @@ export default function AdminQuizzesPage() {
                 className="btn-brutal" 
                 style={{ padding: "0.75rem 1.5rem", background: "var(--color-white)", color: "var(--color-navy)", fontWeight: 700 }}
               >
-                Batal
+                {t("admin.form.cancel")}
               </button>
               <button 
                 onClick={confirmDelete}
                 className="btn-brutal" 
                 style={{ padding: "0.75rem 1.5rem", background: "var(--color-danger, #e74c3c)", color: "var(--color-white)", fontWeight: 800 }}
               >
-                Hapus
+                {t("admin.form.delete")}
               </button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet, Plus, Coffee, Utensils, Car, ShoppingBag, Zap, Sparkles, TrendingUp, ArrowRight, Tag, Home, Gamepad2, Banknote, Brain, RefreshCw, ChevronDown, X } from "lucide-react";
+import { Wallet, Plus, Coffee, Utensils, Car, ShoppingBag, Zap, Sparkles, TrendingUp, ArrowRight, Tag, Home, Gamepad2, Banknote, Brain, RefreshCw, ChevronDown, X, Laptop } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTransactions, TransactionType } from "@/context/TransactionContext";
@@ -94,10 +94,10 @@ const CustomSelect = ({ value, onChange, options }: { value: string, onChange: (
 };
 
 export default function TransactionsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { showToast } = useToast();
   const { addTransaction, transactions } = useTransactions();
-  const { userData, updateUserData } = useUser();
+  const { userData, updateUserData, unlockBadge } = useUser();
 
   const [desc, setDesc]       = useState("");
   const [amount, setAmount]   = useState("");  // stored as formatted string e.g. "100.000.000"
@@ -182,6 +182,35 @@ export default function TransactionsPage() {
     const breakdown = buildCategoryBreakdown();
     if (Object.keys(breakdown).length === 0) return; // tidak ada data transaksi
 
+    // Hitung rasio manual sebagai fallback dinamis
+    let totalNeeds = 0;
+    let totalWants = 0;
+    let totalSave = 0;
+    transactions.forEach(tx => {
+      if (tx.type === "pengeluaran") {
+        if (tx.tag === "needs") totalNeeds += tx.amount;
+        else if (tx.tag === "wants") totalWants += tx.amount;
+        else if (tx.tag === "save") totalSave += tx.amount;
+      }
+    });
+    const totalOut = totalNeeds + totalWants + totalSave;
+    const dynamicNeedsRatio = totalOut > 0 ? Math.round((totalNeeds / totalOut) * 100) : 60;
+    const dynamicWantsRatio = totalOut > 0 ? Math.round((totalWants / totalOut) * 100) : 30;
+    const dynamicSaveRatio = totalOut > 0 ? Math.round((totalSave / totalOut) * 100) : 10;
+    
+    const rawTopCat = Object.keys(breakdown).length > 0 
+      ? Object.keys(breakdown).reduce((a, b) => breakdown[a] > breakdown[b] ? a : b) 
+      : "Lainnya";
+    
+    // Map internal key to display name
+    const catMap: Record<string, string> = {
+      "cat_f&b": "Makanan & Minuman", "cat_transportasi": "Transportasi", "cat_kesehatan": "Kesehatan",
+      "cat_tagihan": "Tagihan & Utilitas", "cat_hiburan": "Hiburan", "cat_hobi": "Hobi",
+      "cat_fashion": "Belanja Pribadi", "cat_elektronik": "Elektronik", "cat_pendidikan": "Pendidikan",
+      "cat_kebutuhan_pokok": "Kebutuhan Pokok"
+    };
+    const topCategory = catMap[rawTopCat] || "Lainnya";
+
     setLoadingCluster(true);
     try {
       const data = await aiApi.getSpendingCluster({
@@ -191,39 +220,47 @@ export default function TransactionsPage() {
       // Map respons API → state lokal
       const rData = data;
       if (rData && !rData.is_mock) {
-        const topCategory = Object.keys(breakdown).length > 0 
-          ? Object.keys(breakdown).reduce((a, b) => breakdown[a] > breakdown[b] ? a : b) 
-          : "Lainnya";
-          
         setCluster({
           cluster_label:      rData.cluster_label || MOCK_CLUSTER.cluster_label,
-          dominant_category:  rData.dominant_category || topCategory,
+          dominant_category:  topCategory, // Selalu gunakan hasil hitungan real
           insight:            rData.insight || MOCK_CLUSTER.insight,
-          needs_ratio:        rData.needs_ratio !== undefined ? rData.needs_ratio : MOCK_CLUSTER.needs_ratio,
-          wants_ratio:        rData.wants_ratio !== undefined ? rData.wants_ratio : MOCK_CLUSTER.wants_ratio,
-          savings_ratio:      rData.savings_ratio !== undefined ? rData.savings_ratio : MOCK_CLUSTER.savings_ratio,
+          needs_ratio:        rData.needs_ratio !== undefined ? rData.needs_ratio : dynamicNeedsRatio,
+          wants_ratio:        rData.wants_ratio !== undefined ? rData.wants_ratio : dynamicWantsRatio,
+          savings_ratio:      rData.savings_ratio !== undefined ? rData.savings_ratio : dynamicSaveRatio,
           trend:              rData.trend || "stable",
           is_mock:            false,
         });
 
-        // Update label user di seluruh aplikasi (Header & Dashboard)
         if (rData.cluster_label) {
           updateUserData({ label: rData.cluster_label });
-          // Simpan di key terpisah agar tidak ditimpa saat refreshUser() fetch dari API
           localStorage.setItem("ceamis_cluster_label", rData.cluster_label);
         }
       } else {
-        throw new Error("Invalid API format or mock data returned");
+        throw new Error("API mock data or fallback required");
       }
     } catch {
-      // API belum ready → pakai mock, tetapi tetap update label
-      setCluster(MOCK_CLUSTER);
-      updateUserData({ label: MOCK_CLUSTER.cluster_label });
-      localStorage.setItem("ceamis_cluster_label", MOCK_CLUSTER.cluster_label);
+      // Fallback: Gunakan hitungan dinamis
+      // Tentukan label dinamis
+      let dynamicLabel = "Si Hemat";
+      if (dynamicWantsRatio > 50) dynamicLabel = "Si Boros";
+      else if (dynamicNeedsRatio < 40 && dynamicWantsRatio > 30) dynamicLabel = "Si Impulsif";
+
+      const dynamicCluster = {
+        ...MOCK_CLUSTER,
+        cluster_label: dynamicLabel,
+        dominant_category: topCategory,
+        needs_ratio: dynamicNeedsRatio,
+        wants_ratio: dynamicWantsRatio,
+        savings_ratio: dynamicSaveRatio,
+        insight: `Pengeluaran terbanyakmu ada di ${topCategory}. Tetap perhatikan alokasi ${dynamicWantsRatio}% untuk keinginan, pastikan tidak melebihi batas!`
+      };
+      setCluster(dynamicCluster);
+      updateUserData({ label: dynamicCluster.cluster_label });
+      localStorage.setItem("ceamis_cluster_label", dynamicCluster.cluster_label);
     } finally {
       setLoadingCluster(false);
     }
-  }, [buildCategoryBreakdown, transactions]);
+  }, [buildCategoryBreakdown, transactions, userData.id, updateUserData]);
 
   // Auto-fetch saat transaksi berubah
   useEffect(() => {
@@ -231,11 +268,11 @@ export default function TransactionsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transactions.length]);
 
-  const handleQuickInput = (presetDesc: string, presetAmount: string) => {
+  const handleQuickInput = (presetDesc: string, presetAmount: string, presetType: TransactionType = "pengeluaran") => {
     setDesc(presetDesc);
     setAmountRaw(presetAmount);
     setAmount(presetAmount.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
-    setType("pengeluaran");
+    setType(presetType);
     setIsQuickInput(true);
   };
 
@@ -375,18 +412,28 @@ export default function TransactionsPage() {
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
-              {[
-                { label: t("dashboard.transactions.quickCoffeeLabel"), amount: "25000", desc: t("dashboard.transactions.quickCoffeeDesc"), color: "var(--color-orange)", icon: Coffee, type: "wants" as const },
-                { label: t("dashboard.transactions.quickSnackLabel"), amount: "15000", desc: t("dashboard.transactions.quickSnackDesc"), color: "var(--color-orange)", icon: ShoppingBag, type: "wants" as const },
-                { label: t("dashboard.transactions.quickFoodLabel"), amount: "35000", desc: t("dashboard.transactions.quickFoodDesc"), color: "var(--color-lime)", icon: Utensils, type: "needs" as const },
-                { label: t("dashboard.transactions.quickGasLabel"), amount: "20000", desc: t("dashboard.transactions.quickGasDesc"), color: "var(--color-lime)", icon: Car, type: "needs" as const },
-                { label: t("dashboard.transactions.quickSaveLabel"), amount: "50000", desc: t("dashboard.transactions.quickSaveDesc"), color: "var(--color-purple)", icon: Wallet, type: "save" as const },
-                { label: t("dashboard.transactions.quickInvestLabel"), amount: "100000", desc: t("dashboard.transactions.quickInvestDesc"), color: "var(--color-purple)", icon: TrendingUp, type: "save" as const },
-              ].map((btn) => (
+              {(type === "pemasukan" ? [
+                { label: language === "id" ? "Gaji Bulanan" : "Monthly Salary", amount: "5000000", desc: language === "id" ? "Gaji Bulanan" : "Salary", color: "var(--color-lime)", icon: Banknote, type: "pemasukan" as const, badge: "INCOME" },
+                { label: language === "id" ? "Bonus Tahunan" : "Annual Bonus", amount: "1000000", desc: language === "id" ? "Bonus" : "Bonus", color: "var(--color-purple)", icon: Sparkles, type: "pemasukan" as const, badge: "INCOME" },
+                { label: language === "id" ? "Project Freelance" : "Freelance", amount: "500000", desc: language === "id" ? "Project Freelance" : "Freelance Project", color: "var(--color-orange)", icon: Laptop, type: "pemasukan" as const, badge: "INCOME" },
+                { label: language === "id" ? "Hasil Bisnis" : "Business", amount: "1500000", desc: language === "id" ? "Keuntungan Bisnis" : "Business Profit", color: "var(--color-lime)", icon: TrendingUp, type: "pemasukan" as const, badge: "INCOME" },
+                { label: language === "id" ? "Pemberian" : "Gift", amount: "200000", desc: language === "id" ? "Dikasih Orang Tua/Teman" : "Gift", color: "var(--color-orange)", icon: ShoppingBag, type: "pemasukan" as const, badge: "INCOME" },
+                { label: language === "id" ? "Pemasukan Lain" : "Other", amount: "100000", desc: language === "id" ? "Pemasukan Lainnya" : "Other Income", color: "var(--color-purple)", icon: Wallet, type: "pemasukan" as const, badge: "INCOME" },
+              ] : [
+                { label: t("dashboard.transactions.quickCoffeeLabel"), amount: "25000", desc: t("dashboard.transactions.quickCoffeeDesc"), color: "var(--color-orange)", icon: Coffee, type: "wants" as const, badge: "WANT" },
+                { label: t("dashboard.transactions.quickSnackLabel"), amount: "15000", desc: t("dashboard.transactions.quickSnackDesc"), color: "var(--color-orange)", icon: ShoppingBag, type: "wants" as const, badge: "WANT" },
+                { label: t("dashboard.transactions.quickFoodLabel"), amount: "35000", desc: t("dashboard.transactions.quickFoodDesc"), color: "var(--color-lime)", icon: Utensils, type: "needs" as const, badge: "NEED" },
+                { label: t("dashboard.transactions.quickGasLabel"), amount: "20000", desc: t("dashboard.transactions.quickGasDesc"), color: "var(--color-lime)", icon: Car, type: "needs" as const, badge: "NEED" },
+                { label: t("dashboard.transactions.quickSaveLabel"), amount: "50000", desc: t("dashboard.transactions.quickSaveDesc"), color: "var(--color-purple)", icon: Wallet, type: "save" as const, badge: "SAVE" },
+                { label: t("dashboard.transactions.quickInvestLabel"), amount: "100000", desc: t("dashboard.transactions.quickInvestDesc"), color: "var(--color-purple)", icon: TrendingUp, type: "save" as const, badge: "SAVE" },
+              ]).map((btn) => (
                 <button
                   key={btn.label}
                   type="button"
-                  onClick={() => { handleQuickInput(btn.desc, btn.amount); setTag(btn.type); }}
+                  onClick={() => { 
+                    handleQuickInput(btn.desc, btn.amount, type); 
+                    if (type !== "pemasukan") setTag(btn.type as any); 
+                  }}
                   className="btn-brutal"
                   style={{
                     background: "var(--color-white)", padding: "1rem",
@@ -407,7 +454,7 @@ export default function TransactionsPage() {
                     color: btn.color === "var(--color-lime)" ? "var(--color-navy)" : "var(--color-white)",
                     boxShadow: "2px 2px 0px var(--color-navy)"
                   }}>
-                    {btn.type === "needs" ? "NEED" : btn.type === "wants" ? "WANT" : "SAVE"}
+                    {btn.badge}
                   </div>
                 </button>
               ))}
@@ -440,6 +487,7 @@ export default function TransactionsPage() {
                 e.preventDefault();
                 if (!desc || !amount) return;
                 addTransaction({ description: desc, amount: parseFloat(amountRaw.replace(/\./g, "")), type, category, tag });
+                unlockBadge("firstStep");
                 showToast(t("dashboard.transactions.savedSuccess") || "Transaksi aman tersimpan, cuy!", "success");
                 setDesc(""); setAmount(""); setAmountRaw(""); setIsQuickInput(false);
               }}
@@ -503,7 +551,7 @@ export default function TransactionsPage() {
                   </label>
                   {isQuickInput ? (
                     <div className="input-brutal" style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)", background: "#e2e8f0", color: "var(--color-text-muted)" }}>
-                      {t("dashboard.transactions.expense")}
+                      {type === "pemasukan" ? t("dashboard.transactions.income") : t("dashboard.transactions.expense")}
                     </div>
                   ) : (
                     <CustomSelect

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, Calendar, Bell, ChevronDown, LogOut, Globe, PanelLeft } from "lucide-react";
+import { Search, Calendar, Bell, ChevronDown, LogOut, Globe, PanelLeft, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface AdminNavbarProps {
@@ -15,10 +15,20 @@ export default function AdminNavbar({ toggleSidebar, isOpen = true }: AdminNavba
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
+  
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const { t, language, setLanguage } = useLanguage();
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+  }, [searchParams]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -65,26 +75,38 @@ export default function AdminNavbar({ toggleSidebar, isOpen = true }: AdminNavba
     return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   })();
 
-  const notifItems = language === "en" ? [
-    { title: "New Signup", desc: "rizky.a@outlook.com just registered.", time: "2 minutes ago" },
+  const notifItems = [
+    { title: t("admin.navbar.new") + " Signup", desc: "rizky.a@outlook.com just registered.", time: "2 minutes ago" },
     { title: "API Warning ⚠️", desc: "Chatbot timed out 3 times in a row.", time: "15 minutes ago" },
     { title: "Password Reset", desc: "Brute-force attempt detected from unknown IP.", time: "1 hour ago" },
-  ] : [
-    { title: "Signup Baru", desc: "rizky.a@outlook.com baru saja mendaftar.", time: "2 menit lalu" },
-    { title: "API Warning ⚠️", desc: "Chatbot timeout 3x berturut-turut.", time: "15 menit lalu" },
-    { title: "Password Reset", desc: "Attempt brute-force terdeteksi dari IP asing.", time: "1 jam lalu" },
   ];
 
-  const markReadLabel = language === "en" ? "Mark all as read" : "Tandai sudah dibaca";
-  const allReadLabel = language === "en" ? "All caught up" : "Semua sudah dibaca";
-  const systemLogLabel = language === "en" ? "System Log" : "Log Sistem";
-  const newLabel = language === "en" ? "3 New" : "3 Baru";
-  
-  const searchPlaceholder = pathname.includes("quizzes") ? t("navbar.searchQuiz") :
-    pathname.includes("education") ? t("navbar.searchEducation") :
-    pathname.includes("users") ? t("navbar.searchProfile") :
-    pathname.includes("transactions") ? t("navbar.searchTransaction") :
-    t("navbar.searchDefault");
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      if (searchQuery.trim()) {
+        const match = filteredNavPages.find(p => p.name.toLowerCase() === searchQuery.toLowerCase() || p.desc.toLowerCase() === searchQuery.toLowerCase());
+        if (match) {
+          router.push(match.path);
+          setSearchQuery("");
+          setIsSearchFocused(false);
+          return;
+        }
+        // General search route for admin if applicable, otherwise do nothing
+      }
+    }
+  };
+
+  const navPages = [
+    { name: t("admin.navbar.searchDashboard") || "Dashboard", path: "/admin/dashboard", desc: t("admin.sidebar.groups.overview") },
+    { name: t("admin.navbar.searchEducation") || "Modul Edukasi", path: "/admin/education", desc: t("admin.sidebar.groups.management") },
+    { name: t("admin.navbar.searchQuizzes") || "Kuis Edukasi", path: "/admin/quizzes", desc: t("admin.sidebar.groups.management") },
+    { name: t("admin.navbar.searchGamification") || "Gamifikasi", path: "/admin/gamification", desc: t("admin.sidebar.groups.management") },
+  ];
+
+  const filteredNavPages = navPages.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <header className="navbar" style={{
@@ -123,9 +145,9 @@ export default function AdminNavbar({ toggleSidebar, isOpen = true }: AdminNavba
               zIndex: 50, transformOrigin: "top left"
             }}>
               <div style={{ padding: "1rem", borderBottom: "2px solid var(--color-navy)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-danger, #e74c3c)" }}>
-              <span style={{ fontWeight: 900, fontSize: "0.9rem", color: "var(--color-white)" }}>{systemLogLabel}</span>
+              <span style={{ fontWeight: 900, fontSize: "0.9rem", color: "var(--color-white)" }}>{t("admin.navbar.systemLog")}</span>
                 {hasNewNotifications && (
-                  <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-white)", background: "rgba(255,255,255,0.25)", padding: "0.1rem 0.4rem", borderRadius: "100px" }}>{newLabel}</span>
+                  <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-white)", background: "rgba(255,255,255,0.25)", padding: "0.1rem 0.4rem", borderRadius: "100px" }}>3 {t("admin.navbar.new")}</span>
                 )}
               </div>
               <div style={{ maxHeight: "260px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
@@ -146,7 +168,7 @@ export default function AdminNavbar({ toggleSidebar, isOpen = true }: AdminNavba
                 fontSize: "0.75rem", fontWeight: 800, color: hasNewNotifications ? "var(--color-navy)" : "var(--color-text-muted)",
                 background: "rgba(0,0,0,0.02)", cursor: hasNewNotifications ? "pointer" : "default", fontFamily: "inherit"
               }}>
-                {hasNewNotifications ? markReadLabel : allReadLabel}
+                {hasNewNotifications ? t("admin.navbar.markRead") : t("admin.navbar.allRead")}
               </button>
             </div>
           )}
@@ -156,14 +178,79 @@ export default function AdminNavbar({ toggleSidebar, isOpen = true }: AdminNavba
         <div style={{ position: "relative", width: "280px" }}>
           <Search size={18} color="var(--color-text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
           <input
-            type="text" placeholder={searchPlaceholder}
+            type="text" 
+            placeholder={t("admin.navbar.searchPlaceholder") || "Cari di admin..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
             className="input-brutal"
             style={{
-              width: "100%", padding: "0.6rem 1rem 0.6rem 2.5rem", fontSize: "0.875rem",
+              width: "100%", padding: "0.6rem 2.5rem 0.6rem 2.5rem", fontSize: "0.875rem",
               background: "var(--color-white)", border: "2px solid var(--color-navy)",
               borderRadius: "var(--radius-brutal-sm)",
+              transition: "all 0.2s ease"
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.boxShadow = "3px 3px 0px var(--color-navy)";
+              setIsSearchFocused(true);
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.boxShadow = "none";
+              setTimeout(() => setIsSearchFocused(false), 200);
             }}
           />
+          {searchQuery && (
+            <button 
+              onClick={() => {
+                setSearchQuery("");
+                router.push(pathname);
+              }}
+              style={{ 
+                position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", 
+                background: "transparent", border: "none", cursor: "pointer", 
+                display: "flex", alignItems: "center", justifyContent: "center", 
+                padding: "0.2rem", borderRadius: "50%", color: "var(--color-text-muted)" 
+              }}
+            >
+              <X size={16} strokeWidth={2.5} />
+            </button>
+          )}
+          
+          {/* Navigation Suggestions */}
+          {isSearchFocused && searchQuery && (
+            <div style={{
+              position: "absolute", top: "calc(100% + 0.5rem)", left: 0, width: "100%",
+              background: "var(--color-white)", border: "2px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)",
+              zIndex: 50, maxHeight: "300px", overflowY: "auto"
+            }}>
+              {filteredNavPages.map((page, i) => (
+                <div 
+                  key={i} 
+                  onClick={() => {
+                    router.push(page.path);
+                    setSearchQuery("");
+                    setIsSearchFocused(false);
+                  }}
+                  style={{
+                    padding: "0.75rem 1rem", borderBottom: i === filteredNavPages.length - 1 ? "none" : "1px solid rgba(0,0,0,0.1)",
+                    cursor: "pointer", display: "flex", flexDirection: "column", gap: "0.25rem",
+                    background: "transparent", transition: "background 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.05)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>{page.name}</span>
+                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 600 }}>{page.desc}</span>
+                </div>
+              ))}
+              {filteredNavPages.length === 0 && (
+                <div style={{ padding: "1rem", textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.85rem", fontWeight: 600 }}>
+                  {t("admin.navbar.searchNoResult")}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -245,7 +332,7 @@ export default function AdminNavbar({ toggleSidebar, isOpen = true }: AdminNavba
                     borderRadius: "var(--radius-brutal-sm)", display: "flex", alignItems: "center", gap: "0.6rem",
                     color: "var(--color-white)", fontWeight: 800, fontSize: "0.9rem", boxShadow: "none", cursor: "pointer"
                   }}>
-                    <LogOut size={18} /> Keluar Panel
+                    <LogOut size={18} /> {t("admin.navbar.logout")}
                   </div>
                 </Link>
               </div>

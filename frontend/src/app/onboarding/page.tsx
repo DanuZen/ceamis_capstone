@@ -256,7 +256,7 @@ export default function OnboardingPage() {
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "auto", zIndex: 1 }}>
-          <img src="/images/logo_white.png" alt="CEAMIS" style={{ width: 56, height: 56, objectFit: "contain" }} />
+          <img src="/images/logo_color.png" alt="CEAMIS" style={{ width: 56, height: 56, objectFit: "contain" }} />
           <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "2rem", letterSpacing: "2px", color: step.textColor }}>CEAMIS</span>
         </div>
 
