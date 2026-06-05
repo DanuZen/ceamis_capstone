@@ -159,4 +159,4 @@ Untuk memastikan pemahaman yang komprehensif mengenai aplikasi ini, silakan meni
 <br>
 
 **Hak Cipta © 2026 Tim CEAMIS - Dicoding Capstone Project.**
-Seluruh Hak Dilindungi.
+Seluruh Hak Dilindungi. Dibuat dengan ❤️ oleh Tim CC26-PSU023.
