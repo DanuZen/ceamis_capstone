@@ -757,7 +757,7 @@ export default function PlanningPage() {
   const handleDeleteCategory = (id: string, type: string) => {
     const typeItems = budget.filter(b => b.type === type);
     if (typeItems.length <= 1) {
-      showToast("Tidak dapat menghapus seluruh kategori. Minimal harus tersisa satu kategori pada tipe ini.", "error");
+      showToast(t("dashboard.planning.cannotDeleteLast") || "Cannot delete the last category. At least one category must remain.", "error");
       return;
     }
     setBudget(budget.filter(b => b.id !== id));
@@ -888,12 +888,12 @@ export default function PlanningPage() {
           {isOverBudget && (
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#e74c3c", padding: "0.4rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid #c0392b", marginTop: "0.25rem" }}>
               <AlertTriangle size={14} color="white" />
-              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "white" }}>Pengeluaran melebihi batas alokasi!</span>
+              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "white" }}>{t("dashboard.planning.overBudgetWarning") || "Spending exceeds allocation limit!"}</span>
             </div>
           )}
           {isNearLimit && (
             <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#e67e22", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-              <AlertTriangle size={12} /> Mendekati batas ({pct}%)
+              <AlertTriangle size={12} /> {t("dashboard.planning.approachingLimit") || "Approaching limit"} ({pct}%)
             </span>
           )}
         </div>
@@ -1001,29 +1001,59 @@ export default function PlanningPage() {
                   { id: "needs", label: "Needs", icon: Home, color: "lime" },
                   { id: "wants", label: "Wants", icon: Gamepad2, color: "orange" },
                   { id: "savings", label: "Save", icon: Banknote, color: "purple" }
-                ].map((item) => (
-                  <button 
-                    key={item.id}
-                    onClick={() => setActiveFilter(item.id as any)}
-                    className="btn-brutal"
-                    style={{ 
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      padding: "0.6rem 1.25rem", 
-                      borderRadius: "var(--radius-brutal-sm)", 
-                      background: activeFilter === item.id ? `var(--color-${item.color})` : "var(--color-white)",
-                      color: activeFilter === item.id && item.color !== "lime" && item.color !== "orange" ? "var(--color-white)" : "var(--color-navy)",
-                      fontWeight: 900, fontSize: "0.95rem",
-                      border: "2.5px solid var(--color-navy)",
-                      boxShadow: activeFilter === item.id ? `4px 4px 0px var(--color-navy)` : "2px 2px 0px var(--color-navy)",
-                      transform: activeFilter === item.id ? "translate(-2px, -2px)" : "none",
-                      transition: "all 0.2s"
-                    }}
-                  >
-                    <item.icon size={16} /> {item.label}
-                  </button>
-                ))}
+                ].map((item) => {
+                  const typeItems = budgetWithSpent.filter(b => b.type === item.id);
+                  const hasOverBudget = typeItems.some(b => b.spent > b.allocated && b.allocated > 0);
+                  const hasNearLimit = typeItems.some(b => {
+                    const pct = b.allocated > 0 ? Math.round((b.spent / b.allocated) * 100) : 0;
+                    return pct >= 80 && b.spent <= b.allocated;
+                  });
+                  const hasAnyWarning = hasOverBudget || hasNearLimit;
+
+                  return (
+                    <button 
+                      key={item.id}
+                      onClick={() => setActiveFilter(item.id as any)}
+                      className="btn-brutal"
+                      style={{ 
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        padding: "0.6rem 1.25rem", 
+                        borderRadius: "var(--radius-brutal-sm)", 
+                        background: activeFilter === item.id ? `var(--color-${item.color})` : "var(--color-white)",
+                        color: activeFilter === item.id && item.color !== "lime" && item.color !== "orange" ? "var(--color-white)" : "var(--color-navy)",
+                        fontWeight: 900, fontSize: "0.95rem",
+                        border: hasOverBudget ? "2.5px solid #e74c3c" : "2.5px solid var(--color-navy)",
+                        boxShadow: hasOverBudget 
+                          ? "4px 4px 0px #e74c3c"
+                          : activeFilter === item.id ? `4px 4px 0px var(--color-navy)` : "2px 2px 0px var(--color-navy)",
+                        transform: activeFilter === item.id ? "translate(-2px, -2px)" : "none",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <item.icon size={16} /> {item.label}
+                      {hasAnyWarning && (
+                        <span style={{
+                          position: "absolute",
+                          top: "-6px",
+                          right: "-6px",
+                          width: "14px",
+                          height: "14px",
+                          borderRadius: "50%",
+                          background: hasOverBudget ? "#e74c3c" : "#e67e22",
+                          border: "2px solid var(--color-white)",
+                          boxShadow: "0 0 0 2px " + (hasOverBudget ? "#e74c3c" : "#e67e22"),
+                          animation: "pulse-border 1.2s ease-in-out infinite",
+                          display: "flex", alignItems: "center", justifyContent: "center"
+                        }} title={hasOverBudget 
+                          ? (t("dashboard.planning.overBudgetWarning") || "Over budget!") 
+                          : (t("dashboard.planning.approachingLimit") || "Approaching limit")} />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             

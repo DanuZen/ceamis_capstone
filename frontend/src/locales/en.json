@@ -235,7 +235,10 @@
       "iconLaptop": "Gadget",
       "iconTravel": "Travel",
       "iconGadget": "Electronics",
-      "iconPendidikan": "Education"
+      "iconPendidikan": "Education",
+      "overBudgetWarning": "Spending exceeds allocation limit!",
+      "approachingLimit": "Approaching limit",
+      "cannotDeleteLast": "Cannot delete the last category. At least one category must remain in this type."
     },
     "history": {
       "title": "Transaction History",

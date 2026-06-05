@@ -235,7 +235,10 @@
       "iconLaptop": "Laptop",
       "iconTravel": "Liburan",
       "iconGadget": "Gadget",
-      "iconPendidikan": "Pendidikan"
+      "iconPendidikan": "Pendidikan",
+      "overBudgetWarning": "Pengeluaran melebihi batas alokasi!",
+      "approachingLimit": "Mendekati batas",
+      "cannotDeleteLast": "Tidak dapat menghapus. Minimal harus tersisa satu kategori pada tipe ini."
     },
     "history": {
       "title": "Riwayat Transaksi",
