@@ -414,10 +414,10 @@ export default function TransactionsPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
               {(type === "pemasukan" ? [
                 { label: language === "id" ? "Gaji Bulanan" : "Monthly Salary", amount: "5000000", desc: language === "id" ? "Gaji Bulanan" : "Salary", color: "var(--color-lime)", icon: Banknote, type: "pemasukan" as const, badge: "INCOME" },
-                { label: language === "id" ? "Bonus Tahunan" : "Annual Bonus", amount: "1000000", desc: language === "id" ? "Bonus" : "Bonus", color: "var(--color-purple)", icon: Sparkles, type: "pemasukan" as const, badge: "INCOME" },
-                { label: language === "id" ? "Project Freelance" : "Freelance", amount: "500000", desc: language === "id" ? "Project Freelance" : "Freelance Project", color: "var(--color-orange)", icon: Laptop, type: "pemasukan" as const, badge: "INCOME" },
                 { label: language === "id" ? "Hasil Bisnis" : "Business", amount: "1500000", desc: language === "id" ? "Keuntungan Bisnis" : "Business Profit", color: "var(--color-lime)", icon: TrendingUp, type: "pemasukan" as const, badge: "INCOME" },
+                { label: language === "id" ? "Project Freelance" : "Freelance", amount: "500000", desc: language === "id" ? "Project Freelance" : "Freelance Project", color: "var(--color-orange)", icon: Laptop, type: "pemasukan" as const, badge: "INCOME" },
                 { label: language === "id" ? "Pemberian" : "Gift", amount: "200000", desc: language === "id" ? "Dikasih Orang Tua/Teman" : "Gift", color: "var(--color-orange)", icon: ShoppingBag, type: "pemasukan" as const, badge: "INCOME" },
+                { label: language === "id" ? "Bonus Tahunan" : "Annual Bonus", amount: "1000000", desc: language === "id" ? "Bonus" : "Bonus", color: "var(--color-purple)", icon: Sparkles, type: "pemasukan" as const, badge: "INCOME" },
                 { label: language === "id" ? "Pemasukan Lain" : "Other", amount: "100000", desc: language === "id" ? "Pemasukan Lainnya" : "Other Income", color: "var(--color-purple)", icon: Wallet, type: "pemasukan" as const, badge: "INCOME" },
               ] : [
                 { label: t("dashboard.transactions.quickCoffeeLabel"), amount: "25000", desc: t("dashboard.transactions.quickCoffeeDesc"), color: "var(--color-orange)", icon: Coffee, type: "wants" as const, badge: "WANT" },

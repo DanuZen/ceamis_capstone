@@ -6,7 +6,13 @@ import AdminNavbar from "@/components/layout/AdminNavbar";
 import "@/styles/dashboard.css";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth > 768) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
 
   return (
     <div className={`dashboard-layout ${isSidebarOpen ? "" : "dashboard-layout--collapsed"}`}>

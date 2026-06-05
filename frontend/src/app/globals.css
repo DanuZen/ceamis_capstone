@@ -383,3 +383,47 @@ a {
   transform: translateY(-4px) scale(1.02) !important;
   box-shadow: 12px 12px 0px var(--card-shadow-color) !important;
 }
+
+/* ═══════════════════════════════════════════════
+   UNIVERSAL RESPONSIVE OVERRIDES
+   ═══════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  /* Prevent horizontal overflow on tablets/laptops for large tables/panels */
+  [style*="min-width: 600px"] {
+    min-width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Override massive desktop grids to single column */
+  [style*="grid-template-columns"]:not(.quick-stats-grid) {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Make sure large flex children wrap instead of squishing */
+  [style*="min-width: 200px"],
+  [style*="min-width: 220px"],
+  [style*="min-width: 240px"],
+  [style*="min-width: 250px"],
+  [style*="min-width: 280px"],
+  [style*="min-width: 300px"],
+  [style*="min-width: 320px"],
+  [style*="min-width: 400px"],
+  [style*="450px"] {
+    min-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+
+  /* Override fixed heights (like in Planning Page) */
+  [style*="800px"] {
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Override massive desktop padding */
+  [style*="padding: 2.5rem"], 
+  [style*="padding: 3rem"], 
+  [style*="padding: 2rem"] {
+    padding: 1.25rem !important;
+  }
+}

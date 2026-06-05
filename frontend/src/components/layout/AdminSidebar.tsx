@@ -80,7 +80,7 @@ export default function AdminSidebar({ isOpen = true }: { isOpen?: boolean }) {
   };
 
   return (
-    <aside className="sidebar" style={{ background: "var(--color-navy)" }}>
+    <aside className={`sidebar ${isOpen ? "sidebar--open" : ""}`} style={{ background: "var(--color-navy)" }}>
       {/* Logo Section */}
       <div className="sidebar__logo">
         <div style={{

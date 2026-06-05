@@ -51,7 +51,13 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth > 768) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
 
   return (
     <GuestProvider>
