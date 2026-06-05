@@ -136,8 +136,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 mapped.level = local.level;
               }
             }
-            // Preserve AI-generated label from localStorage.
-            if (local.label && local.label !== defaultUser.label) {
+            // Preserve AI-generated cluster label from localStorage.
+            // We check against all known AI-generated cluster labels, not just non-default ones,
+            // to prevent the DB "Pemula" value from overwriting a valid cluster label.
+            const CLUSTER_LABELS = ["Si Impulsif", "Si Hemat", "Si Boros"];
+            if (local.label && (CLUSTER_LABELS.includes(local.label) || local.label !== defaultUser.label)) {
               mapped.label = local.label;
             }
             // Preserve avatarUrl if API doesn't have it or we want local priority
@@ -207,6 +210,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (data.avatarUrl && updated.id) {
         localStorage.setItem(`ceamis_avatar_${updated.id}`, data.avatarUrl);
       }
+
+      // Store cluster label separately whenever it's updated, so refreshUser can always restore it
+      if (data.label && data.label !== "Pemula") {
+        localStorage.setItem("ceamis_cluster_label", data.label);
+      }
       
       // Sync to API in background (avatar_url may fail if base64 is large - that's ok, we use localStorage cache)
       if (updated.id) {
@@ -226,6 +234,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const result = await usersApi.addXp(userData.id, amount);
       setUserData(prev => {
         const updated = { ...prev, xp: result.xp, level: result.level };
+        // Preserve cluster label: also re-save it separately so refreshUser can restore it
+        if (updated.label && updated.label !== "Pemula") {
+          localStorage.setItem("ceamis_cluster_label", updated.label);
+        }
         localStorage.setItem("ceamis_user", JSON.stringify(updated));
         return updated;
       });
@@ -237,6 +249,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
         const updated = newXp >= nextLevelXp
           ? { ...prev, xp: newXp - nextLevelXp, level: prev.level + 1 }
           : { ...prev, xp: newXp };
+        // Preserve cluster label
+        if (updated.label && updated.label !== "Pemula") {
+          localStorage.setItem("ceamis_cluster_label", updated.label);
+        }
         localStorage.setItem("ceamis_user", JSON.stringify(updated));
         return updated;
       });
