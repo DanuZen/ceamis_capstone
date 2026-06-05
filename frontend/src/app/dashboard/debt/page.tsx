@@ -209,15 +209,13 @@ export default function DebtPage() {
 
     if (entry.status === "lunas") return; // Cannot uncheck
 
-    if (entry.status !== "lunas") {
-      addTransaction({
-        amount: entry.amount,
-        type: entry.type === "utang" ? "pengeluaran" : "pemasukan",
-        category: entry.type === "utang" ? "Utang" : "Pemasukan Lainnya",
-        description: `${entry.type === "utang" ? "Membayar utang ke" : "Pelunasan piutang dari"} ${entry.person}`,
-      });
-      showToast("Berhasil! Transaksi tercatat otomatis di Riwayat.", "success");
-    }
+    addTransaction({
+      amount: entry.amount,
+      type: entry.type === "utang" ? "pengeluaran" : "pemasukan",
+      category: entry.type === "utang" ? "Utang" : "Pemasukan Lainnya",
+      description: `${entry.type === "utang" ? "Membayar utang ke" : "Pelunasan piutang dari"} ${entry.person}`,
+    });
+    showToast("Berhasil! Transaksi tercatat otomatis di Riwayat.", "success");
 
     setEntries(entries.map(e =>
       e.id === id
