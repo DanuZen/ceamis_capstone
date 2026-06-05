@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminNavbar from "@/components/layout/AdminNavbar";
 import "@/styles/dashboard.css";
