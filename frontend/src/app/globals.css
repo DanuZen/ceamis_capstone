@@ -103,6 +103,10 @@
   background: var(--color-lime);
 }
 
+html {
+  zoom: 0.9;
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
@@ -538,3 +542,179 @@ a {
     overflow-x: hidden;
   }
 }
+
+/* ═══════════════════════════════════════════════
+   MOBILE COMPREHENSIVE FIXES (≤768px)
+   Hanya berlaku di HP — Desktop TIDAK terpengaruh
+   ═══════════════════════════════════════════════ */
+
+/* ── Sidebar backdrop overlay (klik luar = tutup) ── */
+@media (max-width: 768px) {
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .sidebar-backdrop--visible {
+    display: block;
+  }
+
+  /* ── Profile dropdown clamp ── */
+  [style*="width: 320px"],
+  [style*="width: 280px"] {
+    width: calc(100vw - 1.5rem) !important;
+    max-width: 380px !important;
+  }
+
+  /* ── Chatbot page fix — full viewport height di mobile ── */
+  /* Prevent chatbot fixed height overflow */
+  [style*="height: calc(100vh"],
+  [style*="height:calc(100vh"] {
+    height: calc(100dvh - 60px) !important;
+    max-height: calc(100dvh - 60px) !important;
+  }
+
+  /* ── Onboarding page mobile ── */
+  /* Multi-step forms & progress bars */
+  [style*="maxWidth: 700px"],
+  [style*="max-width: 700px"],
+  [style*="maxWidth: 600px"],
+  [style*="max-width: 600px"],
+  [style*="maxWidth: 800px"],
+  [style*="max-width: 800px"] {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* ── Input focus — prevent zoom on iOS ── */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important; /* iOS doesn't zoom if ≥16px */
+  }
+
+  /* ── Fix flex rows that overflow on mobile ── */
+  [style*="flexDirection: row"],
+  [style*="flex-direction: row"] {
+    flex-wrap: wrap;
+  }
+
+  /* ── Admin pages mobile fix ── */
+  .admin-layout,
+  [class*="admin"] .dashboard-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Gamification / badges grid ── */
+  [style*="repeat(4,"] ,
+  [style*="repeat(3,"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Charts & canvas — prevent overflow ── */
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* ── Prevent long words/URLs from breaking layout ── */
+  p, span, div, td, th {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* ── Warning page alerts ── */
+  [style*="padding: 1.5rem"] {
+    padding: 1rem !important;
+  }
+
+  /* ── Education page module cards ── */
+  .module-card {
+    min-width: unset !important;
+    width: 100% !important;
+  }
+
+  /* ── Gamification leaderboard mobile ── */
+  [style*="minWidth: 600"],
+  [style*="min-width: 600"] {
+    min-width: 100% !important;
+    overflow-x: auto;
+  }
+
+  /* ── Profile page — avatar & stats ── */
+  [style*="width: 120px"][style*="height: 120px"] {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  /* ── Reports page charts ── */
+  [style*="minHeight: 300px"],
+  [style*="min-height: 300px"] {
+    min-height: 200px !important;
+  }
+
+  /* ── Sticky header inside pages ── */
+  [style*="position: sticky"][style*="top: 0"] {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 50 !important;
+  }
+
+  /* ── Transaction / history page filter bar ── */
+  [style*="gap: 1rem"][style*="flexWrap"],
+  [style*="gap: 1.5rem"][style*="flexWrap"] {
+    gap: 0.5rem !important;
+  }
+
+  /* ── Tab navigation (horizontal scroll) ── */
+  [role="tablist"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  [role="tablist"]::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── Extra small screens ≤375px ── */
+@media (max-width: 375px) {
+  .navbar {
+    padding: 0 0.625rem !important;
+  }
+
+  .dashboard-main {
+    padding: 0.75rem !important;
+  }
+
+  .card-brutal {
+    padding: 0.875rem !important;
+  }
+
+  .btn-brutal {
+    font-size: 0.75rem !important;
+    padding: 0.625rem 1rem !important;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.125rem !important;
+  }
+
+  /* Quick stats 2-column still but smaller */
+  .quick-stats-grid {
+    gap: 0.5rem !important;
+  }
+}
+
