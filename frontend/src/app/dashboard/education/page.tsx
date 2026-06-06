@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BookOpen, Award, PlayCircle, Clock, Loader2 } from "lucide-react";
+import { BookOpen, Award, PlayCircle, Clock, Loader2, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -18,6 +18,36 @@ export default function EducationPage() {
   const [activeTab, setActiveTab] = useState<"modules" | "quizzes">("modules");
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useLanguage();
+
+  const [showTipsBubble, setShowTipsBubble] = useState(true);
+  const [isClosingBubble, setIsClosingBubble] = useState(false);
+
+  // Ensure main chat is closed when landing here to prioritize insight
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-close-chat"));
+  }, []);
+
+  // Global click to close bubble
+  useEffect(() => {
+    if (!showTipsBubble || isClosingBubble) return;
+    const timer = setTimeout(() => {
+      const closeBubble = () => {
+        setIsClosingBubble(true);
+        setTimeout(() => setShowTipsBubble(false), 300);
+      };
+      window.addEventListener("click", closeBubble);
+      return () => window.removeEventListener("click", closeBubble);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [showTipsBubble, isClosingBubble]);
+
+  // Sync character pose
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-force-open", { detail: showTipsBubble && !isClosingBubble }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("cami-force-open", { detail: false }));
+    };
+  }, [showTipsBubble, isClosingBubble]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -207,7 +237,7 @@ export default function EducationPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: "1.5rem",
             }}
           >
@@ -298,7 +328,7 @@ export default function EducationPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: "1.5rem",
             }}
           >
@@ -372,6 +402,67 @@ export default function EducationPage() {
                 </Link>
               );
             })}
+          </div>
+        </>
+      )}
+
+      {/* CAMI Tips Bubble Overlay */}
+      {showTipsBubble && (
+        <>
+          <style>{`
+            @keyframes pop-bubble {
+              0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+              100% { transform: scale(1) translateY(0); opacity: 1; }
+            }
+            @keyframes pop-bubble-out {
+              0% { transform: scale(1) translateY(0); opacity: 1; }
+              100% { transform: scale(0.8) translateY(10px); opacity: 0; }
+            }
+          `}</style>
+          <div style={{
+            position: "fixed", bottom: "160px", right: "260px", zIndex: 990,
+            animation: isClosingBubble
+              ? "pop-bubble-out 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+              : "pop-bubble 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            width: "300px", cursor: "pointer", transition: "transform 0.2s"
+          }} 
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            {/* Tail Shadow */}
+            <div style={{
+              position: "absolute", bottom: "32px", right: "-20px",
+              width: "24px", height: "24px",
+              background: "var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 989,
+            }} />
+            {/* Tail Main */}
+            <div style={{
+              position: "absolute", bottom: "40px", right: "-12px",
+              width: "24px", height: "24px",
+              background: "#FFF7ED",
+              borderRight: "3px solid var(--color-navy)",
+              borderTop: "3px solid var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 991,
+            }} />
+            {/* Bubble content */}
+            <div style={{
+              position: "relative", zIndex: 990,
+              background: "#FFF7ED", border: "3px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)", padding: "1.25rem",
+              boxShadow: "6px 6px 0px var(--color-navy)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} /> INSIGHT CAMI
+                </div>
+              </div>
+              <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
+                "Tingkatkan literasi keuanganmu dengan membaca modul-modul ini. Pengetahuan adalah investasi terbaik!"
+              </p>
+            </div>
           </div>
         </>
       )}

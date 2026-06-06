@@ -222,6 +222,13 @@ const RISK_BUDGET_CONFIG: Record<string, {
   },
 };
 
+// ── Shared Risk Profile Colors ──────────────────────
+export const COLOR_MAP: Record<string, { bg: string; icon: string; text: string }> = {
+  "Konservatif": { bg: "var(--color-lime)",   icon: "var(--color-navy)",  text: "#4a7c00" },
+  "Moderat":     { bg: "var(--color-purple)", icon: "var(--color-white)", text: "var(--color-purple)" },
+  "Agresif":     { bg: "var(--color-orange)", icon: "var(--color-navy)",  text: "#b85c00" },
+};
+
 // Fallback default (Moderat)
 const DEFAULT_BUDGET: BudgetCategory[] = [
   { id: "makan", name: "Makan & Minum", type: "needs", allocated: 0, spent: 0, icon: "utensils" },
@@ -317,6 +324,38 @@ export default function PlanningPage() {
   // ── Model 3 state ──────────────────────────────────────────────────────────
   const [riskResult, setRiskResult] = useState<RiskResult | null>(null);
   const [riskLoading, setRiskLoading] = useState(false);
+
+  const [showTipsBubble, setShowTipsBubble] = useState(true);
+  const [isClosingBubble, setIsClosingBubble] = useState(false);
+
+  // Ensure main chat is closed when landing here to prioritize insight
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-close-chat"));
+  }, []);
+
+  // Global click to close bubble
+  useEffect(() => {
+    if (!showTipsBubble || isClosingBubble) return;
+    const timer = setTimeout(() => {
+      const closeBubble = () => {
+        setIsClosingBubble(true);
+        setTimeout(() => setShowTipsBubble(false), 300);
+      };
+      window.addEventListener("click", closeBubble);
+      return () => window.removeEventListener("click", closeBubble);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [showTipsBubble, isClosingBubble]);
+
+  // Sync character pose
+  useEffect(() => {
+    // Only force open if we have an insight to show
+    const shouldOpen = showTipsBubble && !isClosingBubble && !!riskResult;
+    window.dispatchEvent(new CustomEvent("cami-force-open", { detail: shouldOpen }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("cami-force-open", { detail: false }));
+    };
+  }, [showTipsBubble, isClosingBubble, riskResult]);
 
   const fetchRiskProfile = useCallback(async () => {
     setRiskLoading(true);
@@ -929,12 +968,6 @@ export default function PlanningPage() {
 
         {/* Risk Profile Card - FIRST */}
         {(() => {
-          // Inline color map — no external dependency needed
-          const COLOR_MAP: Record<string, { bg: string; icon: string; text: string }> = {
-            "Konservatif": { bg: "var(--color-lime)",   icon: "var(--color-navy)",  text: "#4a7c00" },
-            "Moderat":     { bg: "var(--color-purple)", icon: "var(--color-white)", text: "var(--color-purple)" },
-            "Agresif":     { bg: "var(--color-orange)", icon: "var(--color-navy)",  text: "#b85c00" },
-          };
           const profile = riskResult?.risk_profile ?? "";
           const colors = COLOR_MAP[profile];
           return (
@@ -964,20 +997,46 @@ export default function PlanningPage() {
         })()}
 
         {[
-          { label: t("dashboard.planning.needs"), amount: badgeNeedsRp, color: "lime", Icon: Home },
-          { label: t("dashboard.planning.wants"), amount: badgeWantsRp, color: "orange", Icon: Gamepad2 },
-          { label: t("dashboard.planning.savings"), amount: badgeSavingsRp, color: "purple", Icon: Banknote },
-        ].map((s, idx) => (
-          <div key={idx} className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem", background: "var(--color-white)", border: "3px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", transition: "transform 0.2s" }}>
-            <div style={{ background: `var(--color-${s.color})`, width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
-              <s.Icon size={24} color={s.color === "lime" ? "var(--color-navy)" : "var(--color-white)"} strokeWidth={2.5} />
+          { id: "needs", label: t("dashboard.planning.needs"), amount: badgeNeedsRp, color: "lime", Icon: Home },
+          { id: "wants", label: t("dashboard.planning.wants"), amount: badgeWantsRp, color: "orange", Icon: Gamepad2 },
+          { id: "savings", label: t("dashboard.planning.savings"), amount: badgeSavingsRp, color: "purple", Icon: Banknote },
+        ].map((s, idx) => {
+          const isActive = activeFilter === s.id;
+          const typeItems = budgetWithSpent.filter(b => b.type === s.id);
+          const hasOverBudget = typeItems.some(b => b.spent > b.allocated && b.allocated > 0);
+          const hasNearLimit = typeItems.some(b => {
+            const pct = b.allocated > 0 ? Math.round((b.spent / b.allocated) * 100) : 0;
+            return pct >= 80 && b.spent <= b.allocated;
+          });
+          const hasAnyWarning = hasOverBudget || hasNearLimit;
+
+          return (
+            <div 
+              key={idx} 
+              onClick={() => setActiveFilter(s.id as any)}
+              className="card-brutal" 
+              style={{ 
+                position: "relative", cursor: "pointer", display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem", 
+                background: isActive ? `var(--color-${s.color})` : "var(--color-white)", 
+                border: hasOverBudget ? "3px solid #e74c3c" : "3px solid var(--color-navy)", 
+                boxShadow: hasOverBudget ? "4px 4px 0px #e74c3c" : isActive ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)", 
+                transform: isActive ? "translate(-2px, -2px)" : "none", 
+                borderRadius: "var(--radius-brutal-sm)", transition: "all 0.2s" 
+              }}
+            >
+              <div style={{ background: isActive ? "var(--color-white)" : `var(--color-${s.color})`, width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
+                <s.Icon size={24} color={isActive ? "var(--color-navy)" : s.color === "lime" ? "var(--color-navy)" : "var(--color-white)"} strokeWidth={2.5} />
+              </div>
+              <div style={{ overflow: "hidden" }}>
+                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: isActive && s.color !== "lime" && s.color !== "orange" ? "var(--color-white)" : "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{formatRp(s.amount)}</div>
+                <div style={{ fontSize: "0.85rem", color: isActive && s.color !== "lime" && s.color !== "orange" ? "var(--color-white)" : isActive ? "var(--color-navy)" : "var(--color-text-muted)", fontWeight: 700 }}>{s.label}</div>
+              </div>
+              {hasAnyWarning && (
+                <span style={{ position: "absolute", top: "-6px", right: "-6px", width: "16px", height: "16px", borderRadius: "50%", background: hasOverBudget ? "#e74c3c" : "#e67e22", border: "2px solid var(--color-white)", boxShadow: "0 0 0 2px " + (hasOverBudget ? "#e74c3c" : "#e67e22"), animation: "pulse-border 1.2s ease-in-out infinite", display: "flex", alignItems: "center", justifyContent: "center" }} title={hasOverBudget ? (t("dashboard.planning.overBudgetWarning") || "Over budget!") : (t("dashboard.planning.approachingLimit") || "Approaching limit")} />
+              )}
             </div>
-            <div style={{ overflow: "hidden" }}>
-              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{formatRp(s.amount)}</div>
-              <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>{s.label}</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
       </div>
 
@@ -986,76 +1045,9 @@ export default function PlanningPage() {
         {/* ── Sidebar (Left) ──────────────────────────────────────── */}
         <div style={{ flex: "1 1 calc(75% - 0.3125rem)", minWidth: "320px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 2 }}>
           {/* ── BUDGET VIEW ────────────────────── */}
-          <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "800px", maxHeight: "800px", display: "flex", flexDirection: "column" }}>
+          <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", minHeight: "650px", flex: 1, display: "flex", flexDirection: "column" }}>
             
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <div style={{ width: "36px", height: "36px", background: "var(--color-bg)", borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                  <Target size={20} color="var(--color-navy)" strokeWidth={2.5} />
-                </div>
-                {t("dashboard.planning.categoryBudget")}
-              </h3>
-              
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                {[
-                  { id: "needs", label: "Needs", icon: Home, color: "lime" },
-                  { id: "wants", label: "Wants", icon: Gamepad2, color: "orange" },
-                  { id: "savings", label: "Save", icon: Banknote, color: "purple" }
-                ].map((item) => {
-                  const typeItems = budgetWithSpent.filter(b => b.type === item.id);
-                  const hasOverBudget = typeItems.some(b => b.spent > b.allocated && b.allocated > 0);
-                  const hasNearLimit = typeItems.some(b => {
-                    const pct = b.allocated > 0 ? Math.round((b.spent / b.allocated) * 100) : 0;
-                    return pct >= 80 && b.spent <= b.allocated;
-                  });
-                  const hasAnyWarning = hasOverBudget || hasNearLimit;
 
-                  return (
-                    <button 
-                      key={item.id}
-                      onClick={() => setActiveFilter(item.id as any)}
-                      className="btn-brutal"
-                      style={{ 
-                        position: "relative",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        padding: "0.6rem 1.25rem", 
-                        borderRadius: "var(--radius-brutal-sm)", 
-                        background: activeFilter === item.id ? `var(--color-${item.color})` : "var(--color-white)",
-                        color: activeFilter === item.id && item.color !== "lime" && item.color !== "orange" ? "var(--color-white)" : "var(--color-navy)",
-                        fontWeight: 900, fontSize: "0.95rem",
-                        border: hasOverBudget ? "2.5px solid #e74c3c" : "2.5px solid var(--color-navy)",
-                        boxShadow: hasOverBudget 
-                          ? "4px 4px 0px #e74c3c"
-                          : activeFilter === item.id ? `4px 4px 0px var(--color-navy)` : "2px 2px 0px var(--color-navy)",
-                        transform: activeFilter === item.id ? "translate(-2px, -2px)" : "none",
-                        transition: "all 0.2s"
-                      }}
-                    >
-                      <item.icon size={16} /> {item.label}
-                      {hasAnyWarning && (
-                        <span style={{
-                          position: "absolute",
-                          top: "-6px",
-                          right: "-6px",
-                          width: "14px",
-                          height: "14px",
-                          borderRadius: "50%",
-                          background: hasOverBudget ? "#e74c3c" : "#e67e22",
-                          border: "2px solid var(--color-white)",
-                          boxShadow: "0 0 0 2px " + (hasOverBudget ? "#e74c3c" : "#e67e22"),
-                          animation: "pulse-border 1.2s ease-in-out infinite",
-                          display: "flex", alignItems: "center", justifyContent: "center"
-                        }} title={hasOverBudget 
-                          ? (t("dashboard.planning.overBudgetWarning") || "Over budget!") 
-                          : (t("dashboard.planning.approachingLimit") || "Approaching limit")} />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
             
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
               <div>
@@ -1067,14 +1059,6 @@ export default function PlanningPage() {
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
                       {t("dashboard.planning.needs") || "Kebutuhan"}
                     </h3>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                      <div style={{ background: "var(--color-lime)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                        {badgeNeeds}%
-                      </div>
-                      <div style={{ background: "var(--color-bg)", padding: "0.2rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                        {formatRp(badgeNeedsRp)}
-                      </div>
-                    </div>
                   </div>
                 )}
                 {activeFilter === "wants" && (
@@ -1085,14 +1069,6 @@ export default function PlanningPage() {
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
                       {t("dashboard.transactions.wants") || "Keinginan"}
                     </h3>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                      <div style={{ background: "var(--color-orange)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                        {badgeWants}%
-                      </div>
-                      <div style={{ background: "var(--color-bg)", padding: "0.2rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                        {formatRp(badgeWantsRp)}
-                      </div>
-                    </div>
                   </div>
                 )}
                 {activeFilter === "savings" && (
@@ -1103,14 +1079,6 @@ export default function PlanningPage() {
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
                       {t("dashboard.transactions.save")}
                     </h3>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                      <div style={{ background: "var(--color-purple)", padding: "0.2rem 0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-white)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                        {badgeSavings}%
-                      </div>
-                      <div style={{ background: "var(--color-bg)", padding: "0.2rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                        {formatRp(badgeSavingsRp)}
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
@@ -1232,23 +1200,32 @@ export default function PlanningPage() {
             border: "4px solid var(--color-navy)",
             boxShadow: "8px 8px 0px var(--color-navy)",
             padding: 0,
-            height: "800px",
-            maxHeight: "800px",
+            minHeight: "650px",
+            flex: 1,
             display: "flex",
             flexDirection: "column"
           }}>
             {/* Card Header */}
-            <div style={{ padding: "1.5rem 2rem", background: "var(--color-purple)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", borderBottom: "4px solid var(--color-navy)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                <div style={{ width: "48px", height: "48px", background: "var(--color-lime)", borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                  <Brain size={28} color="var(--color-navy)" strokeWidth={2.5} />
+            {(() => {
+              const profile = riskResult?.risk_profile ?? "";
+              const colors = COLOR_MAP[profile];
+              return (
+                <div style={{ padding: "1.5rem 2rem", background: "var(--color-purple)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", borderBottom: "4px solid var(--color-navy)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                    <div style={{ 
+                      background: colors ? colors.bg : "var(--color-lime)",
+                      width: "48px", height: "48px", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0
+                    }}>
+                      <Brain size={24} color={colors ? colors.icon : "var(--color-navy)"} strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>{t("dashboard.planning.riskProfileTitle")}</div>
+                      <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>{t("dashboard.planning.riskProfileSubtitle") || "Model 3 · Risk Profile Classifier"}</div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>{t("dashboard.planning.riskProfileTitle")}</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>{t("dashboard.planning.riskProfileSubtitle") || "Model 3 · Risk Profile Classifier"}</div>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Loading */}
             {riskLoading && (
@@ -1288,16 +1265,6 @@ export default function PlanningPage() {
                         );
                       })}
                     </div>
-
-                    <div style={{ background: "var(--color-white)", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal)", padding: "1.5rem", boxShadow: "6px 6px 0px var(--color-navy)", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-                      <div style={{ background: info.color, padding: "0.5rem", borderRadius: "8px", border: "2px solid var(--color-navy)", flexShrink: 0 }}>
-                        <Sparkles size={24} color={info.accentColor} />
-                      </div>
-                      <div>
-                        <h4 style={{ margin: "0 0 0.5rem 0", fontFamily: "var(--font-heading)", fontWeight: 900, color: "var(--color-navy)", fontSize: "1.1rem" }}>{t("dashboard.planning.aiSuggestionLabel")}</h4>
-                        <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.6, color: "var(--color-navy)", fontWeight: 600 }}>{riskResult.suggestion}</p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               );
@@ -1325,6 +1292,67 @@ export default function PlanningPage() {
           
         </div>
       </div>
+
+      {/* CAMI Tips Bubble Overlay */}
+      {showTipsBubble && riskResult && !riskLoading && (
+        <>
+          <style>{`
+            @keyframes pop-bubble {
+              0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+              100% { transform: scale(1) translateY(0); opacity: 1; }
+            }
+            @keyframes pop-bubble-out {
+              0% { transform: scale(1) translateY(0); opacity: 1; }
+              100% { transform: scale(0.8) translateY(10px); opacity: 0; }
+            }
+          `}</style>
+          <div style={{
+            position: "fixed", bottom: "160px", right: "260px", zIndex: 990,
+            animation: isClosingBubble
+              ? "pop-bubble-out 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+              : "pop-bubble 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            width: "300px", cursor: "pointer", transition: "transform 0.2s"
+          }} 
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            {/* Tail Shadow */}
+            <div style={{
+              position: "absolute", bottom: "32px", right: "-20px",
+              width: "24px", height: "24px",
+              background: "var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 989,
+            }} />
+            {/* Tail Main */}
+            <div style={{
+              position: "absolute", bottom: "40px", right: "-12px",
+              width: "24px", height: "24px",
+              background: "#FFF7ED",
+              borderRight: "3px solid var(--color-navy)",
+              borderTop: "3px solid var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 991,
+            }} />
+            {/* Bubble content */}
+            <div style={{
+              position: "relative", zIndex: 990,
+              background: "#FFF7ED", border: "3px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)", padding: "1.25rem",
+              boxShadow: "6px 6px 0px var(--color-navy)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} /> INSIGHT CAMI
+                </div>
+              </div>
+              <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
+                "{riskResult.suggestion.replace(/^"|"$/g, '')}"
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 

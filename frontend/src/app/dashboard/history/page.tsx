@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -13,6 +13,36 @@ export default function HistoryPage() {
   const [filter, setFilter] = useState<"semua" | "pemasukan" | "pengeluaran">("semua");
   const { transactions } = useTransactions();
   const { t } = useLanguage();
+
+  const [showTipsBubble, setShowTipsBubble] = useState(true);
+  const [isClosingBubble, setIsClosingBubble] = useState(false);
+
+  // Ensure main chat is closed when landing here to prioritize insight
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-close-chat"));
+  }, []);
+
+  // Global click to close bubble
+  useEffect(() => {
+    if (!showTipsBubble || isClosingBubble) return;
+    const timer = setTimeout(() => {
+      const closeBubble = () => {
+        setIsClosingBubble(true);
+        setTimeout(() => setShowTipsBubble(false), 300); // Wait for animation
+      };
+      window.addEventListener("click", closeBubble);
+      return () => window.removeEventListener("click", closeBubble);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [showTipsBubble, isClosingBubble]);
+
+  // Sync character pose
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-force-open", { detail: showTipsBubble && !isClosingBubble }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("cami-force-open", { detail: false }));
+    };
+  }, [showTipsBubble, isClosingBubble]);
 
   const filteredTransactions = transactions.filter(tx => {
     if (filter !== "semua" && tx.type !== filter) return false;
@@ -77,9 +107,9 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
       {/* Top Row: 4 Stats Cards */}
-      <div className="stagger-children" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2.5rem" }}>
+      <div className="stagger-children" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "1rem" }}>
         <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
           <div style={{ background: "var(--color-lime)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
             <TrendingUp size={24} color="var(--color-navy)" strokeWidth={2.5} />
@@ -121,10 +151,10 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "2rem", alignItems: "stretch" }}>
+      <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
         {/* Main List Area (Left) */}
-        <div style={{ flex: "1 1 65%", minWidth: "300px" }}>
-          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "100%", minHeight: "60vh" }}>
+        <div style={{ flex: "1 1 65%", minWidth: "300px", display: "flex", flexDirection: "column" }}>
+          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", minHeight: "650px", flex: 1, display: "flex", flexDirection: "column" }}>
             
             {/* Header List & Filters */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
@@ -174,7 +204,7 @@ export default function HistoryPage() {
             </div>
 
             {/* Transaction List */}
-            <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="stagger-children no-scrollbar" style={{ display: "flex", flexDirection: "column", gap: "1rem", flex: 1, overflowY: "auto", paddingRight: "0.5rem" }}>
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((tx) => (
                   <div
@@ -240,8 +270,8 @@ export default function HistoryPage() {
         </div>
 
         {/* Sidebar Info (Right) */}
-        <div style={{ flex: "1 1 25%", minWidth: "280px" }}>
-          <div className="card-brutal" style={{ padding: "1.5rem", background: "var(--color-white)", height: "100%", minHeight: "60vh", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: "1 1 25%", minWidth: "280px", display: "flex", flexDirection: "column" }}>
+          <div className="card-brutal" style={{ padding: "1.5rem", background: "var(--color-white)", minHeight: "650px", flex: 1, display: "flex", flexDirection: "column", border: "4px solid var(--color-navy)", boxShadow: "8px 8px 0px var(--color-navy)" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem", fontWeight: 900 }}>
               <div style={{
                 width: "40px", height: "40px", background: "var(--color-purple)", border: "2.5px solid var(--color-navy)",
@@ -270,17 +300,73 @@ export default function HistoryPage() {
             </div>
 
             <div style={{ marginTop: "auto", paddingTop: "2rem" }}>
-              <div style={{ padding: "1.25rem", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
-                <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: 900 }}>{t("dashboard.history.aiInsight")}</h4>
-                <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.4, fontWeight: 500 }}>
-                  {t("dashboard.history.mockInsight")}
-                </p>
-              </div>
+              {/* Insight box removed, replaced by CAMI bubble */}
             </div>
           </div>
         </div>
       </div>
       </div>
+
+      {/* CAMI Tips Bubble Overlay */}
+      {showTipsBubble && (
+        <>
+          <style>{`
+            @keyframes pop-bubble {
+              0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+              100% { transform: scale(1) translateY(0); opacity: 1; }
+            }
+            @keyframes pop-bubble-out {
+              0% { transform: scale(1) translateY(0); opacity: 1; }
+              100% { transform: scale(0.8) translateY(10px); opacity: 0; }
+            }
+          `}</style>
+          <div style={{
+            position: "fixed", bottom: "160px", right: "260px", zIndex: 990,
+            animation: isClosingBubble
+              ? "pop-bubble-out 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+              : "pop-bubble 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            width: "300px", cursor: "pointer", transition: "transform 0.2s"
+          }} 
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            {/* Tail Shadow */}
+            <div style={{
+              position: "absolute", bottom: "32px", right: "-20px",
+              width: "24px", height: "24px",
+              background: "var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 989,
+            }} />
+            {/* Tail Main */}
+            <div style={{
+              position: "absolute", bottom: "40px", right: "-12px",
+              width: "24px", height: "24px",
+              background: "#FFF7ED",
+              borderRight: "3px solid var(--color-navy)",
+              borderTop: "3px solid var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 991,
+            }} />
+            {/* Bubble content */}
+            <div style={{
+              position: "relative", zIndex: 990,
+              background: "#FFF7ED", border: "3px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)", padding: "1.25rem",
+              boxShadow: "6px 6px 0px var(--color-navy)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} /> {t("dashboard.history.aiInsight")}
+                </div>
+              </div>
+              <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
+                "{t("dashboard.history.mockInsight").replace(/^"|"$/g, '')}"
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

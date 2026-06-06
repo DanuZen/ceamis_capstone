@@ -105,6 +105,36 @@ export default function TransactionsPage() {
   const [type, setType]       = useState<TransactionType>("pengeluaran");
   const [tag, setTag]         = useState<"needs" | "wants" | "save">("needs");
   const [isQuickInput, setIsQuickInput] = useState(false);
+  const [showTipsBubble, setShowTipsBubble] = useState(true);
+  const [isClosingBubble, setIsClosingBubble] = useState(false);
+
+  // Ensure main chat is closed when landing here to prioritize insight
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-close-chat"));
+  }, []);
+
+  // Global click to close bubble
+  useEffect(() => {
+    if (!showTipsBubble || isClosingBubble) return;
+    const timer = setTimeout(() => {
+      const closeBubble = () => {
+        setIsClosingBubble(true);
+        setTimeout(() => setShowTipsBubble(false), 300); // Wait for animation
+      };
+      window.addEventListener("click", closeBubble);
+      return () => window.removeEventListener("click", closeBubble);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [showTipsBubble, isClosingBubble]);
+
+  // Sync character pose
+  useEffect(() => {
+    // If showTipsBubble is true and we are not currently closing it, tell CAMI to open her mouth
+    window.dispatchEvent(new CustomEvent("cami-force-open", { detail: showTipsBubble && !isClosingBubble }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("cami-force-open", { detail: false }));
+    };
+  }, [showTipsBubble, isClosingBubble]);
 
   const CATEGORY_OPTIONS = {
     pemasukan: [t("dashboard.transactions.catSalary"), t("dashboard.transactions.catBonus"), t("dashboard.transactions.catBusiness"), t("dashboard.transactions.catOther")],
@@ -289,9 +319,9 @@ export default function TransactionsPage() {
   const clusterAccentColor = CLUSTER_COLORS[cluster.cluster_label] ?? "var(--color-lime)";
 
   return (
-    <div style={{ paddingBottom: "3rem" }}>
+    <div style={{ paddingBottom: "1.5rem" }}>
       {/* Header */}
-      <div style={{ marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
+      <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
         <div style={{
           width: "72px", height: "72px", background: "var(--color-lime)",
           borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
@@ -312,7 +342,7 @@ export default function TransactionsPage() {
 
       {/* ── Model 2: Spending Cluster Insight Card ─────────────────────────── */}
       <div className="card-brutal animate-bounce-in" style={{
-        padding: "1.5rem", marginBottom: "2rem",
+        padding: "1.5rem", marginBottom: "1rem",
         background: "var(--color-white)", color: "var(--color-navy)",
         border: "4px solid var(--color-navy)", boxShadow: "8px 8px 0px var(--color-navy)",
         position: "relative", overflow: "hidden",
@@ -399,7 +429,7 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "2.5rem", alignItems: "stretch" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
         {/* Quick Input Section */}
         <div className="animate-slide-up" style={{ flex: "1 1 300px", maxWidth: "100%", animationDelay: "100ms", display: "flex", flexDirection: "column" }}>
           <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column", flex: 1 }}>
@@ -461,12 +491,7 @@ export default function TransactionsPage() {
             </div>
 
             <div style={{ marginTop: "auto", paddingTop: "2rem", width: "100%" }}>
-              <div style={{ padding: "1.25rem", background: "var(--color-bg)", border: "3px solid var(--color-navy)", boxShadow: "4px 4px 0px var(--color-navy)", borderRadius: "var(--radius-brutal-sm)" }}>
-                <div style={{ fontSize: "0.875rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.5rem" }}>{t("dashboard.transactions.tipsTitle")}</div>
-                <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.4 }}>
-                  {t("dashboard.transactions.tipsDesc")}
-                </p>
-              </div>
+              {/* Tempat kosong bekas tips keuangan, form dibuat auto stretch */}
             </div>
           </div>
         </div>
@@ -638,6 +663,67 @@ export default function TransactionsPage() {
           </div>
         </div>
       </div>
+
+      {/* CAMI Tips Bubble Overlay */}
+      {showTipsBubble && (
+        <>
+          <style>{`
+            @keyframes pop-bubble {
+              0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+              100% { transform: scale(1) translateY(0); opacity: 1; }
+            }
+            @keyframes pop-bubble-out {
+              0% { transform: scale(1) translateY(0); opacity: 1; }
+              100% { transform: scale(0.8) translateY(10px); opacity: 0; }
+            }
+          `}</style>
+          <div style={{
+            position: "fixed", bottom: "160px", right: "260px", zIndex: 990,
+            animation: isClosingBubble
+              ? "pop-bubble-out 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+              : "pop-bubble 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            width: "300px", cursor: "pointer", transition: "transform 0.2s"
+          }} 
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            {/* Tail Shadow */}
+            <div style={{
+              position: "absolute", bottom: "32px", right: "-20px",
+              width: "24px", height: "24px",
+              background: "var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 989,
+            }} />
+            {/* Tail Main (Higher z-index to cover content border) */}
+            <div style={{
+              position: "absolute", bottom: "40px", right: "-12px",
+              width: "24px", height: "24px",
+              background: "#FFF7ED",
+              borderRight: "3px solid var(--color-navy)",
+              borderTop: "3px solid var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 991,
+            }} />
+            {/* Bubble content */}
+            <div style={{
+              position: "relative", zIndex: 990,
+              background: "#FFF7ED", border: "3px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)", padding: "1.25rem",
+              boxShadow: "6px 6px 0px var(--color-navy)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} /> {t("dashboard.transactions.tipsTitle")}
+                </div>
+              </div>
+              <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
+                "{t("dashboard.transactions.tipsDesc").replace(/^"|"$/g, '')}"
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

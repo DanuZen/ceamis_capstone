@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FileText, Download, Mail, Calendar,
   TrendingUp, TrendingDown, Wallet, PieChart,
   Filter, BarChart3, ArrowRight, FileSpreadsheet,
-  Banknote, Target, Lightbulb, Loader2
+  Banknote, Target, Lightbulb, Loader2, Sparkles
 } from "lucide-react";
 import * as XLSX from "xlsx-js-style";
 import jsPDF from "jspdf";
@@ -38,9 +38,41 @@ export default function ReportsPage() {
   const { userData } = useUser();
   const { t, language } = useLanguage();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
 
   const formatRupiah = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
+
+  const [showTipsBubble, setShowTipsBubble] = useState(true);
+  const [isClosingBubble, setIsClosingBubble] = useState(false);
+
+  // Ensure main chat is closed when landing here to prioritize insight
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-close-chat"));
+  }, []);
+
+  // Global click to close bubble
+  useEffect(() => {
+    if (!showTipsBubble || isClosingBubble) return;
+    const timer = setTimeout(() => {
+      const closeBubble = () => {
+        setIsClosingBubble(true);
+        setTimeout(() => setShowTipsBubble(false), 300); // Wait for animation
+      };
+      window.addEventListener("click", closeBubble);
+      return () => window.removeEventListener("click", closeBubble);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [showTipsBubble, isClosingBubble]);
+
+  // Sync character pose
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-force-open", { detail: showTipsBubble && !isClosingBubble }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("cami-force-open", { detail: false }));
+    };
+  }, [showTipsBubble, isClosingBubble]);
 
   // Filter transactions by selected month and year
   const currentMonthStr = MONTHS[selectedMonth];
@@ -322,130 +354,66 @@ export default function ReportsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem", marginBottom: "2.5rem" }} className="stagger-children">
-        <div className="card-brutal" style={{ padding: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
-            <div style={{
-              width: "40px", height: "40px", borderRadius: "var(--radius-brutal-sm)",
-              background: "var(--color-lime)", border: "2px solid var(--color-navy)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "2px 2px 0px var(--color-navy)",
-            }}>
-              <TrendingUp size={20} color="var(--color-navy)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>{t("dashboard.reports.income")}</span>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2.5rem" }} className="stagger-children">
+        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+          <div style={{ background: "var(--color-lime)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
+            <TrendingUp size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
-          <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)" }}>
-            {formatRupiah(MONTHLY_SUMMARY.income)}
+          <div style={{ minWidth: 0, overflow: "hidden" }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {formatRupiah(MONTHLY_SUMMARY.income)}
+            </div>
+            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {t("dashboard.reports.income")}
+            </div>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ padding: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
-            <div style={{
-              width: "40px", height: "40px", borderRadius: "var(--radius-brutal-sm)",
-              background: "var(--color-orange)", border: "2px solid var(--color-navy)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "2px 2px 0px var(--color-navy)",
-            }}>
-              <TrendingDown size={20} color="var(--color-navy)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>{t("dashboard.reports.expense")}</span>
+        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+          <div style={{ background: "var(--color-orange)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
+            <TrendingDown size={24} color="var(--color-navy)" strokeWidth={2.5} />
           </div>
-          <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)" }}>
-            {formatRupiah(MONTHLY_SUMMARY.expense)}
+          <div style={{ minWidth: 0, overflow: "hidden" }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {formatRupiah(MONTHLY_SUMMARY.expense)}
+            </div>
+            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {t("dashboard.reports.expense")}
+            </div>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ padding: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
-            <div style={{
-              width: "40px", height: "40px", borderRadius: "var(--radius-brutal-sm)",
-              background: "var(--color-purple)", border: "2px solid var(--color-navy)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "2px 2px 0px var(--color-navy)",
-            }}>
-              <Wallet size={20} color="var(--color-white)" strokeWidth={2.5} />
+        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+          <div style={{ background: "var(--color-purple)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
+            <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
+          </div>
+          <div style={{ minWidth: 0, overflow: "hidden" }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {formatRupiah(MONTHLY_SUMMARY.savings)}
             </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>{t("dashboard.reports.savings")}</span>
-          </div>
-          <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)" }}>
-            {formatRupiah(MONTHLY_SUMMARY.savings)}
-          </div>
-          <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-purple)", marginTop: "0.25rem" }}>
-            {MONTHLY_SUMMARY.savingsRate}% {t("dashboard.reports.savingsRate")}
+            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {t("dashboard.reports.savings")}
+            </div>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ padding: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
-            <div style={{
-              width: "40px", height: "40px", borderRadius: "var(--radius-brutal-sm)",
-              background: "var(--color-white)", border: "2px solid var(--color-navy)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "2px 2px 0px var(--color-navy)",
-            }}>
-              <BarChart3 size={20} color="var(--color-navy)" strokeWidth={2.5} />
+        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
+          <div style={{ background: "var(--color-white)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
+            <BarChart3 size={24} color="var(--color-navy)" strokeWidth={2.5} />
+          </div>
+          <div style={{ minWidth: 0, overflow: "hidden" }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {MONTHLY_SUMMARY.transactions} Trx
             </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)" }}>{t("dashboard.reports.transactions")}</span>
-          </div>
-          <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 800, color: "var(--color-navy)" }}>
-            {MONTHLY_SUMMARY.transactions}
-          </div>
-          <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
-            {t("dashboard.reports.totalRecords")}
+            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {t("dashboard.reports.totalRecords")}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Month Selector */}
-      <div className="card-brutal" style={{ marginBottom: "2.5rem", padding: "1.5rem", background: "var(--color-white)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-navy)" }}>
-            <div style={{ background: "var(--color-lime)", border: "2.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", padding: "0.4rem", boxShadow: "2px 2px 0px var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Calendar size={20} color="var(--color-navy)" strokeWidth={2.5} />
-            </div>
-            {t("dashboard.reports.period")}: <span style={{ color: "var(--color-purple)", fontWeight: 900 }}>{t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}</span>
-          </h2>
-          <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-muted)" }}>
-            Pilih bulan laporan
-          </div>
-        </div>
 
-        <div style={{ 
-          display: "flex", 
-          overflowX: "auto", 
-          gap: "0.75rem",
-          padding: "0.25rem",
-          width: "100%",
-          scrollbarWidth: "none", /* Firefox */
-          msOverflowStyle: "none",  /* IE and Edge */
-        }} className="no-scrollbar">
-          {MONTHS.map((month, idx) => (
-            <button key={month} onClick={() => setSelectedMonth(idx)} style={{
-              flex: "1 0 auto",
-              padding: "0.75rem 1.5rem", 
-              fontSize: "0.9rem", 
-              fontWeight: 800,
-              background: selectedMonth === idx ? "var(--color-purple)" : "var(--color-white)",
-              color: selectedMonth === idx ? "var(--color-white)" : "var(--color-navy)",
-              border: "3px solid var(--color-navy)",
-              borderRadius: "var(--radius-brutal-sm)",
-              cursor: "pointer",
-              boxShadow: selectedMonth === idx ? "none" : "3px 3px 0px var(--color-navy)",
-              transform: selectedMonth === idx ? "translate(3px, 3px)" : "none",
-              transition: "all 0.1s",
-              textTransform: "uppercase"
-            }}
-            onMouseEnter={(e) => { if(selectedMonth !== idx) { e.currentTarget.style.transform = "translate(-1px, -1px)"; e.currentTarget.style.boxShadow = "4px 4px 0px var(--color-navy)"; } }}
-            onMouseLeave={(e) => { if(selectedMonth !== idx) { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "3px 3px 0px var(--color-navy)"; } }}>
-              {t(`dashboard.reports.months.${month}`).slice(0, 3)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem", alignItems: "stretch" }}>
         {/* Income Category Breakdown */}
         <div className="card-brutal" style={{ padding: "2rem" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -523,13 +491,103 @@ export default function ReportsPage() {
         </div>
 
         {/* Report Preview / Email Preview */}
-        <div className="card-brutal" style={{ padding: "2rem", background: "var(--color-navy)", color: "var(--color-white)" }}>
-          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 0.75rem 0", display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-white)" }}>
-            <div style={{ background: "var(--color-lime)", borderRadius: "6px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Mail size={18} color="var(--color-navy)" />
+        <div className="card-brutal" style={{ padding: "2rem", background: "var(--color-navy)", color: "var(--color-white)", display: "flex", flexDirection: "column" }}>
+          {/* Period Selector inside header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem", marginBottom: "0.75rem" }}>
+            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-white)" }}>
+              <div style={{ background: "var(--color-lime)", borderRadius: "6px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Mail size={18} color="var(--color-navy)" />
+              </div>
+              {t("dashboard.reports.emailPreviewTitle")}
+            </h3>
+            {/* Compact dropdowns */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              {/* Month Dropdown */}
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => { setIsMonthDropdownOpen(p => !p); setIsYearDropdownOpen(false); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "0.35rem",
+                    padding: "0.35rem 0.75rem", fontFamily: "var(--font-heading)", fontWeight: 800,
+                    fontSize: "0.8rem", background: "var(--color-lime)", color: "var(--color-navy)",
+                    border: "2.5px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
+                    boxShadow: "2px 2px 0px rgba(0,0,0,0.3)", cursor: "pointer",
+                  }}
+                >
+                  {t(`dashboard.reports.months.${MONTHS[selectedMonth]}`).slice(0, 3).toUpperCase()}
+                  <span style={{ fontSize: "0.55rem" }}>▼</span>
+                </button>
+                {isMonthDropdownOpen && (
+                  <div style={{
+                    position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 200,
+                    background: "var(--color-white)", border: "3px solid var(--color-navy)",
+                    borderRadius: "var(--radius-brutal-sm)", boxShadow: "6px 6px 0px var(--color-navy)",
+                    display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+                    minWidth: "200px", overflow: "hidden"
+                  }}>
+                    {MONTHS.map((month, idx) => (
+                      <button key={month} onClick={() => { setSelectedMonth(idx); setIsMonthDropdownOpen(false); }}
+                        style={{
+                          padding: "0.55rem 0.5rem", fontSize: "0.75rem", fontWeight: 800,
+                          fontFamily: "var(--font-heading)",
+                          background: selectedMonth === idx ? "var(--color-purple)" : "var(--color-white)",
+                          color: selectedMonth === idx ? "var(--color-white)" : "var(--color-navy)",
+                          border: "none", borderRight: "2px solid var(--color-navy)",
+                          borderBottom: "2px solid var(--color-navy)",
+                          cursor: "pointer", textTransform: "uppercase"
+                        }}
+                        onMouseEnter={e => { if (selectedMonth !== idx) e.currentTarget.style.background = "var(--color-bg)"; }}
+                        onMouseLeave={e => { if (selectedMonth !== idx) e.currentTarget.style.background = "var(--color-white)"; }}
+                      >
+                        {t(`dashboard.reports.months.${month}`).slice(0, 3)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Year Dropdown */}
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => { setIsYearDropdownOpen(p => !p); setIsMonthDropdownOpen(false); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "0.35rem",
+                    padding: "0.35rem 0.75rem", fontFamily: "var(--font-heading)", fontWeight: 800,
+                    fontSize: "0.8rem", background: "rgba(255,255,255,0.15)", color: "var(--color-white)",
+                    border: "2.5px solid rgba(255,255,255,0.5)", borderRadius: "var(--radius-brutal-sm)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {selectedYear}
+                  <span style={{ fontSize: "0.55rem", opacity: 0.7 }}>▼</span>
+                </button>
+                {isYearDropdownOpen && (
+                  <div style={{
+                    position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 200,
+                    background: "var(--color-white)", border: "3px solid var(--color-navy)",
+                    borderRadius: "var(--radius-brutal-sm)", boxShadow: "6px 6px 0px var(--color-navy)",
+                    overflow: "hidden", minWidth: "90px"
+                  }}>
+                    {[new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2].map(yr => (
+                      <button key={yr} onClick={() => { setSelectedYear(yr); setIsYearDropdownOpen(false); }}
+                        style={{
+                          display: "block", width: "100%", padding: "0.55rem 1rem",
+                          fontSize: "0.85rem", fontWeight: 800, fontFamily: "var(--font-heading)",
+                          background: selectedYear === yr ? "var(--color-purple)" : "var(--color-white)",
+                          color: selectedYear === yr ? "var(--color-white)" : "var(--color-navy)",
+                          border: "none", borderBottom: "2px solid var(--color-navy)",
+                          cursor: "pointer", textAlign: "left"
+                        }}
+                        onMouseEnter={e => { if (selectedYear !== yr) e.currentTarget.style.background = "var(--color-bg)"; }}
+                        onMouseLeave={e => { if (selectedYear !== yr) e.currentTarget.style.background = "var(--color-white)"; }}
+                      >
+                        {yr}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            {t("dashboard.reports.emailPreviewTitle")}
-          </h3>
+          </div>
           <p style={{ fontSize: "0.875rem", color: "var(--color-white)", marginBottom: "1.5rem", fontWeight: 600, lineHeight: 1.5 }}>
             {t("dashboard.reports.emailPreviewDesc")}
           </p>
@@ -566,12 +624,6 @@ export default function ReportsPage() {
                   <span style={{ fontWeight: 900, color: "var(--color-purple)", fontSize: "1rem" }}>{formatRupiah(MONTHLY_SUMMARY.savings)}</span>
                 </div>
               </div>
-              <div style={{ marginTop: "1rem", padding: "0.75rem", background: "var(--color-bg)", borderRadius: "8px", border: "1.5px dashed var(--color-navy)", fontSize: "0.8rem" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem" }}>
-                  <Lightbulb size={14} color="var(--color-navy)" style={{ flexShrink: 0, marginTop: "2px" }} />
-                  <span><strong>Insight:</strong> {CATEGORY_DATA.length > 0 ? `${t("dashboard.reports.insightMsgPrefix")} ${MONTHLY_SUMMARY.topCategory} ${t("dashboard.reports.insightMsgSuffix")} (${CATEGORY_DATA[0]?.percentage}%).` : t("dashboard.reports.insightMsgEmpty")}</span>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -589,6 +641,67 @@ export default function ReportsPage() {
           </button>
         </div>
       </div>
+
+      {/* CAMI Tips Bubble Overlay */}
+      {showTipsBubble && (
+        <>
+          <style>{`
+            @keyframes pop-bubble {
+              0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+              100% { transform: scale(1) translateY(0); opacity: 1; }
+            }
+            @keyframes pop-bubble-out {
+              0% { transform: scale(1) translateY(0); opacity: 1; }
+              100% { transform: scale(0.8) translateY(10px); opacity: 0; }
+            }
+          `}</style>
+          <div style={{
+            position: "fixed", bottom: "160px", right: "260px", zIndex: 990,
+            animation: isClosingBubble
+              ? "pop-bubble-out 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+              : "pop-bubble 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            width: "300px", cursor: "pointer", transition: "transform 0.2s"
+          }} 
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            {/* Tail Shadow */}
+            <div style={{
+              position: "absolute", bottom: "32px", right: "-20px",
+              width: "24px", height: "24px",
+              background: "var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 989,
+            }} />
+            {/* Tail Main */}
+            <div style={{
+              position: "absolute", bottom: "40px", right: "-12px",
+              width: "24px", height: "24px",
+              background: "#FFF7ED",
+              borderRight: "3px solid var(--color-navy)",
+              borderTop: "3px solid var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 991,
+            }} />
+            {/* Bubble content */}
+            <div style={{
+              position: "relative", zIndex: 990,
+              background: "#FFF7ED", border: "3px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)", padding: "1.25rem",
+              boxShadow: "6px 6px 0px var(--color-navy)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} /> INSIGHT CAMI
+                </div>
+              </div>
+              <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
+                "{CATEGORY_DATA.length > 0 ? `${t("dashboard.reports.insightMsgPrefix")} ${MONTHLY_SUMMARY.topCategory} ${t("dashboard.reports.insightMsgSuffix")} (${CATEGORY_DATA[0]?.percentage}%).` : t("dashboard.reports.insightMsgEmpty").replace(/^"|"$/g, '')}"
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

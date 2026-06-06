@@ -333,28 +333,6 @@ export default function RegisterPage() {
         }}
       >
         <div style={{ width: "100%", maxWidth: 420 }}>
-          {/* Logo Mobile Only */}
-          <div className="mobile-logo" style={{ marginBottom: "1.5rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none" }}>
-              <img
-                src="/images/logo_color.png"
-                alt="CEAMIS Logo"
-                style={{
-                  width: 52, height: 52,
-                  background: "var(--color-white)",
-                  border: "3px solid var(--color-navy)",
-                  borderRadius: "var(--radius-brutal-sm)",
-                  boxShadow: "3px 3px 0px var(--color-navy)",
-                  objectFit: "contain",
-                  padding: "4px"
-                }}
-              />
-              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "2rem", color: "var(--color-text)" }}>
-                CEAMIS
-              </span>
-            </div>
-          </div>
-
           {/* Header */}
           <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", marginBottom: "0.5rem", color: "var(--color-navy)", fontWeight: 900 }}>

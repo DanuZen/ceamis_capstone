@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
+import FloatingChatWidget from "@/components/layout/FloatingChatWidget";
 import { TransactionProvider } from "@/context/TransactionContext";
 import { UserProvider, useUser } from "@/context/UserContext";
 import { GuestProvider, useGuest } from "@/context/GuestContext";
@@ -70,6 +71,7 @@ export default function DashboardLayout({
                 <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isOpen={isSidebarOpen} />
                 <main className="dashboard-main">{children}</main>
               </div>
+              <FloatingChatWidget />
             </div>
           </OnboardingGuard>
         </TransactionProvider>

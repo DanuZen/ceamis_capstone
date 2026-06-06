@@ -39,6 +39,38 @@ export default function DashboardPage() {
   const [insight, setInsight] = useState<string | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
 
+  const [showTipsBubble, setShowTipsBubble] = useState(true);
+  const [isClosingBubble, setIsClosingBubble] = useState(false);
+
+  // Ensure main chat is closed when landing here to prioritize insight
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("cami-close-chat"));
+  }, []);
+
+  // Global click to close bubble
+  useEffect(() => {
+    if (!showTipsBubble || isClosingBubble) return;
+    const timer = setTimeout(() => {
+      const closeBubble = () => {
+        setIsClosingBubble(true);
+        setTimeout(() => setShowTipsBubble(false), 300);
+      };
+      window.addEventListener("click", closeBubble);
+      return () => window.removeEventListener("click", closeBubble);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [showTipsBubble, isClosingBubble]);
+
+  // Sync character pose
+  useEffect(() => {
+    // Only force open if we have an insight to show
+    const shouldOpen = showTipsBubble && !isClosingBubble && !!insight;
+    window.dispatchEvent(new CustomEvent("cami-force-open", { detail: shouldOpen }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("cami-force-open", { detail: false }));
+    };
+  }, [showTipsBubble, isClosingBubble, insight]);
+
   useEffect(() => {
     const fetchInsight = async () => {
       setLoadingInsight(true);
@@ -221,33 +253,6 @@ export default function DashboardPage() {
       <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "2rem", marginBottom: "3rem" }}>
         {/* Main Content Area */}
         <div style={{ flex: "1 1 60%", minWidth: "300px" }}>
-          {/* AI Insight Card */}
-          <div className="card-brutal landing-edukasi__card--lime animate-bounce-in" style={{ marginBottom: "2.5rem", padding: "1.5rem", position: "relative", overflow: "hidden", background: "var(--color-lime)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "1.25rem", position: "relative", zIndex: 2 }}>
-              <div className="landing-edukasi__icon-box" style={{ background: "var(--color-lime)", color: "var(--color-navy)", width: "64px", height: "64px", minWidth: "64px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "3px 3px 0px var(--color-navy)" }}>
-                <Bot size={32} strokeWidth={2.5} />
-              </div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: 0, color: "var(--color-navy)" }}>
-                    {t("dashboard.insightTitle")}
-                  </h3>
-                  <div className="badge-brutal badge-brutal--purple" style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}>{t("dashboard.aiConfidence") || "AI Confidence"}: 89%</div>
-                </div>
-                <p style={{ fontSize: "1.0625rem", lineHeight: 1.6, marginBottom: "1.25rem", color: "var(--color-navy)", fontWeight: 600 }}>
-                  {loadingInsight ? t("dashboard.transactions?.analyzing") || "Sedang menganalisis pola keuanganmu..." : (insight || t("dashboard.insightDesc"))}
-                </p>
-                <button className="btn-brutal btn-brutal--sm" style={{ background: "var(--color-navy)", color: "var(--color-white)", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
-                  {t("dashboard.viewDetails")} <ArrowRight size={16} />
-                </button>
-              </div>
-            </div>
-            {/* Decoration */}
-            <div style={{ position: "absolute", top: "-20px", right: "-20px", opacity: 0.15, transform: "rotate(15deg)", zIndex: 1 }}>
-              <Sparkles size={160} color="var(--color-navy)" />
-            </div>
-          </div>
-
           {/* Feature Cards Grid */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
             <h2
@@ -432,6 +437,67 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* CAMI Tips Bubble Overlay */}
+      {showTipsBubble && insight && !loadingInsight && (
+        <>
+          <style>{`
+            @keyframes pop-bubble {
+              0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+              100% { transform: scale(1) translateY(0); opacity: 1; }
+            }
+            @keyframes pop-bubble-out {
+              0% { transform: scale(1) translateY(0); opacity: 1; }
+              100% { transform: scale(0.8) translateY(10px); opacity: 0; }
+            }
+          `}</style>
+          <div style={{
+            position: "fixed", bottom: "160px", right: "260px", zIndex: 990,
+            animation: isClosingBubble
+              ? "pop-bubble-out 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+              : "pop-bubble 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            width: "300px", cursor: "pointer", transition: "transform 0.2s"
+          }} 
+          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            {/* Tail Shadow */}
+            <div style={{
+              position: "absolute", bottom: "32px", right: "-20px",
+              width: "24px", height: "24px",
+              background: "var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 989,
+            }} />
+            {/* Tail Main */}
+            <div style={{
+              position: "absolute", bottom: "40px", right: "-12px",
+              width: "24px", height: "24px",
+              background: "#FFF7ED",
+              borderRight: "3px solid var(--color-navy)",
+              borderTop: "3px solid var(--color-navy)",
+              transform: "rotate(45deg)",
+              zIndex: 991,
+            }} />
+            {/* Bubble content */}
+            <div style={{
+              position: "relative", zIndex: 990,
+              background: "#FFF7ED", border: "3px solid var(--color-navy)",
+              borderRadius: "var(--radius-brutal-sm)", padding: "1.25rem",
+              boxShadow: "6px 6px 0px var(--color-navy)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} /> INSIGHT CAMI
+                </div>
+              </div>
+              <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
+                "{insight.replace(/^"|"$/g, '')}"
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

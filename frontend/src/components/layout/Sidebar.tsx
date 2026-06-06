@@ -7,7 +7,6 @@ import {
   Wallet, 
   History, 
   AlertTriangle, 
-  Bot, 
   BookOpen,
   LogOut,
   User,
@@ -51,13 +50,7 @@ const navGroups: NavGroup[] = [
       { href: "/dashboard/planning", label: "sidebar.planning", icon: Target, color: "purple", guestRestricted: true },
       { href: "/dashboard/reports", label: "sidebar.reports", icon: FileText, color: "lime" },
       { href: "/dashboard/education", label: "sidebar.education", icon: BookOpen, color: "orange", guestRestricted: true },
-    ],
-  },
-  {
-    title: "sidebar.groups.ai",
-    items: [
       { href: "/dashboard/warnings", label: "sidebar.warnings", icon: AlertTriangle, color: "pink", guestRestricted: true },
-      { href: "/dashboard/chatbot", label: "sidebar.chatbot", icon: Bot, color: "lime", guestRestricted: true },
     ],
   },
 ];
@@ -229,38 +222,9 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         </div>
       </div>
 
-      {/* Grouped Navigation */}
-      <nav className="sidebar__nav" style={{ padding: "0.5rem 1rem", display: "flex", flexDirection: "column", gap: "0.25rem", flex: 1, overflowY: "auto" }}>
-        {navGroups.map((group, groupIdx) => (
-          <div key={group.title} style={{ marginBottom: groupIdx < navGroups.length - 1 ? "0.25rem" : 0 }}>
-            {/* Group Label */}
-            <div className="sidebar-text" style={{
-              fontSize: "0.6rem",
-              fontWeight: 900,
-              color: "rgba(255,255,255,0.25)",
-              letterSpacing: "2px",
-              padding: "0.6rem 1.25rem 0.35rem 1.25rem",
-              textTransform: "uppercase",
-              whiteSpace: "nowrap"
-            }}>
-              {t(group.title)}
-            </div>
-
-            {/* Group Items */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-              {group.items.map(renderNavItem)}
-            </div>
-
-            {/* Divider between groups (except last) */}
-            {groupIdx < navGroups.length - 1 && (
-              <div style={{
-                height: "1px",
-                background: "rgba(255,255,255,0.06)",
-                margin: "0.5rem 1.25rem 0 1.25rem",
-              }} />
-            )}
-          </div>
-        ))}
+      {/* Flat Navigation — no group labels */}
+      <nav className="sidebar__nav" style={{ padding: "0.5rem 1rem", display: "flex", flexDirection: "column", gap: "0.2rem", flex: 1, overflowY: "auto" }}>
+        {navGroups.flatMap(group => group.items).map(renderNavItem)}
       </nav>
 
       {/* Footer — Only back to landing page */}
