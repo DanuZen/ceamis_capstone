@@ -1771,6 +1771,105 @@
   }
 }
 
+/* ═══════════════════════════════════════════════
+   LANDING — ADDITIONAL MOBILE POLISH
+   Hanya berlaku di HP — Desktop TIDAK terpengaruh
+   ═══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* ── Touch target minimum 44px untuk semua nav buttons ── */
+  .landing-nav__links .btn-brutal {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 0.5rem 0.875rem !important;
+    font-size: 0.8125rem !important;
+  }
+
+  /* ── Prevent landing page horizontal overflow ── */
+  .landing-page {
+    overflow-x: hidden !important;
+  }
+
+  /* ── Nav sticky on mobile ── */
+  .landing-nav-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--color-bg);
+    border-bottom: 2px solid var(--color-navy);
+  }
+
+  /* ── Hero float badges — hide on very small screens ── */
+  .landing-hero__float--3 {
+    display: none;
+  }
+
+  /* ── Leaderboard horizontal scroll fallback ── */
+  .landing-leaderboard__table {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Stats: 2 column grid at 768px ── */
+  .landing-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── FAQ answer max-height increase for mobile ── */
+  .faq-item--open .faq-item__answer {
+    max-height: 400px !important;
+  }
+
+  /* ── CTA buttons full-width on mobile ── */
+  .landing-cta .btn-brutal {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* ── Footer links center aligned ── */
+  .landing-footer__inner {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* ── Nav brand name shorter ── */
+  .landing-nav__name {
+    display: none;
+  }
+
+  /* ── Stats single column on very small ── */
+  .landing-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Hero title smaller ── */
+  .landing-hero__title {
+    font-size: 1.875rem !important;
+  }
+
+  /* ── Leaderboard hide extra columns ── */
+  .landing-leaderboard__col:nth-child(4),
+  .landing-leaderboard__col:nth-child(5) {
+    display: none !important;
+  }
+  .landing-leaderboard__header span:nth-child(4),
+  .landing-leaderboard__header span:nth-child(5) {
+    display: none !important;
+  }
+  .landing-leaderboard__row {
+    grid-template-columns: 44px 1fr auto !important;
+  }
+
+  /* ── Edukasi grid 1 column ── */
+  .landing-edukasi__grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
 /* ── Mobile Small (≤400px) ── */
 @media (max-width: 400px) {
   .landing-hero__title {

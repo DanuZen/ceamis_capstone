@@ -188,4 +188,65 @@
 
 .badge-brutal--green { background: var(--color-lime); }
 .badge-brutal--yellow { background: var(--color-lime); }
+
+/* ═══════════════════════════════════════════════
+   COMPONENTS — MOBILE ONLY FIXES (≤768px)
+   Desktop TIDAK terpengaruh
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* ── Touch-friendly minimum sizes ── */
+  .btn-brutal {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  .btn-brutal--sm {
+    min-height: 38px !important;
+  }
+
+  /* ── Input touch optimization ── */
+  .input-brutal {
+    min-height: 48px !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* ── Card mobile compact ── */
+  .card-brutal {
+    padding: 1rem !important;
+  }
+
+  /* ── Badge slightly smaller ── */
+  .badge-brutal {
+    font-size: 0.75rem !important;
+    padding: 0.45rem 1rem !important;
+  }
+
+  /* ── Modal — full screen on mobile ── */
+  .modal-overlay {
+    align-items: flex-end !important;
+  }
+
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: var(--radius-brutal-lg) var(--radius-brutal-lg) 0 0 !important;
+    max-height: 90dvh !important;
+    overflow-y: auto !important;
+  }
+
+  /* ── Select dropdown ── */
+  .input-brutal--select {
+    padding-right: 2rem !important;
+  }
+
+  /* ── Toast notifications ── */
+  [class*="toast"],
+  [class*="Toast"] {
+    max-width: calc(100vw - 2rem) !important;
+    left: 1rem !important;
+    right: 1rem !important;
+  }
+}
+
 
