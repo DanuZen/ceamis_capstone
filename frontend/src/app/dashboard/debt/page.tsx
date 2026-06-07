@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useTransactions } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
 import { getDebts, saveDebts } from "@/app/dashboard/planning/actions";
+import { translateTransactionDesc } from "@/lib/translateCategory";
 
 type DebtType = "utang" | "piutang";
 type DebtStatus = "belum_lunas" | "lunas" | "jatuh_tempo";
@@ -230,7 +231,7 @@ export default function DebtPage() {
 
     setNewEntry({ type: "utang", person: "", amount: "", description: "", dueDate: "" });
     setShowForm(false);
-    showToast(t("dashboard.debt.save") + " Berhasil!", "success");
+    showToast(t("dashboard.debt.saveSuccess"), "success");
   };
 
   const toggleStatus = (id: number) => {
@@ -245,7 +246,7 @@ export default function DebtPage() {
       category: entry.type === "utang" ? "Utang" : "Pemasukan Lainnya",
       description: `${entry.type === "utang" ? "Membayar utang ke" : "Pelunasan piutang dari"} ${entry.person}`,
     });
-    showToast("Berhasil! Transaksi tercatat otomatis di Riwayat.", "success");
+    showToast(t("dashboard.debt.settleSuccess"), "success");
 
     setEntries(entries.map(e =>
       e.id === id
@@ -389,7 +390,7 @@ export default function DebtPage() {
                 value={newEntry.person}
                 onChange={(e) => setNewEntry({ ...newEntry, person: e.target.value })}
                 className="input-brutal"
-                placeholder="Nama orang..."
+                placeholder={t("dashboard.debt.namePlaceholder")}
                 style={{ border: "2px solid var(--color-navy)", padding: "0.85rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)", background: "var(--color-white)" }}
               />
             </div>
@@ -420,7 +421,7 @@ export default function DebtPage() {
                 value={newEntry.description}
                 onChange={(e) => setNewEntry({ ...newEntry, description: e.target.value })}
                 className="input-brutal"
-                placeholder="Untuk apa..."
+                placeholder={t("dashboard.debt.descPlaceholder")}
                 style={{ border: "2px solid var(--color-navy)", padding: "0.85rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)", background: "var(--color-white)" }}
               />
             </div>
@@ -519,7 +520,7 @@ export default function DebtPage() {
                   </div>
                 </div>
                 <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-                  <span>{entry.description}</span>
+                  <span>{translateTransactionDesc(entry.description, t)}</span>
                   <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
                     <Calendar size={12} /> {t("dashboard.debt.dueDateShort")}: {displayDate(entry.dueDate)}
                   </span>
@@ -607,7 +608,7 @@ export default function DebtPage() {
                 </div>
               </div>
               <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
-                "Mengelola utang dengan baik adalah kunci. Pastikan selalu melunasi tepat waktu agar skor keuanganmu tetap sehat!"
+                {t("dashboard.debt.camiTip")}
               </p>
             </div>
           </div>
