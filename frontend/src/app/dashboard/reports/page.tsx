@@ -550,49 +550,64 @@ export default function ReportsPage() {
           {/* Summary Card */}
           <div style={{
             background: "var(--color-white)", color: "var(--color-navy)", borderRadius: "12px",
-            border: "3px solid var(--color-white)", padding: "2rem 1.5rem",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.18)", flex: 1, display: "flex", flexDirection: "column"
+            border: "3px solid rgba(255,255,255,0.9)", padding: "1.5rem",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.18)", flex: 1, display: "flex", flexDirection: "column", gap: "0.75rem"
           }}>
-            <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", fontWeight: 900, marginBottom: "1.5rem", color: "var(--color-navy)" }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 900, marginBottom: "0.25rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ background: "var(--color-lime)", borderRadius: "4px", width: "10px", height: "10px", display: "inline-block", border: "1.5px solid var(--color-navy)", flexShrink: 0 }} />
               {t("dashboard.reports.summaryTitle")}
             </div>
-            
-            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-evenly", flex: 1, gap: "1rem", fontSize: "1rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", fontSize: "0.78rem", letterSpacing: "0.5px" }}>
-                    <Banknote size={14} color="var(--color-text-muted)" /> {t("dashboard.reports.income")}
-                  </span>
-                  <span style={{ fontWeight: 800, color: "var(--color-navy)" }}>{formatRupiah(MONTHLY_SUMMARY.income)}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", fontSize: "0.78rem", letterSpacing: "0.5px" }}>
-                    <TrendingDown size={14} color="var(--color-text-muted)" /> {t("dashboard.reports.expense")}
-                  </span>
-                  <span style={{ fontWeight: 800, color: "var(--color-navy)" }}>{formatRupiah(MONTHLY_SUMMARY.expense)}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "2px solid var(--color-navy)", paddingTop: "1rem", marginTop: "0.5rem" }}>
-                  <span style={{ fontWeight: 900, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem", color: "var(--color-navy)" }}>
-                    <Target size={16} color="var(--color-navy)" /> {t("dashboard.reports.sisa")}
-                  </span>
-                  <span style={{ fontWeight: 900, color: "var(--color-purple)", fontSize: "1.1rem" }}>{formatRupiah(MONTHLY_SUMMARY.savings)}</span>
-                </div>
+
+            {/* Income row */}
+            <div style={{ background: "#f0fdf4", border: "2px solid var(--color-navy)", borderRadius: "8px", padding: "0.75rem 1rem", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#16a34a", fontWeight: 800, textTransform: "uppercase", fontSize: "0.7rem", letterSpacing: "0.8px", marginBottom: "0.3rem" }}>
+                <Banknote size={13} /> {t("dashboard.reports.income")}
               </div>
+              <div style={{ fontWeight: 900, color: "var(--color-navy)", fontSize: "1.05rem", fontFamily: "var(--font-heading)", wordBreak: "break-all" }}>
+                {formatRupiah(MONTHLY_SUMMARY.income)}
+              </div>
+            </div>
+
+            {/* Expense row */}
+            <div style={{ background: "#fff7ed", border: "2px solid var(--color-navy)", borderRadius: "8px", padding: "0.75rem 1rem", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#ea580c", fontWeight: 800, textTransform: "uppercase", fontSize: "0.7rem", letterSpacing: "0.8px", marginBottom: "0.3rem" }}>
+                <TrendingDown size={13} /> {t("dashboard.reports.expense")}
+              </div>
+              <div style={{ fontWeight: 900, color: "var(--color-navy)", fontSize: "1.05rem", fontFamily: "var(--font-heading)", wordBreak: "break-all" }}>
+                {formatRupiah(MONTHLY_SUMMARY.expense)}
+              </div>
+            </div>
+
+            {/* Remaining row */}
+            <div style={{ background: savings >= 0 ? "var(--color-lime)" : "#fee2e2", border: "3px solid var(--color-navy)", borderRadius: "8px", padding: "0.85rem 1rem", boxShadow: "3px 3px 0px var(--color-navy)", marginTop: "0.25rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--color-navy)", fontWeight: 800, textTransform: "uppercase", fontSize: "0.7rem", letterSpacing: "0.8px", marginBottom: "0.3rem" }}>
+                <Target size={13} color="var(--color-navy)" /> {t("dashboard.reports.sisa")}
+              </div>
+              <div style={{ fontWeight: 900, color: "var(--color-navy)", fontSize: "1.15rem", fontFamily: "var(--font-heading)", wordBreak: "break-all" }}>
+                {formatRupiah(MONTHLY_SUMMARY.savings)}
+              </div>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-navy)", opacity: 0.6, marginTop: "0.25rem" }}>
+                Rasio tabungan: {MONTHLY_SUMMARY.savingsRate}%
+              </div>
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: "0.75rem", flexDirection: "column", marginTop: "1.5rem" }}>
             <button onClick={handleExportPdf} className="btn-brutal" style={{
-              background: "var(--color-white)", padding: "1rem", fontWeight: 800,
+              background: "var(--color-white)", color: "var(--color-navy)", padding: "1rem", fontWeight: 800,
               display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-              boxShadow: "4px 4px 0px var(--color-navy)", width: "100%", fontSize: "1rem"
+              border: "3px solid var(--color-navy)",
+              boxShadow: "4px 4px 0px rgba(0,0,0,0.5)", width: "100%", fontSize: "0.9rem"
             }}>
-              <Download size={18} /> {t("dashboard.reports.exportPdf")}
+              <Download size={18} color="var(--color-navy)" /> {t("dashboard.reports.exportPdf")}
             </button>
             <button onClick={handleExportExcel} className="btn-brutal" style={{
-              background: "var(--color-lime)", padding: "1rem", fontWeight: 800,
+              background: "var(--color-lime)", color: "var(--color-navy)", padding: "1rem", fontWeight: 800,
               display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-              boxShadow: "4px 4px 0px var(--color-navy)", width: "100%", fontSize: "1rem"
+              border: "3px solid var(--color-navy)",
+              boxShadow: "4px 4px 0px rgba(0,0,0,0.5)", width: "100%", fontSize: "0.9rem"
             }}>
-              <FileSpreadsheet size={18} /> {t("dashboard.reports.exportExcel")}
+              <FileSpreadsheet size={18} color="var(--color-navy)" /> {t("dashboard.reports.exportExcel")}
             </button>
           </div>
 
