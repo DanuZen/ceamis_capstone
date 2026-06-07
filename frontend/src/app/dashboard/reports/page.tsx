@@ -415,7 +415,7 @@ export default function ReportsPage() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem", alignItems: "stretch" }}>
         {/* Income Category Breakdown */}
-        <div className="card-brutal" style={{ padding: "2rem" }}>
+        <div className="card-brutal" style={{ padding: "2rem", height: "700px", minHeight: "700px", maxHeight: "700px", display: "flex", flexDirection: "column" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <div style={{ width: "36px", height: "36px", background: "var(--color-lime)", borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
               <PieChart size={20} color="var(--color-navy)" strokeWidth={2.5} />
@@ -423,7 +423,7 @@ export default function ReportsPage() {
             {t("dashboard.reports.incomeByCategory") || "Pemasukan per Kategori"}
           </h3>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", flex: 1, minHeight: 0, overflowY: "auto", paddingRight: "0.5rem" }} className="no-scrollbar">
             {INCOME_CATEGORY_DATA.length === 0 && (
               <div style={{ color: "var(--color-navy)", opacity: 0.7, textAlign: "center", margin: "auto", fontSize: "0.95rem" }}>
                 {t("dashboard.reports.noIncome") || "Belum ada pemasukan di bulan ini."}
@@ -453,7 +453,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Category Breakdown */}
-        <div className="card-brutal" style={{ padding: "2rem" }}>
+        <div className="card-brutal" style={{ padding: "2rem", height: "700px", minHeight: "700px", maxHeight: "700px", display: "flex", flexDirection: "column" }}>
           <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", margin: "0 0 1.5rem 0", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <div style={{ width: "36px", height: "36px", background: "var(--color-purple)", borderRadius: "var(--radius-brutal-sm)", border: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
               <PieChart size={20} color="var(--color-white)" strokeWidth={2.5} />
@@ -461,7 +461,7 @@ export default function ReportsPage() {
             {t("dashboard.reports.expenseByCategory")}
           </h3>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", flex: 1, minHeight: 0, overflowY: "auto", paddingRight: "0.5rem" }} className="no-scrollbar">
             {CATEGORY_DATA.length === 0 && (
               <div style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
                 {t("dashboard.reports.noExpense")}
@@ -491,7 +491,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Report Preview / Email Preview */}
-        <div className="card-brutal" style={{ padding: "2rem", background: "var(--color-navy)", color: "var(--color-white)", display: "flex", flexDirection: "column" }}>
+        <div className="card-brutal" style={{ padding: "2rem", background: "var(--color-navy)", color: "var(--color-white)", display: "flex", flexDirection: "column", height: "700px", minHeight: "700px", maxHeight: "700px" }}>
           {/* Period Selector inside header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem", marginBottom: "0.75rem" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-white)" }}>
