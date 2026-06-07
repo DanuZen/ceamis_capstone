@@ -59,7 +59,20 @@ export const translateCategoryName = (category: string, t: any) => {
     // Debts & Loans
     "Utang": "dashboard.transactions.catDebtPay",
     "Piutang Keluar": "dashboard.transactions.catLoanOut",
-    "Bayar Utang": "dashboard.transactions.catDebtPay"
+    "Bayar Utang": "dashboard.transactions.catDebtPay",
+
+    // English internal keys (used by AI cluster catMap)
+    "Food & Drink": "dashboard.transactions.catFood",
+    "Transportation": "dashboard.transactions.catTransport",
+    "Health": "dashboard.transactions.catHealth",
+    "Bills & Utilities": "dashboard.transactions.catBills",
+    "Entertainment": "dashboard.transactions.catEntertainment",
+    "Hobby": "dashboard.transactions.catHobby",
+    "Shopping": "dashboard.transactions.catShopping",
+    "Electronics": "dashboard.transactions.catHobby",
+    "Education": "dashboard.transactions.catDream",
+    "Essential Needs": "dashboard.transactions.catHome",
+    "Other": "dashboard.transactions.catOther"
   };
 
   const translationKey = mapping[category];
@@ -71,4 +84,55 @@ export const translateCategoryName = (category: string, t: any) => {
     }
   }
   return category;
+};
+
+export const translateTransactionDesc = (desc: string, t: any) => {
+  if (!desc) return desc;
+  
+  if (desc.startsWith("Membayar utang ke ")) {
+    return `${t("dashboard.transactions.descPayDebt")} ${desc.replace("Membayar utang ke ", "")}`;
+  }
+  if (desc.startsWith("Terima pinjaman dari ")) {
+    return `${t("dashboard.transactions.descReceiveLoan")} ${desc.replace("Terima pinjaman dari ", "")}`;
+  }
+  if (desc.startsWith("Pelunasan piutang dari ")) {
+    return `${t("dashboard.transactions.descReceiveDebtPay")} ${desc.replace("Pelunasan piutang dari ", "")}`;
+  }
+  if (desc.startsWith("Beri pinjaman ke ")) {
+    return `${t("dashboard.transactions.descGiveLoan")} ${desc.replace("Beri pinjaman ke ", "")}`;
+  }
+  return desc;
+};
+
+export const translateClusterLabel = (label: string, t: any) => {
+  if (!label) return "";
+  const keyMap: Record<string, string> = {
+    "Si Hemat": "dashboard.transactions.labelHemat",
+    "Si Boros": "dashboard.transactions.labelBoros",
+    "Si Impulsif": "dashboard.transactions.labelImpulsif",
+    "Pemula": "dashboard.beginnerBadge"
+  };
+  const cleanLabel = label.replace(" (Mock)", "");
+  const key = keyMap[cleanLabel] || "";
+  
+  if (key) {
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+  }
+  return label;
+};
+
+export const translateRiskProfile = (profile: string, t: any) => {
+  if (!profile) return profile;
+  const keyMap: Record<string, string> = {
+    "Konservatif": "dashboard.planning.profileConservative",
+    "Moderat":     "dashboard.planning.profileModerate",
+    "Agresif":     "dashboard.planning.profileAggressive",
+  };
+  const key = keyMap[profile];
+  if (key) {
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+  }
+  return profile;
 };
