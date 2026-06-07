@@ -432,7 +432,7 @@ export default function TransactionsPage() {
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
         {/* Quick Input Section */}
         <div className="animate-slide-up" style={{ flex: "1 1 300px", maxWidth: "100%", animationDelay: "100ms", display: "flex", flexDirection: "column" }}>
-          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column", flex: 1 }}>
+          <div className="card-brutal" style={{ height: "700px", minHeight: "700px", maxHeight: "700px", background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
               <Zap size={28} color="var(--color-white)" fill="var(--color-orange)" style={{ background: "var(--color-orange)", borderRadius: "var(--radius-brutal-sm)", padding: "4px", border: "2px solid var(--color-navy)" }} />
               <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", color: "var(--color-navy)", margin: 0, fontWeight: 900 }}>{t("dashboard.transactions.quickInputTitle")}</h3>
@@ -498,7 +498,7 @@ export default function TransactionsPage() {
 
         {/* Form Section */}
         <div className="animate-slide-up" style={{ flex: "1.7 1 450px", maxWidth: "100%", animationDelay: "200ms", display: "flex", flexDirection: "column" }}>
-          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column", overflow: "visible", flex: 1 }}>
+          <div className="card-brutal" style={{ height: "700px", minHeight: "700px", maxHeight: "700px", background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column", overflow: "visible" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
               <Plus size={28} color="var(--color-white)" fill="var(--color-purple)" style={{ background: "var(--color-purple)", borderRadius: "var(--radius-brutal-sm)", padding: "4px", border: "2px solid var(--color-navy)" }} />
               <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", color: "var(--color-navy)", margin: 0, fontWeight: 900 }}>{t("dashboard.transactions.formTitle")}</h3>
