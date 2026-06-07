@@ -62,17 +62,10 @@ export const translateCategoryName = (category: string, t: any) => {
     "Bayar Utang": "dashboard.transactions.catDebtPay",
 
     // English internal keys (used by AI cluster catMap)
-    "Food & Drink": "dashboard.transactions.catFood",
     "Transportation": "dashboard.transactions.catTransport",
-    "Health": "dashboard.transactions.catHealth",
-    "Bills & Utilities": "dashboard.transactions.catBills",
-    "Entertainment": "dashboard.transactions.catEntertainment",
-    "Hobby": "dashboard.transactions.catHobby",
-    "Shopping": "dashboard.transactions.catShopping",
     "Electronics": "dashboard.transactions.catHobby",
     "Education": "dashboard.transactions.catDream",
-    "Essential Needs": "dashboard.transactions.catHome",
-    "Other": "dashboard.transactions.catOther"
+    "Essential Needs": "dashboard.transactions.catHome"
   };
 
   const translationKey = mapping[category];
