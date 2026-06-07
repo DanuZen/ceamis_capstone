@@ -285,22 +285,6 @@ export default function ReportsPage() {
     doc.save(`Laporan_CEAMIS_${monthName}_${selectedYear}.pdf`);
   };
 
-  const [isSending, setIsSending] = useState(false);
-  
-  const handleSendEmail = () => {
-    const monthName = MONTHS[selectedMonth];
-    const toEmail = userData?.email || "email Anda";
-    
-    setIsSending(true);
-    
-    // Karena saat ini belum ada integrasi SMTP/Email service di backend (Node.js),
-    // kita lakukan simulasi pengiriman berhasil agar UX terasa nyata.
-    setTimeout(() => {
-      setIsSending(false);
-      showToast(`Laporan bulan ${monthName} ${selectedYear} telah berhasil dikirim ke ${toEmail}!`, "success");
-    }, 1500);
-  };
-
   return (
     <div style={{ paddingBottom: "3rem" }}>
       {/* Header */}
@@ -324,33 +308,6 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <button onClick={handleExportPdf} className="btn-brutal" style={{
-            background: "var(--color-white)", padding: "0.75rem 1.25rem", fontWeight: 800,
-            display: "flex", alignItems: "center", gap: "0.5rem",
-            boxShadow: "3px 3px 0px var(--color-navy)",
-          }}>
-            <Download size={16} /> {t("dashboard.reports.exportPdf")}
-          </button>
-          <button onClick={handleExportExcel} className="btn-brutal" style={{
-            background: "var(--color-lime)", padding: "0.75rem 1.25rem", fontWeight: 800,
-            display: "flex", alignItems: "center", gap: "0.5rem",
-            boxShadow: "3px 3px 0px var(--color-navy)",
-          }}>
-            <FileSpreadsheet size={16} /> {t("dashboard.reports.exportExcel")}
-          </button>
-          <button onClick={handleSendEmail} disabled={isSending} className="btn-brutal" style={{
-            background: "var(--color-navy)", color: "var(--color-white)",
-            padding: "0.75rem 1.25rem", fontWeight: 800,
-            display: "flex", alignItems: "center", gap: "0.5rem",
-            boxShadow: "3px 3px 0px var(--color-purple)",
-            cursor: isSending ? "not-allowed" : "pointer",
-            opacity: isSending ? 0.7 : 1
-          }}>
-            {isSending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} 
-            {isSending ? "Mengirim..." : t("dashboard.reports.sendEmail")}
-          </button>
-        </div>
       </div>
 
       {/* Summary Cards */}
@@ -496,9 +453,9 @@ export default function ReportsPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem", marginBottom: "0.75rem" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--color-white)" }}>
               <div style={{ background: "var(--color-lime)", borderRadius: "6px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Mail size={18} color="var(--color-navy)" />
+                <Calendar size={18} color="var(--color-navy)" />
               </div>
-              {t("dashboard.reports.emailPreviewTitle")}
+              {t("dashboard.reports.summaryTitle")}
             </h3>
             {/* Compact dropdowns */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -588,23 +545,19 @@ export default function ReportsPage() {
               </div>
             </div>
           </div>
-          <p style={{ fontSize: "0.875rem", color: "var(--color-white)", marginBottom: "1.5rem", fontWeight: 600, lineHeight: 1.5 }}>
-            {t("dashboard.reports.emailPreviewDesc")}
-          </p>
+          <div style={{ height: "1.5rem" }} />
 
-          {/* Email Preview Card */}
+          {/* Summary Card */}
           <div style={{
             background: "var(--color-white)", color: "var(--color-navy)", borderRadius: "12px",
-            border: "3px solid var(--color-white)", padding: "1.5rem",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.18)"
+            border: "3px solid var(--color-white)", padding: "2rem 1.5rem",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.18)", flex: 1, display: "flex", flexDirection: "column"
           }}>
-            <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: "0.15rem" }}>From: noreply@ceamis.id</div>
-            <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: "1rem", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(10,25,47,0.08)" }}>Subject: {t("dashboard.reports.title")} {t(`dashboard.reports.months.${MONTHS[selectedMonth]}`)} {selectedYear}</div>
-            <div>
-              <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 900, marginBottom: "1rem", color: "var(--color-navy)" }}>
-                {t("dashboard.reports.summaryTitle")}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.875rem" }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", fontWeight: 900, marginBottom: "1.5rem", color: "var(--color-navy)" }}>
+              {t("dashboard.reports.summaryTitle")}
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-evenly", flex: 1, gap: "1rem", fontSize: "1rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--color-text-muted)", fontWeight: 700, textTransform: "uppercase", fontSize: "0.78rem", letterSpacing: "0.5px" }}>
                     <Banknote size={14} color="var(--color-text-muted)" /> {t("dashboard.reports.income")}
@@ -617,28 +570,32 @@ export default function ReportsPage() {
                   </span>
                   <span style={{ fontWeight: 800, color: "var(--color-navy)" }}>{formatRupiah(MONTHLY_SUMMARY.expense)}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1.5px solid var(--color-navy)", paddingTop: "0.75rem", marginTop: "0.25rem" }}>
-                  <span style={{ fontWeight: 900, display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.9rem", color: "var(--color-navy)" }}>
-                    <Target size={14} color="var(--color-navy)" /> {t("dashboard.reports.sisa")}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "2px solid var(--color-navy)", paddingTop: "1rem", marginTop: "0.5rem" }}>
+                  <span style={{ fontWeight: 900, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem", color: "var(--color-navy)" }}>
+                    <Target size={16} color="var(--color-navy)" /> {t("dashboard.reports.sisa")}
                   </span>
-                  <span style={{ fontWeight: 900, color: "var(--color-purple)", fontSize: "1rem" }}>{formatRupiah(MONTHLY_SUMMARY.savings)}</span>
+                  <span style={{ fontWeight: 900, color: "var(--color-purple)", fontSize: "1.1rem" }}>{formatRupiah(MONTHLY_SUMMARY.savings)}</span>
                 </div>
               </div>
-            </div>
           </div>
 
-          <button onClick={handleSendEmail} disabled={isSending} className="btn-brutal" style={{
-            width: "100%", marginTop: "1.5rem", padding: "1rem",
-            background: "var(--color-lime)", color: "var(--color-navy)", fontWeight: 800,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-            fontSize: "1rem",
-            boxShadow: "4px 4px 0px rgba(255,255,255,0.3)",
-            cursor: isSending ? "not-allowed" : "pointer",
-            opacity: isSending ? 0.8 : 1
-          }}>
-            {isSending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} 
-            {isSending ? t("dashboard.reports.sendingEmail") : t("dashboard.reports.sendToMyEmail")}
-          </button>
+          <div style={{ display: "flex", gap: "0.75rem", flexDirection: "column", marginTop: "1.5rem" }}>
+            <button onClick={handleExportPdf} className="btn-brutal" style={{
+              background: "var(--color-white)", padding: "1rem", fontWeight: 800,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+              boxShadow: "4px 4px 0px var(--color-navy)", width: "100%", fontSize: "1rem"
+            }}>
+              <Download size={18} /> {t("dashboard.reports.exportPdf")}
+            </button>
+            <button onClick={handleExportExcel} className="btn-brutal" style={{
+              background: "var(--color-lime)", padding: "1rem", fontWeight: 800,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+              boxShadow: "4px 4px 0px var(--color-navy)", width: "100%", fontSize: "1rem"
+            }}>
+              <FileSpreadsheet size={18} /> {t("dashboard.reports.exportExcel")}
+            </button>
+          </div>
+
         </div>
       </div>
 
