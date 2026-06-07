@@ -15,7 +15,8 @@ import {
   Target,
   BarChart3,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  Compass
 } from "lucide-react";
 import { useTransactions } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
@@ -259,9 +260,15 @@ export default function DashboardPage() {
               style={{
                 fontFamily: "var(--font-heading)",
                 fontSize: "1.5rem",
-                margin: 0
+                margin: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem"
               }}
             >
+              <div style={{ background: "var(--color-purple)", width: "36px", height: "36px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
+                <Compass size={20} color="var(--color-white)" strokeWidth={2.5} />
+              </div>
               {t("dashboard.exploreFeatures")}
             </h2>
           </div>
