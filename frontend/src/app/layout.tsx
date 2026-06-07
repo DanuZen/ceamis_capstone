@@ -9,9 +9,9 @@ export const metadata: Metadata = {
     "Ekosistem pencatatan keuangan Gen-Z berbasis AI, gamifikasi, & edukasi adaptif. Cerdas finansial, kontrol impuls, raih masa depan!",
   keywords: ["keuangan", "Gen-Z", "AI", "gamifikasi", "edukasi finansial", "CEAMIS"],
   icons: {
-    icon: "/images/logo_stroke_black.png",
-    shortcut: "/images/logo_stroke_black.png",
-    apple: "/images/logo_stroke_black.png",
+    icon: "/images/logo_stroke_black.webp",
+    shortcut: "/images/logo_stroke_black.webp",
+    apple: "/images/logo_stroke_black.webp",
   },
 };
 
