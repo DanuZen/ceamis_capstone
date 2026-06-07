@@ -22,6 +22,7 @@ import { useTransactions } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { aiApi } from "@/lib/api";
+import { translateCategoryName, translateTransactionDesc, translateClusterLabel } from "@/lib/translateCategory";
 
 interface FeatureCard {
   href: string;
@@ -174,8 +175,8 @@ export default function DashboardPage() {
         </h1>
         <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", maxWidth: "600px", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           {t("dashboard.ready")}
-          <span className="badge-brutal badge-brutal--lime" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.6rem", fontSize: "0.75rem" }}>
-            {userData.label.toUpperCase() === "PEMULA" ? (t("dashboard.beginnerBadge") || "PEMULA") : userData.label}
+          <span className="badge-brutal badge-brutal--lime" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.6rem", fontSize: "0.75rem", textTransform: "uppercase" }}>
+            {translateClusterLabel(userData.label, t)}
           </span>
         </p>
       </div>
@@ -420,8 +421,8 @@ export default function DashboardPage() {
                       {trx.type === 'pemasukan' ? <Wallet size={20} color="var(--color-navy)" /> : <ShieldAlert size={20} color="var(--color-navy)" />}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--color-navy)" }}>{trx.desc}</div>
-                      <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", marginTop: "0.1rem" }}>{trx.date} • {trx.category}</div>
+                      <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--color-navy)" }}>{translateTransactionDesc(trx.desc || trx.description || "", t)}</div>
+                      <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", marginTop: "0.1rem" }}>{trx.date} • {translateCategoryName(trx.category, t)}</div>
                     </div>
                   </div>
                   <div style={{ 
