@@ -1045,7 +1045,7 @@ export default function PlanningPage() {
         {/* ── Sidebar (Left) ──────────────────────────────────────── */}
         <div style={{ flex: "1 1 calc(75% - 0.3125rem)", minWidth: "320px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 2 }}>
           {/* ── BUDGET VIEW ────────────────────── */}
-          <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", minHeight: "650px", flex: 1, display: "flex", flexDirection: "column" }}>
+          <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "700px", minHeight: "700px", maxHeight: "700px", display: "flex", flexDirection: "column" }}>
             
 
             
@@ -1150,7 +1150,7 @@ export default function PlanningPage() {
               </div>
             )}
 
-            <div style={{ flex: 1, overflowY: "auto", paddingRight: "0.5rem" }} className="no-scrollbar">
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingRight: "0.5rem" }} className="no-scrollbar">
               {searchQuery && filteredBudget.length === 0 ? (
                 <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
                   <SearchX size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
@@ -1200,8 +1200,9 @@ export default function PlanningPage() {
             border: "4px solid var(--color-navy)",
             boxShadow: "8px 8px 0px var(--color-navy)",
             padding: 0,
-            minHeight: "650px",
-            flex: 1,
+            height: "700px",
+            minHeight: "700px",
+            maxHeight: "700px",
             display: "flex",
             flexDirection: "column"
           }}>
