@@ -8,6 +8,7 @@ import { useUser } from "@/context/UserContext";
 import { aiApi } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/components/ui/Toast";
+import { translateCategoryName, translateClusterLabel } from "@/lib/translateCategory";
 
 // ── Tipe response Model 2 (Spending Pattern Clustering) ──────────────────────
 interface SpendingClusterResult {
@@ -24,8 +25,8 @@ interface SpendingClusterResult {
 // ── Fallback data saat API belum ready ────────────────────────────────────────
 const MOCK_CLUSTER: SpendingClusterResult = {
   cluster_label: "Si Hemat",
-  dominant_category: "Makanan & Minuman",
-  insight: "Pengeluaran kamu terdistribusi cukup merata. Pola keuangan kamu terkontrol — pertahankan!",
+  dominant_category: "Food & Drink",
+  insight: "__mock__", // Will be replaced with t() at render time
   needs_ratio: 62,
   wants_ratio: 28,
   savings_ratio: 10,
@@ -136,14 +137,15 @@ export default function TransactionsPage() {
     };
   }, [showTipsBubble, isClosingBubble]);
 
-  const CATEGORY_OPTIONS = {
-    pemasukan: [t("dashboard.transactions.catSalary"), t("dashboard.transactions.catBonus"), t("dashboard.transactions.catBusiness"), t("dashboard.transactions.catOther")],
-    needs: [t("dashboard.transactions.catFood"), t("dashboard.transactions.catTransport"), t("dashboard.transactions.catHealth"), t("dashboard.transactions.catBills"), t("dashboard.transactions.catHome")],
-    wants: [t("dashboard.transactions.catShopping"), t("dashboard.transactions.catEntertainment"), t("dashboard.transactions.catHobby"), t("dashboard.transactions.catSnacks"), t("dashboard.transactions.catHoliday")],
-    save: [t("dashboard.transactions.catEmergency"), t("dashboard.transactions.catMutualFund"), t("dashboard.transactions.catStock"), t("dashboard.transactions.catDream"), t("dashboard.transactions.catVehicle")]
+  // Internal keys (fixed, language-independent) for category state
+  const CATEGORY_KEYS = {
+    pemasukan: ["Gaji Utama", "Bonus", "Hasil Bisnis", "Lainnya"],
+    needs: ["Makanan & Minuman", "Transportasi", "Kesehatan", "Tagihan & Utilitas", "Kebutuhan Rumah"],
+    wants: ["Belanja Pribadi", "Hiburan", "Hobi", "Jajan", "Liburan"],
+    save: ["Alokasi Dana Darurat", "Reksadana", "Saham", "Mimpi / Target", "Kendaraan"]
   };
 
-  const [category, setCategory] = useState(CATEGORY_OPTIONS.needs[0]);
+  const [category, setCategory] = useState(CATEGORY_KEYS.needs[0]);
 
   // ── Model 2 state ──────────────────────────────────────────────────────────
   const [cluster, setCluster]     = useState<SpendingClusterResult>(MOCK_CLUSTER);
@@ -168,20 +170,20 @@ export default function TransactionsPage() {
   }, []);
 
   const currentCategoryOptions = {
-    ...CATEGORY_OPTIONS,
-    needs: dynamicNeeds.length > 0 ? dynamicNeeds : CATEGORY_OPTIONS.needs,
-    wants: dynamicWants.length > 0 ? dynamicWants : CATEGORY_OPTIONS.wants,
-    save: dynamicSavings.length > 0 ? dynamicSavings : CATEGORY_OPTIONS.save
+    ...CATEGORY_KEYS,
+    needs: dynamicNeeds.length > 0 ? dynamicNeeds : CATEGORY_KEYS.needs,
+    wants: dynamicWants.length > 0 ? dynamicWants : CATEGORY_KEYS.wants,
+    save: dynamicSavings.length > 0 ? dynamicSavings : CATEGORY_KEYS.save
   };
 
-  // Auto-update category when type or tag changes
+  // Auto-update category when type, tag, or language changes
   useEffect(() => {
     if (type === "pemasukan") {
       setCategory(currentCategoryOptions.pemasukan[0]);
     } else {
       setCategory(currentCategoryOptions[tag]?.[0] || "");
     }
-  }, [type, tag, dynamicNeeds, dynamicWants, dynamicSavings]);
+  }, [type, tag, dynamicNeeds, dynamicWants, dynamicSavings, language]);
 
   // ── Hitung category_breakdown dari transaksi yang ada ─────────────────────
   const buildCategoryBreakdown = useCallback(() => {
@@ -232,14 +234,14 @@ export default function TransactionsPage() {
       ? Object.keys(breakdown).reduce((a, b) => breakdown[a] > breakdown[b] ? a : b) 
       : "Lainnya";
     
-    // Map internal key to display name
+    // Map internal key to display name — use neutral/English keys for internal storage
     const catMap: Record<string, string> = {
-      "cat_f&b": "Makanan & Minuman", "cat_transportasi": "Transportasi", "cat_kesehatan": "Kesehatan",
-      "cat_tagihan": "Tagihan & Utilitas", "cat_hiburan": "Hiburan", "cat_hobi": "Hobi",
-      "cat_fashion": "Belanja Pribadi", "cat_elektronik": "Elektronik", "cat_pendidikan": "Pendidikan",
-      "cat_kebutuhan_pokok": "Kebutuhan Pokok"
+      "cat_f&b": "Food & Drink", "cat_transportasi": "Transportation", "cat_kesehatan": "Health",
+      "cat_tagihan": "Bills & Utilities", "cat_hiburan": "Entertainment", "cat_hobi": "Hobby",
+      "cat_fashion": "Shopping", "cat_elektronik": "Electronics", "cat_pendidikan": "Education",
+      "cat_kebutuhan_pokok": "Essential Needs"
     };
-    const topCategory = catMap[rawTopCat] || "Lainnya";
+    const topCategory = catMap[rawTopCat] || "Other";
 
     setLoadingCluster(true);
     try {
@@ -253,7 +255,7 @@ export default function TransactionsPage() {
         setCluster({
           cluster_label:      rData.cluster_label || MOCK_CLUSTER.cluster_label,
           dominant_category:  topCategory, // Selalu gunakan hasil hitungan real
-          insight:            rData.insight || MOCK_CLUSTER.insight,
+          insight:            rData.insight || "__mock__",
           needs_ratio:        rData.needs_ratio !== undefined ? rData.needs_ratio : dynamicNeedsRatio,
           wants_ratio:        rData.wants_ratio !== undefined ? rData.wants_ratio : dynamicWantsRatio,
           savings_ratio:      rData.savings_ratio !== undefined ? rData.savings_ratio : dynamicSaveRatio,
@@ -269,8 +271,7 @@ export default function TransactionsPage() {
         throw new Error("API mock data or fallback required");
       }
     } catch {
-      // Fallback: Gunakan hitungan dinamis
-      // Tentukan label dinamis
+      // Fallback: dynamic calculation
       let dynamicLabel = "Si Hemat";
       if (dynamicWantsRatio > 50) dynamicLabel = "Si Boros";
       else if (dynamicNeedsRatio < 40 && dynamicWantsRatio > 30) dynamicLabel = "Si Impulsif";
@@ -282,7 +283,7 @@ export default function TransactionsPage() {
         needs_ratio: dynamicNeedsRatio,
         wants_ratio: dynamicWantsRatio,
         savings_ratio: dynamicSaveRatio,
-        insight: `Pengeluaran terbanyakmu ada di ${topCategory}. Tetap perhatikan alokasi ${dynamicWantsRatio}% untuk keinginan, pastikan tidak melebihi batas!`
+        insight: "__mock__" // Will be replaced with translated text at render
       };
       setCluster(dynamicCluster);
       updateUserData({ label: dynamicCluster.cluster_label });
@@ -366,7 +367,7 @@ export default function TransactionsPage() {
           <div style={{ flex: 1, minWidth: "200px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
               <span style={{ fontWeight: 800 }}>
-                {t("dashboard.transactions.spendingPattern")} {cluster.cluster_label === "Si Hemat" ? t("dashboard.transactions.mockClusterLabel") : cluster.cluster_label}
+                {t("dashboard.transactions.spendingPattern")} {translateClusterLabel(cluster.cluster_label, t)}
               </span>
               {!loadingCluster && (
                 <div style={{
@@ -382,7 +383,7 @@ export default function TransactionsPage() {
             </div>
 
             <p style={{ fontSize: "0.9rem", opacity: 0.85, margin: "0 0 0.75rem 0", lineHeight: 1.5 }}>
-              {loadingCluster ? t("dashboard.transactions.analyzing") : (cluster.insight === MOCK_CLUSTER.insight ? t("dashboard.transactions.mockInsight") : cluster.insight)}
+              {loadingCluster ? t("dashboard.transactions.analyzing") : (cluster.insight === "__mock__" || cluster.insight === MOCK_CLUSTER.insight ? t("dashboard.transactions.mockInsight") : cluster.insight)}
             </p>
 
             {/* Needs / Wants / Savings bar */}
@@ -600,7 +601,7 @@ export default function TransactionsPage() {
                     <CustomSelect
                       value={category}
                       onChange={(v) => handleCategoryChange(v)}
-                      options={(type === "pemasukan" ? currentCategoryOptions.pemasukan : currentCategoryOptions[tag]).map(cat => ({ key: cat, label: cat }))}
+                      options={(type === "pemasukan" ? currentCategoryOptions.pemasukan : currentCategoryOptions[tag]).map(cat => ({ key: cat, label: translateCategoryName(cat, t) }))}
                     />
                   </div>
                 </div>
