@@ -5,7 +5,7 @@ import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter, Sparkles }
 import { useSearchParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { translateCategoryName } from "@/lib/translateCategory";
+import { translateCategoryName, translateTransactionDesc } from "@/lib/translateCategory";
 
 export default function HistoryPage() {
   const searchParams = useSearchParams();
@@ -239,7 +239,7 @@ export default function HistoryPage() {
                       </div>
                       <div>
                         <div style={{ fontWeight: 800, fontSize: "1.0625rem", color: "var(--color-navy)" }}>
-                          {tx.desc}
+                          {translateTransactionDesc(tx.desc || tx.description || "", t)}
                         </div>
                         <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", display: "flex", gap: "0.5rem", alignItems: "center", fontWeight: 600 }}>
                           <span>{tx.date}</span>
