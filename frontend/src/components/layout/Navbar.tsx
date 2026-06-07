@@ -13,6 +13,7 @@ import { useGuest } from "@/context/GuestContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/lib/supabase/client";
 import { getBadges } from "@/app/admin/gamification/actions";
+import { translateClusterLabel } from "@/lib/translateCategory";
 
 interface NavbarProps {
   toggleSidebar?: () => void;
@@ -21,15 +22,12 @@ interface NavbarProps {
 
 export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const notifRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const [allBadges, setAllBadges] = useState<any[]>([]);
 
@@ -101,25 +99,11 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
-      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const hasRead = localStorage.getItem("ceamis_read_notifs_user");
-    if (!hasRead) {
-      setHasNewNotifications(true);
-    }
-  }, []);
-
-  const markNotifsRead = () => {
-    setHasNewNotifications(false);
-    localStorage.setItem("ceamis_read_notifs_user", "true");
-  };
 
   const { t, language, setLanguage } = useLanguage();
   const { userData } = useUser();
@@ -255,102 +239,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
             </button>
           )}
 
-          {/* Notification Bell */}
-          <div ref={notifRef} style={{ position: "relative" }}>
-            <button 
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="btn-brutal" 
-              style={{ 
-                width: "42px", height: "42px", padding: 0, 
-                borderRadius: "var(--radius-brutal-sm)", 
-                background: showNotifications ? "var(--color-navy)" : "var(--color-white)", 
-                border: "2px solid var(--color-navy)",
-                boxShadow: showNotifications ? "none" : "2px 2px 0px var(--color-navy)", 
-                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                transition: "all 0.1s ease",
-                transform: showNotifications ? "translate(2px, 2px)" : "none",
-                color: showNotifications ? "var(--color-white)" : "var(--color-navy)"
-              }}
-            >
-              <Bell size={20} strokeWidth={2.5} />
-            </button>
-            {/* Notification badge dot */}
-            {hasNewNotifications && (
-              <div style={{
-                position: "absolute", top: "-4px", right: "-4px", width: "12px", height: "12px",
-                background: "var(--color-danger, #e74c3c)", border: "2px solid var(--color-navy)",
-                borderRadius: "50%", zIndex: 10
-              }}></div>
-            )}
 
-            {/* Notification Popup */}
-            {showNotifications && (
-              <div className="animate-bounce-in" style={{
-                position: "absolute", top: "calc(100% + 0.75rem)", left: 0, width: "340px",
-                background: "var(--color-white)", border: "3px solid var(--color-navy)",
-                borderRadius: "var(--radius-brutal-sm)", boxShadow: "6px 6px 0px var(--color-navy)",
-                zIndex: 50, padding: "0", overflow: "hidden", transformOrigin: "top left"
-              }}>
-                <div style={{ padding: "1rem", borderBottom: "2px solid var(--color-navy)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-lime)" }}>
-                  <span style={{ fontWeight: 900, fontSize: "0.9rem", color: "var(--color-navy)" }}>{t("navbar.notifications")}</span>
-                  {hasNewNotifications && (
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-navy)", background: "rgba(255,255,255,0.5)", padding: "0.1rem 0.4rem", borderRadius: "100px" }}>2 {t("navbar.new")}</span>
-                  )}
-                </div>
-                
-                <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
-                  {/* Item 1 */}
-                  <Link href="/dashboard/history" onClick={() => setShowNotifications(false)} style={{ textDecoration: "none", display: "block" }}>
-                    <div style={{ padding: "1rem", borderBottom: "1px solid rgba(0,0,0,0.1)", display: "flex", gap: "0.75rem", background: hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.03)"} onMouseLeave={(e) => e.currentTarget.style.background = hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent"}>
-                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: hasNewNotifications ? "var(--color-purple)" : "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
-                      <div>
-                        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>{t("navbar.notif1Title")}</div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>{t("navbar.notif1Desc")}</div>
-                        <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>{t("navbar.notif1Time")}</div>
-                      </div>
-                    </div>
-                  </Link>
-
-                  {/* Item 2 */}
-                  <Link href="/dashboard/planning" onClick={() => setShowNotifications(false)} style={{ textDecoration: "none", display: "block" }}>
-                    <div style={{ padding: "1rem", borderBottom: "1px solid rgba(0,0,0,0.1)", display: "flex", gap: "0.75rem", background: hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.03)"} onMouseLeave={(e) => e.currentTarget.style.background = hasNewNotifications ? "rgba(88, 51, 238, 0.05)" : "transparent"}>
-                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: hasNewNotifications ? "var(--color-purple)" : "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
-                      <div>
-                        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>{t("navbar.notif2Title")}</div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>{t("navbar.notif2Desc")}</div>
-                        <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>{t("navbar.notif2Time")}</div>
-                      </div>
-                    </div>
-                  </Link>
-
-                  {/* Item 3 */}
-                  <Link href="/dashboard/education" onClick={markNotifsRead} style={{ textDecoration: "none", display: "block" }}>
-                    <div style={{ padding: "1rem", display: "flex", gap: "0.75rem", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.03)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "transparent", marginTop: "0.4rem", flexShrink: 0 }}></div>
-                      <div>
-                        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-navy)", marginBottom: "0.2rem" }}>{t("navbar.notif3Title")}</div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", lineHeight: 1.4 }}>{t("navbar.notif3Desc")}</div>
-                        <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--color-text-light)", marginTop: "0.4rem" }}>{t("navbar.notif3Time")}</div>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-
-                <button 
-                  onClick={markNotifsRead} 
-                  disabled={!hasNewNotifications}
-                  style={{ 
-                    display: "block", width: "100%", textAlign: "center", padding: "0.75rem", 
-                    border: "none", borderTop: "2px solid var(--color-navy)", 
-                    fontSize: "0.75rem", fontWeight: 800, color: hasNewNotifications ? "var(--color-navy)" : "var(--color-text-muted)", 
-                    background: "rgba(0,0,0,0.02)", cursor: hasNewNotifications ? "pointer" : "default", fontFamily: "inherit"
-                  }}
-                >
-                  {hasNewNotifications ? t("navbar.markRead") : t("navbar.allRead")}
-                </button>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Global Search */}
@@ -540,7 +429,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
             }}>
               <div style={{ textAlign: "right", color: showProfileMenu ? "var(--color-white)" : "inherit" }}>
                 <div style={{ fontSize: "0.85rem", fontWeight: 800, color: showProfileMenu ? "var(--color-white)" : "var(--color-navy)", lineHeight: "1.2" }}>{userData.name.split(" ")[0]}</div>
-                <div style={{ fontSize: "0.65rem", fontWeight: 800, color: showProfileMenu ? "var(--color-lime)" : "var(--color-text-muted)" }}>{userData.label}</div>
+                <div style={{ fontSize: "0.65rem", fontWeight: 800, color: showProfileMenu ? "var(--color-lime)" : "var(--color-text-muted)", textTransform: "capitalize" }}>{translateClusterLabel(userData.label, t)}</div>
               </div>
               <div style={{ 
                 width: "36px", height: "36px", background: "var(--color-purple)", color: "var(--color-white)", 
