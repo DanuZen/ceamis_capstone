@@ -19,7 +19,7 @@ import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
 import { useToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/context/LanguageContext";
 import { onboardingApi } from "@/lib/api";
-import { translateCategoryName } from "@/lib/translateCategory";
+import { translateCategoryName, translateRiskProfile } from "@/lib/translateCategory";
 import { getDebts, getRiskProfile, saveRiskProfile } from "./actions";
 
 // ── Icon Mapping (replaces emojis) ──────────────
@@ -307,7 +307,7 @@ export default function PlanningPage() {
   const searchQuery = searchParams.get("search") || "";
   const { isGuest } = useGuest();
   const { userData } = useUser();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { showToast } = useToast();
   const [budget, setBudget] = useState<BudgetCategory[]>([]);
   const [targets, setTargets] = useState<SavingsTarget[]>([]);
@@ -940,6 +940,13 @@ export default function PlanningPage() {
     );
   };
 
+  const getTranslatedSug = (p: string, defaultSug: string) => {
+    if (language === "id") return defaultSug;
+    if (p === "Konservatif") return t("dashboard.planning.profileConservativeSug");
+    if (p === "Moderat") return t("dashboard.planning.profileModerateSug");
+    if (p === "Agresif") return t("dashboard.planning.profileAggressiveSug");
+    return defaultSug;
+  };
 
   const pageContent = (
     <div style={{ paddingBottom: "3rem" }}>
@@ -988,7 +995,7 @@ export default function PlanningPage() {
               </div>
               <div style={{ overflow: "hidden" }}>
                 <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: colors ? colors.text : "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {profile || "—"}
+                  {translateRiskProfile(profile, t) || "—"}
                 </div>
                 <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>{t("dashboard.planning.riskProfileLabel") || "Profil Risiko"}</div>
               </div>
@@ -1239,15 +1246,28 @@ export default function PlanningPage() {
             {/* Result */}
             {riskResult && !riskLoading && (() => {
               const info = PROFILE_INFO[riskResult.risk_profile];
+              
+              const getTranslatedProfile = (p: string) => {
+                return translateRiskProfile(p, t);
+              };
+
+              const getTranslatedDesc = (p: string, defaultDesc: string) => {
+                if (language === "id") return defaultDesc;
+                if (p === "Konservatif") return t("dashboard.planning.profileConservativeDesc");
+                if (p === "Moderat") return t("dashboard.planning.profileModerateDesc");
+                if (p === "Agresif") return t("dashboard.planning.profileAggressiveDesc");
+                return defaultDesc;
+              };
+
               return (
                 <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "stretch", background: "var(--color-white)", flex: 1 }}>
                   {/* Info */}
                   <div style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%" }}>
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", color: "var(--color-navy)", fontWeight: 900, marginBottom: "0.5rem", textTransform: "capitalize" }}>
-                      {riskResult.risk_profile}
+                      {getTranslatedProfile(riskResult.risk_profile)}
                     </h3>
                     <p style={{ fontSize: "1.1rem", lineHeight: 1.6, color: "var(--color-navy)", marginBottom: "1.5rem", fontWeight: 600 }}>
-                      {riskResult.description}
+                      {getTranslatedDesc(riskResult.risk_profile, riskResult.description)}
                     </p>
                     {/* Probability bars */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem", marginTop: "auto" }}>
@@ -1257,7 +1277,7 @@ export default function PlanningPage() {
                         return (
                           <div key={p} style={{ width: "100%" }}>
                             <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between" }}>
-                              <span>{p}</span><span>{prob}%</span>
+                              <span>{getTranslatedProfile(p)}</span><span>{prob}%</span>
                             </div>
                             <div style={{ height: "12px", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
                               <div style={{ width: `${prob}%`, height: "100%", background: isActive ? PROFILE_INFO[p].color : "var(--color-text-light)", transition: "width 0.8s ease", borderRight: prob > 0 ? "2px solid var(--color-navy)" : "none" }} />
@@ -1348,7 +1368,7 @@ export default function PlanningPage() {
                 </div>
               </div>
               <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
-                "{riskResult.suggestion.replace(/^"|"$/g, '')}"
+                "{getTranslatedSug(riskResult.risk_profile, riskResult.suggestion).replace(/^"|"$/g, '')}"
               </p>
             </div>
           </div>
