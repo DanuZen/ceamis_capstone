@@ -450,8 +450,9 @@ export default function DebtPage() {
         </div>
       )}
 
-      {/* Filter Tabs */}
-      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
+      <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "700px", minHeight: "700px", maxHeight: "700px", flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Filter Tabs */}
+        <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
         {[
           { id: "all" as const, label: t("dashboard.debt.filterAll"), icon: Filter },
           { id: "utang" as const, label: t("dashboard.debt.filterDebt"), icon: ArrowDownLeft },
@@ -470,15 +471,15 @@ export default function DebtPage() {
         ))}
       </div>
 
-      {/* Entries List */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        {/* Entries List */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem", flex: 1, minHeight: 0, overflowY: "auto", paddingRight: "0.5rem" }} className="no-scrollbar">
         {filteredEntries.length === 0 && (
-          <div className="card-brutal" style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
-            <HandCoins size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
-            <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, padding: "3rem", textAlign: "center", color: "var(--color-text-muted)", opacity: 0.7 }}>
+            <HandCoins size={64} style={{ marginBottom: "1.25rem" }} />
+            <p style={{ fontSize: "1.125rem", fontWeight: 700, marginBottom: "0.5rem" }}>
               {searchQuery ? `${t("dashboard.debt.noMatch1")}${searchQuery}${t("dashboard.debt.noMatch2")}` : t("dashboard.debt.noData")}
             </p>
-            {!searchQuery && <p style={{ fontSize: "0.9rem" }}>{t("dashboard.debt.addHint")}</p>}
+            {!searchQuery && <p style={{ fontSize: "0.95rem", margin: 0 }}>{t("dashboard.debt.addHint")}</p>}
           </div>
         )}
 
@@ -549,6 +550,7 @@ export default function DebtPage() {
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* CAMI Tips Bubble Overlay */}
