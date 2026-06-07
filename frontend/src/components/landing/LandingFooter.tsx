@@ -11,7 +11,7 @@ export default function LandingFooter({ inViewRef, isVisible }: LandingFooterPro
       <div className="landing-footer__inner">
         <div className="landing-footer__brand">
           <div className="landing-nav__logo w-14 h-14 bg-transparent border-none shadow-none flex items-center justify-center">
-            <img src="/images/logo_white.png" alt="CEAMIS Logo" className="w-full h-full object-contain" />
+            <img src="/images/logo_white.webp" alt="CEAMIS Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="font-heading font-bold text-lg text-white">CEAMIS</div>

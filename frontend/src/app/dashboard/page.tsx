@@ -270,7 +270,7 @@ export default function DashboardPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(max(280px, calc((100% - 2.5rem) / 3)), 1fr))",
               gap: "1.25rem",
             }}
           >

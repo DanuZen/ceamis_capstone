@@ -127,7 +127,7 @@ export default function OnboardingPage() {
 
   if (isCheckingAuth) {
     return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", fontFamily: "var(--font-body)" }}>
+      <div style={{ height: "calc(100vh / 0.9)", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", fontFamily: "var(--font-body)" }}>
         <div style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.2rem" }}>Memuat CEAMIS...</div>
       </div>
     );
@@ -212,7 +212,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div style={{ height: "100vh", display: "flex", fontFamily: "var(--font-body)", background: "var(--color-bg)", overflow: "hidden" }}>
+    <div style={{ minHeight: "calc(100vh / 0.9)", display: "flex", fontFamily: "var(--font-body)", background: "var(--color-bg)", overflow: "hidden", flexWrap: "wrap" }}>
       <style dangerouslySetInnerHTML={{__html: `
         .selectable-card {
           transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -229,11 +229,15 @@ export default function OnboardingPage() {
         .animate-float-slow {
           animation: float 5s ease-in-out infinite;
         }
+        @media (max-width: 768px) {
+          .onboarding-left-panel { display: none !important; }
+          .onboarding-right-panel { min-width: 100% !important; }
+        }
       `}} />
 
       {/* LEFT PANEL */}
-      <div style={{
-        width: "520px", flexShrink: 0,
+      <div className="onboarding-left-panel" style={{
+        flex: "0 0 clamp(300px, 35%, 520px)",
         background: step.bg,
         borderRight: "4px solid var(--color-navy)",
         display: "flex", flexDirection: "column",
@@ -256,7 +260,7 @@ export default function OnboardingPage() {
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "auto", zIndex: 1 }}>
-          <img src="/images/logo_color.png" alt="CEAMIS" style={{ width: 56, height: 56, objectFit: "contain" }} />
+          <img src="/images/logo_color.webp" alt="CEAMIS" style={{ width: 56, height: 56, objectFit: "contain" }} />
           <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "2rem", letterSpacing: "2px", color: step.textColor }}>CEAMIS</span>
         </div>
 
@@ -311,7 +315,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* RIGHT PANEL */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--color-bg)", overflowY: "auto" }}>
+      <div className="onboarding-right-panel" style={{ flex: 1, minWidth: "300px", display: "flex", flexDirection: "column", background: "var(--color-bg)", overflowY: "auto" }}>
         {/* Progress bar */}
         <div style={{ height: 8, background: "rgba(10, 25, 47, 0.05)", borderBottom: "3px solid var(--color-navy)", flexShrink: 0 }}>
           <div style={{ height: "100%", background: step.accent, width: `${progress}%`, transition: "width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)", borderRight: "3px solid var(--color-navy)" }} />

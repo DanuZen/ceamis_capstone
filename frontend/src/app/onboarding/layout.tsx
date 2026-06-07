@@ -5,7 +5,7 @@ export default function OnboardingLayout({
 }) {
   return (
     <div style={{
-      minHeight: "100vh",
+      minHeight: "calc(100vh / 0.9)",
       background: "var(--color-bg)",
     }}>
       {children}

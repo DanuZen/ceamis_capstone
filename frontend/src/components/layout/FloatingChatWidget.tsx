@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Send, MessageSquare, Sparkles, RefreshCw, Bot } from "lucide-react";
+import { Send, MessageSquare, Sparkles, RefreshCw, Bot, ExternalLink } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { useTransactions } from "@/context/TransactionContext";
@@ -71,6 +71,7 @@ export default function FloatingChatWidget() {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const widgetRef = useRef<HTMLDivElement>(null);
 
   const QUICK_QUESTIONS = [
     t("dashboard.chatbot.qq1"),
@@ -121,6 +122,24 @@ export default function FloatingChatWidget() {
       window.removeEventListener("cami-close-chat", handleCloseChat);
     };
   }, []);
+
+  // Close chat when clicking anywhere outside the widget
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (widgetRef.current && !widgetRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    // Slight delay so the click that opened it doesn't immediately close it
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }, 100);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     fetch(`${AI_URL}/health`, { signal: AbortSignal.timeout(8000) })
@@ -192,7 +211,7 @@ export default function FloatingChatWidget() {
   if (isOnChatbotPage) return null;
 
   return (
-    <>
+    <div ref={widgetRef}>
       <style>{`
         @keyframes widget-slide-up {
           from { opacity: 0; transform: translateY(20px) scale(0.95); }
@@ -241,7 +260,7 @@ export default function FloatingChatWidget() {
         {/* Character image */}
         <div style={{ position: "relative" }}>
           <img
-            src={(isOpen || forceOpenPose) ? "/images/cami-pose-buka.png" : "/images/cami-pose-tutup.png"}
+            src={(isOpen || forceOpenPose) ? "/images/cami-pose-buka.webp" : "/images/cami-pose-tutup.webp"}
             alt="CAMI"
             style={{
               width: "700px",
@@ -348,20 +367,54 @@ export default function FloatingChatWidget() {
                 </div>
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+              {/* Buka halaman penuh */}
+              <a
+                href="/dashboard/chatbot"
+                title="Buka halaman Chat Penuh"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  borderRadius: "6px",
+                  width: "32px", height: "32px",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", color: "rgba(255,255,255,0.6)",
+                  transition: "all 0.15s ease",
+                  textDecoration: "none",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+                }}
+              >
+                <ExternalLink size={15} strokeWidth={2} />
+              </a>
               <button
                 onClick={resetChat}
                 title="Reset chat"
                 style={{
-                  background: "rgba(204,255,0,0.15)", border: "2px solid var(--color-lime)",
-                  borderRadius: "var(--radius-brutal-sm)", width: "30px", height: "30px",
+                  background: "transparent",
+                  border: "none",
+                  borderRadius: "6px",
+                  width: "32px", height: "32px",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", color: "var(--color-lime)", transition: "all 0.15s ease",
+                  cursor: "pointer", color: "rgba(255,255,255,0.6)",
+                  transition: "all 0.15s ease",
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(204,255,0,0.3)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "rgba(204,255,0,0.15)")}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+                }}
               >
-                <RefreshCw size={14} strokeWidth={2.5} />
+                <RefreshCw size={15} strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -443,8 +496,10 @@ export default function FloatingChatWidget() {
 
           {/* Input Area */}
           <div style={{
-            padding: "0.75rem", borderTop: "3px solid var(--color-navy)",
-            background: "var(--color-white)", display: "flex", gap: "0.5rem", flexShrink: 0,
+            padding: "0.75rem",
+            borderTop: "1.5px solid rgba(98, 54, 255, 0.12)",
+            background: "var(--color-white)",
+            display: "flex", gap: "0.5rem", flexShrink: 0,
           }}>
             <div style={{ flex: 1, position: "relative" }}>
               <MessageSquare size={15} color="var(--color-purple)" style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", opacity: 0.5 }} />
@@ -487,6 +542,6 @@ export default function FloatingChatWidget() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

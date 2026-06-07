@@ -237,7 +237,7 @@ export default function EducationPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(max(280px, calc((100% - 4.5rem) / 4)), 1fr))",
               gap: "1.5rem",
             }}
           >
@@ -328,7 +328,7 @@ export default function EducationPage() {
             className="stagger-children"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(max(280px, calc((100% - 4.5rem) / 4)), 1fr))",
               gap: "1.5rem",
             }}
           >

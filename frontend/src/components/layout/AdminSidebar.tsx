@@ -87,7 +87,7 @@ export default function AdminSidebar({ isOpen = true }: { isOpen?: boolean }) {
           width: "72px", height: "72px", display: "flex", alignItems: "center",
           justifyContent: "center"
         }}>
-          <img src="/images/logo_white.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <img src="/images/logo_white.webp" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
         <div className="sidebar-text" style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontSize: "1.5rem", fontWeight: 900, letterSpacing: "2px", color: "var(--color-white)", lineHeight: 1 }}>CEAMIS</span>

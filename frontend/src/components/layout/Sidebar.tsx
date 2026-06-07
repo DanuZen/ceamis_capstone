@@ -214,7 +214,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
           alignItems: "center",
           justifyContent: "center",
         }}>
-          <img src="/images/logo_white.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <img src="/images/logo_white.webp" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
         <div className="sidebar-text" style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontSize: "1.5rem", fontWeight: 900, letterSpacing: "2px", color: "var(--color-white)", lineHeight: 1 }}>CEAMIS</span>
@@ -227,8 +227,9 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         {navGroups.flatMap(group => group.items).map(renderNavItem)}
       </nav>
 
-      {/* Footer — Only back to landing page */}
+      {/* Footer — Back to landing page */}
       <div className="sidebar__footer" style={{ padding: "1rem 1rem 1.5rem 1rem", borderTop: "2px dashed rgba(255, 255, 255, 0.1)" }}>
+        {/* Logout / Back Button */}
         <div onClick={handleLogout} style={{ textDecoration: "none" }}>
           <button 
             className="btn-brutal" 

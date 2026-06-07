@@ -108,7 +108,7 @@ export default function AuthPage() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh / 0.9)",
         background: "var(--color-bg)",
         display: "flex",
       }}
@@ -290,7 +290,7 @@ export default function AuthPage() {
               display: "flex", alignItems: "center", justifyContent: "center",
               overflow: "hidden"
             }}>
-              <img src="/images/logo_white.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              <img src="/images/logo_white.webp" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "2.5rem", letterSpacing: "-1px", background: "linear-gradient(90deg, #FFFFFF, var(--color-lime))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               CEAMIS
@@ -379,7 +379,7 @@ export default function AuthPage() {
               }}
             >
             <img 
-              src="/images/logo_color.png" 
+              src="/images/logo_color.webp" 
               alt="CEAMIS Logo" 
               style={{ 
                 width: 52, height: 52,

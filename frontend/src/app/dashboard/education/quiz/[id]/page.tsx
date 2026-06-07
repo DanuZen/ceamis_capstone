@@ -109,10 +109,10 @@ export default function QuizDetailPage() {
         )}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "row-reverse", gap: "2rem", flex: 1, overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "row-reverse", gap: "2rem", flex: 1, overflow: "hidden", flexWrap: "wrap" }}>
         {/* Sidebar Nav */}
         {!showResult && (
-          <div style={{ width: "280px", background: "var(--color-white)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem", height: "fit-content", border: "2.5px solid var(--color-navy)", borderRadius: "12px" }}>
+          <div style={{ flex: "1 1 280px", maxWidth: "350px", minWidth: "240px", background: "var(--color-white)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem", height: "fit-content", border: "2.5px solid var(--color-navy)", borderRadius: "12px" }}>
             <h4 style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "1rem", textTransform: "uppercase", letterSpacing: "1px" }}>{t("dashboard.education.quiz.questionList")}</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               {questions.map((q, index) => (
@@ -146,7 +146,8 @@ export default function QuizDetailPage() {
         {/* Content Area */}
         <div 
           style={{ 
-            flex: 1, 
+            flex: "999 1 500px",
+            minWidth: "280px",
             background: "var(--color-white)", 
             padding: "3rem", 
             display: "flex",

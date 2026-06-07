@@ -41,7 +41,7 @@ export default function HeroSection({ inViewRef, isVisible }: HeroSectionProps) 
         <div className="landing-hero__visual">
           <div className="landing-hero__blob" />
           <Image 
-            src="/images/hero.png" 
+            src="/images/hero.webp" 
             alt="CEAMIS Illustration" 
             className="landing-hero__main-img"
             width={480}
