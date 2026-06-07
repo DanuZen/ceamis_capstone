@@ -419,7 +419,8 @@ a {
   }
 
   /* Override fixed heights (like in Planning Page) */
-  [style*="800px"] {
+  [style*="800px"],
+  [style*="700px"] {
     height: auto !important;
     max-height: none !important;
   }
