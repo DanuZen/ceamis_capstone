@@ -32,4 +32,5 @@
 - S-O: XAI & insight kontekstual
 - W-O: Gamifikasi untuk konsistensi input
 - S-T: Keamanan & privasi transparan
-- W-T: Fitur Quick Input, minimalisir hambatan
+- W-T: Fitur Quick Input & **Smart OCR Scan Struk** (Solusi CEAMIS 2.0: Mengeliminasi hambatan input manual dengan ekstraksi struk otomatis via Google ML Kit + Gemini 2.0 Flash)
+

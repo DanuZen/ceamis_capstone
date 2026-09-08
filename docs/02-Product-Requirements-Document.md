@@ -1,4 +1,8 @@
-# Product Requirements Document (PRD) – CEAMIS
+# Product Requirements Document (PRD) – CEAMIS 1.0 (Arsip Fondasi)
+
+> [!NOTE]
+> **Arsip Dokumentasi CEAMIS 1.0 (Web Foundation)**  
+> Dokumen ini adalah PRD orisinal versi 1.0 (fokus Web MVP). Untuk spesifikasi kebutuhan produk versi terbaru (**CEAMIS 2.0** yang mencakup Aplikasi Mobile Flutter, Smart OCR Struk, Database CRUD Edukasi, dan tim inti Wira & Hafiz), silakan merujuk ke **[`PRD.md`](PRD.md)**.
 
 ## Executive Summary
 

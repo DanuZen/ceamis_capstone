@@ -49,8 +49,10 @@ Service ini didedikasikan khusus untuk komputasi berat (Machine Learning) dan pe
    * Terintegrasi dengan fitur otomatisasi alokasi target anggaran (seperti *Needs 50 / Wants 30 / Savings 20*) dan rekomendasi instrumen investasi langsung ke dalam *output* API.
 4. **Chatbot CAMI:**
    * Fitur asisten virtual Gen-Z yang di-tenagai oleh integrasi LLM (Gemini/Groq) untuk memberikan saran keuangan interaktif.
-5. **Education:**
-   * Modul edukasi keuangan adaptif yang kemungkinan kontennya digenerasi atau disesuaikan menggunakan GenAI berdasarkan kondisi keuangan pengguna.
+5. **Education (Database CRUD):**
+   * Modul edukasi keuangan dan kuis dikelola secara deterministik menggunakan **Database CRUD** (Prisma ORM & Supabase) melalui Admin Panel untuk menjamin akurasi materi dan menghindari halusinasi GenAI. Generator kuis dinamis berbasis AI telah didepresiasi demi stabilitas sistem.
+6. **Smart OCR Receipt Parser (`/api/v1/ocr/parse-receipt`):**
+   * Endpoint baru di Backend NestJS yang menerima hasil raw OCR dari Mobile App (Google ML Kit) dan menggunakan LLM (Gemini 2.0 Flash) untuk mengekstrak JSON terstruktur (nama merchant, tanggal, daftar item, total harga, kategori).
 
 ---
 

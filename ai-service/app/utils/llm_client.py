@@ -49,7 +49,7 @@ async def call_gemini(system_prompt: str, messages: list) -> str:
         )
 
     response = gemini_client.models.generate_content(
-        model="gemini-2.5-flash",
+        model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
         contents=contents,
         config=types.GenerateContentConfig(
             max_output_tokens=MAX_TOKENS,

@@ -1,8 +1,8 @@
-# CEAMIS
+# CEAMIS 2.0
 
-**Control Every Awful Money Impulse System**
+**Control Every Awful Money Impulse System 2.0**
 
-*Cerdas Finansial, Kontrol Impuls, Raih Masa Depan*
+*Cerdas Finansial, Kontrol Impuls, Pindai Struk Instan, Raih Masa Depan*
 
 ## Tentang CEAMIS
 
@@ -38,23 +38,22 @@ Untuk mempertahankan tingkat retensi (*retention rate*) dan membangun disiplin f
 - **Streak Harian:** Membangun kebiasaan (*habit building*) melalui sistem *streak* untuk mendorong pengguna melakukan pencatatan atau minimal mengecek kondisi keuangan mereka secara konsisten setiap harinya.
 - **Poin Pengalaman (XP):** XP dikumpulkan dari setiap tindakan positif (mencatat pengeluaran, membaca materi, lulus kuis) dan digunakan sebagai proksi tingkat kedisiplinan pengguna.
 
-### 5. Modul Edukasi Adaptif
-Kurikulum literasi finansial interaktif yang disesuaikan dengan level pemahaman (*Beginner*, *Intermediate*, *Advanced*). Kurikulum ini terdiri dari:
-- Materi bacaan singkat, padat, dan langsung pada intinya.
-- Kuis evaluasi berkala untuk menguji pemahaman pengguna.
-Sistem edukasi ini terhubung erat dengan modul Gamifikasi, memberikan insentif penyelesaian berupa tambahan XP dan pencapaian lencana baru.
+### 5. Modul Edukasi & Sistem Kuis Terkurasi (Admin CRUD)
+Kurikulum literasi finansial interaktif yang terbagi ke dalam level pemahaman (*Beginner*, *Intermediate*, *Advanced*):
+- **Materi Terstruktur:** Konten edukasi finansial praktis yang disusun rapi halaman per halaman (*step-by-step*).
+- **Kuis Terkurasi (Sistem CRUD Database):** Kuis tidak lagi mengandalkan generator AI otomatis demi mencegah risiko halusinasi dan salah konsep. Seluruh soal, opsi jawaban (A/B/C/D), kunci jawaban, dan pembahasannya dikelola serta dikurasi secara manual oleh Admin melalui Panel Admin (`/admin/quizzes` dan `/admin/education`) dengan penyimpanan berbasis Prisma ORM & Supabase PostgreSQL.
+- **Ekosistem Gamifikasi:** Terhubung langsung dengan pemberian XP, *streak*, dan pembukaan *badges* saat pengguna berhasil menyelesaikan modul atau lulus kuis.
 
-## Arsitektur Teknologi
+## Arsitektur Teknologi & Deployment
 
-Sistem CEAMIS didesain dari awal (*from scratch*) dengan memisahkan antarmuka pengguna, logika bisnis, dan komputasi kompeks model AI untuk menjamin skalabilitas maksimal, keamanan data, serta kemudahan dalam proses pemeliharaan.
+Sistem CEAMIS didesain secara modular (*microservices monorepo*) dengan memisahkan antarmuka pengguna, logika bisnis, dan komputasi model AI untuk skalabilitas maksimal:
 
-| Layer | Teknologi Utama | Keterangan Tambahan |
-| --- | --- | --- |
-| **Frontend** | Next.js (App Router), React, CSS | Antarmuka bergaya *Neo-Brutalism Design* yang interaktif. |
-| **Backend API** | NestJS (Node.js) | Melayani endpoint API utama (transaksi, profil) di port 3001. |
-| **Backend & ORM** | Next.js Server Actions, Prisma | Logika khusus untuk modul fitur tertentu yang berjalan di server. |
-| **Database Utama** | Supabase PostgreSQL | Relasional database dengan manajemen koneksi *Connection Pooler*. |
-| **AI Microservice** | FastAPI (Python), TensorFlow, Scikit-Learn | Endpoint API terpisah di port 8000 untuk inferensi model *Machine Learning*. |
+| Layer | Teknologi Utama | Hosting / Deployment | Keterangan |
+| --- | --- | --- | --- |
+| **Frontend Web** | Next.js (App Router), React, CSS | **Vercel** (`ceamis-capstone.vercel.app`) | Antarmuka bergaya *Neo-Brutalism Design* yang interaktif. |
+| **Backend API** | NestJS (Node.js, Express) | **Hugging Face Spaces** (Docker SDK) | Melayani endpoint API utama (transaksi, users, onboarding, warnings). Otomatis di-deploy via GitHub Actions. |
+| **Database Utama** | Supabase PostgreSQL, Prisma ORM | **Supabase Cloud** (AWS AP-Northeast-1) | Database relasional dengan manajemen *Transaction Pooler* (Port 6543). |
+| **AI Microservice** | FastAPI (Python), Scikit-Learn, GenAI | **Hugging Face Spaces** (Docker SDK) | Endpoint inferensi Machine Learning (Health Score, K-Means Cluster, Risk Profile, CAMI Chatbot). |
 
 ## Struktur Folder
 
@@ -79,29 +78,18 @@ Catatan: Berkas model Machine Learning hasil pelatihan untuk direktori ai-servic
 
 ## Panduan Menjalankan Proyek Lokal (Development)
 
-Proyek ini menggunakan arsitektur *microservices*. Anda perlu membuka 3 terminal (Command Prompt/PowerShell) terpisah untuk menjalankan masing-masing layanan secara bersamaan.
+Sistem menggunakan arsitektur *monorepo*. Layanan AI Microservice sudah aktif 24/7 di Hugging Face Space cloud, sehingga secara default Anda **hanya perlu menjalankan 2 terminal lokal**:
 
 **1. Menjalankan Backend API (NestJS)**
-Backend utama berjalan di port 3001 dan bertugas melayani data transaksi dan profil pengguna.
+Backend utama berjalan di port 3001 dan bertugas melayani data transaksi, profil, serta proxy inferensi AI.
 ```bash
 cd backend
 npm install
 npm run start:dev
-# Akan berjalan di http://localhost:3001
+# Berjalan di http://localhost:3001
 ```
 
-**2. Menjalankan AI Service (FastAPI)**
-Layanan kecerdasan buatan berjalan di port 8000.
-```bash
-cd ai-service
-# Mengaktifkan virtual environment (wajib pada Windows)
-venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-# Akan berjalan di http://localhost:8000
-```
-
-**3. Menjalankan Frontend (Next.js)**
+**2. Menjalankan Frontend (Next.js)**
 Antarmuka pengguna berjalan di port 3000.
 ```bash
 cd frontend
@@ -111,52 +99,53 @@ npm run dev
 # Buka http://localhost:3000 di browser
 ```
 
+*(Opsional)* **Menjalankan AI Service Lokal:**
+Hanya jika Anda ingin melatih ulang (*re-train*) model Machine Learning atau mengembangkan modul Python secara offline:
+```bash
+cd ai-service
+venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+## Alur Deployment & CI/CD (Monorepo)
+
+- **Frontend:** Terhubung langsung ke Vercel via GitHub repository integration. Setiap push ke `main` otomatis men-trigger build Next.js.
+- **Backend (NestJS API):** Dikelola di dalam monorepo dan di-deploy otomatis ke **Hugging Face Docker Space** (`DanuZen/ceamis-backend`) menggunakan **GitHub Actions Workflow** ([`.github/workflows/deploy-backend.yml`](.github/workflows/deploy-backend.yml)).
+- **AI Service:** Berjalan mandiri di **Hugging Face Docker Space** (`mtaufiqulhakim/ceamis-ai-service`).
+
 ## Tim Pengembang
 
 Proyek kolaboratif ini dibangun dan dirancang secara penuh oleh tim multidisiplin:
 
-| Nama | Peran | Fokus Utama |
+## Tim Pengembang (CEAMIS 2.0 Core Team)
+
+Pengembangan dan ekspansi ekosistem CEAMIS 2.0 (Web + Mobile App + Smart OCR) dipimpin secara kolaboratif oleh tim inti:
+
+| Nama | Peran Utama | Fokus & Tanggung Jawab |
 | --- | --- | --- |
-| **Wira Fikri Ramadanu** | Fullstack Dev & Project Manager | Arsitektur Sistem Keseluruhan, Database Supabase, Manajemen Proyek, Integrasi AI |
-| **Humaira Mutia** | Frontend Developer | Antarmuka Pengguna (UI), Neo-Brutalism Styling, Komponen React |
-| **Vanesha Alexandria D.** | AI Lead | Arsitektur Model AI, Pipeline Pelatihan, Optimasi Akurasi Model |
-| **Muhammad Taufiqulhakim**| AI Developer | Endpoint FastAPI, Generative AI (Chatbot CAMI), Logika Edukasi |
-| **Muhammad Devin Rahadi** | Data Analyst | Eksplorasi Data (EDA), Wrangling Data, Analisis Klaster Pengeluaran |
-| **Hafiz Hafrienda** | Data Modeler & QA | Rekayasa Fitur (*Feature Engineering*), Pengujian A/B, Jaminan Kualitas |
+| **Wira Fikri Ramadanu** | **Project Lead & Fullstack/Mobile Engineer** | Arsitektur Monorepo, Aplikasi Mobile (Flutter), Backend Gateway (NestJS), Web App (Next.js), Integrasi Supabase Cloud & CI/CD |
+| **Hafiz Hafrienda** | **AI Engineer & Data/QA Specialist** | Evaluasi Model Machine Learning, Prompt Engineering Gemini 2.0 OCR & Chatbot CAMI, Quality Assurance, & Pengujian Struk Fisik |
 
-## Dokumentasi Proyek Terpusat
+## Dokumentasi Proyek Terpusat (CEAMIS 2.0)
 
-Bagi kontributor, pengembang masa depan, dan pengulas, seluruh detail teknis, rancangan arsitektur tingkat lanjut, metrik desain *Neo-Brutalism*, hingga logika spesifik metrik model *Machine Learning* tersedia secara komprehensif di dalam direktori `docs/`.
+Seluruh detail teknis, spesifikasi kebutuhan, sistem desain, hingga pembagian sprint pengerjaan didokumentasikan secara rapi di dalam direktori `docs/`:
 
-Untuk memastikan pemahaman yang komprehensif mengenai aplikasi ini, silakan meninjau dokumen dengan urutan prioritas berikut:
+### 🚀 Dokumen Utama CEAMIS 2.0 (Wajib Dibaca):
+1. **[`docs/PRD.md`](docs/PRD.md)** — **Product Requirements Document (PRD) CEAMIS 2.0**: Spesifikasi lengkap fitur Mobile App, OCR Struk Belanja, integrasi model ML, metrik keberhasilan, dan prioritas MoSCoW.
+2. **[`docs/StyleGuide.md`](docs/StyleGuide.md)** — **Design System & Style Guide**: Panduan visual *Neo-Brutalism for Gen-Z* untuk Web (CSS) dan Mobile (Flutter Theme).
+3. **[`docs/Tasks.md`](docs/Tasks.md)** — **Task Backlog & Roadmap Eksekusi**: Pembagian Sprint 1–5, rincian task teknis, penanggung jawab (Wira & Hafiz), serta kriteria *Definition of Done*.
+4. **[`docs/PANDUAN_FITUR_BARU_MOBILE_OCR.md`](docs/PANDUAN_FITUR_BARU_MOBILE_OCR.md)** — Arsitektur teknis Hybrid OCR (Google ML Kit on-device + Gemini 2.0 Flash di backend NestJS).
 
-**Bagian 1: Produk, Visi, & Perencanaan**
-1. `01-Vision-and-Executive-Summary.md` - Visi dan Misi Utama CEAMIS.
-2. `02-Product-Requirements-Document.md` - Dokumen Spesifikasi Kebutuhan Produk.
-3. `03a-Requirements.md` & `03b-Scope-and-Deliverables.md` - Ruang Lingkup Pengerjaan.
-4. `04-User-Persona-and-Flow.md` - Analisis Target Audiens dan Alur Interaksi.
-
-**Bagian 2: Arsitektur & Rekayasa Perangkat Lunak**
-5. `10-System-Architecture.md` - Blueprint Arsitektur Sistem.
-6. `12-Frontend-Architecture.md` - Struktur Komponen & Routing Next.js.
-7. `14-Backend-Architecture.md` - Penjelasan Logika Server Actions.
-8. `15-Database-and-Prisma.md` - Skema Lengkap Supabase PostgreSQL & Prisma.
-
-**Bagian 3: Kecerdasan Buatan (AI Service)**
-9. `16-AI-Integration.md` - Logika Komunikasi antara Frontend dan Microservice AI.
-10. `17-AI-Model-Financial-Health.md` - Penjelasan Kalkulasi Skor Kesehatan.
-11. `18-AI-Model-Spending-Cluster.md` - Algoritma dan Fitur Pengelompokan Gaya Hidup.
-12. `19-AI-Model-Risk-Profile.md` - Penjelasan Probabilitas Kuesioner Profil Risiko.
-
-**Untuk indeks lengkap dan akses langsung ke seluruh dokumen, silakan merujuk pada file utama: [docs/00-README-INDEX.md](docs/00-README-INDEX.md)**
+**Untuk indeks lengkap seluruh dokumen teknis & fondasi, silakan merujuk pada: [docs/00-README-INDEX.md](docs/00-README-INDEX.md)**
 
 ---
 
 ## Tentang Proyek Ini
 
-**CEAMIS** merupakan karya otentik yang dikembangkan sebagai pemenuhan tugas akhir (*Capstone Project*) pada program **Dicoding**. Proyek ini merepresentasikan gabungan kompetensi lintas disiplin ilmu dari seluruh anggota tim kami, mencakup integrasi sistem *Front-End*, arsitektur *Back-End*, hingga penerapan *Machine Learning* yang fungsional.
+**CEAMIS 2.0** merupakan kelanjutan dan pengembangan tingkat lanjut dari karya tugas akhir (*Capstone Project*) Dicoding. Proyek ini memadukan aplikasi Web, aplikasi Mobile, dan kecerdasan buatan (*Machine Learning*) menjadi satu kesatuan ekosistem finansial modern yang siap pakai.
 
 <br>
 
-**Hak Cipta © 2026 Tim CEAMIS - Dicoding Capstone Project.**
-Seluruh Hak Dilindungi. Dibuat dengan ❤️ oleh Tim CC26-PSU023.
+**Hak Cipta © 2026 Tim CEAMIS 2.0.**
+Seluruh Hak Dilindungi. Dibuat dengan ❤️ oleh Wira Fikri Ramadanu & Hafiz Hafrienda.

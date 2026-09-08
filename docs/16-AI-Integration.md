@@ -40,14 +40,14 @@ GET http://localhost:8000/health
 
 | Komponen | Status | Catatan |
 |----------|--------|---------|
-| `app/main.py` | ✅ Running | 6 router aktif, prefix `/api/v1` |
-| `app/api/health_score.py` | ✅ Real model | Custom `FinancialAttentionLayer`, perlu optimasi akurasi |
-| `app/api/risk_profile.py` | ✅ Production-ready | Akurasi 97.91% |
-| `app/api/spending_cluster.py` | ⚠️ Mock | `is_mock: true`, model masih training |
-| `app/api/chatbot.py` | ✅ Ready | Gemini 1.5 Flash + Groq fallback |
-| `app/api/education.py` | ✅ Ready | Generate konten & quiz via LLM |
+| `app/main.py` | ✅ Running (Cloud) | Host di Hugging Face Spaces `mtaufiqulhakim/ceamis-ai-service` |
+| `app/api/health_score.py` | ✅ Production-ready | Pure formula + XAI. Terintegrasi penuh dengan backend NestJS. |
+| `app/api/spending_cluster.py` | ✅ Production-ready | K-Means Clustering (`is_mock: false`), memetakan persona (*Si Hemat*, dll). |
+| `app/api/risk_profile.py` | ✅ Production-ready | Scikit-Learn Classifier, akurasi 97.91% (*Konservatif*, *Moderat*, *Agresif*). |
+| `app/api/chatbot.py` | ⚠️ Pending API Key | Menggunakan Google Gemini 2.0 Flash + Groq Llama 3.1 fallback. |
+| `app/api/education.py` | ⛔ Non-Aktif / Deprecated | **Digantikan oleh Admin Database CRUD (Prisma + Supabase)** di panel `/admin/quizzes` & `/admin/education` demi akurasi soal tanpa halusinasi AI. |
+| `app/utils/llm_client.py` | ✅ Fixed | Default model diperbaiki ke `gemini-2.0-flash` + Groq Llama 3.1. |
 | `app/utils/preprocessor.py` | ✅ Fixed | Unified utilities Model 1 + Model 3 |
-| `requirements.txt` | ✅ Fixed | Groq `v0.9.0` included, no duplicates |
 
 ### File Model Artifacts
 

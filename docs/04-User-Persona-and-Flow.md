@@ -44,9 +44,9 @@ User adalah target pengguna utama CEAMIS (Gen-Z, Mahasiswa, Fresh Graduate). Mer
 **Alur Pengguna (User Flow):**
 1. **Login:** Masuk menggunakan email/password atau SSO (Google).
 2. **Dashboard Utama:** Melihat rangkuman saldo, pengeluaran bulan ini, *streak*, dan level saat ini.
-3. **Pencatatan Keuangan:** Menambahkan data transaksi (Pemasukan / Pengeluaran) secara manual atau via fitur cerdas.
+3. **Pencatatan Keuangan:** Menambahkan data transaksi (Pemasukan / Pengeluaran) secara manual pada Web atau menggunakan **Smart OCR Scan Struk** pada Mobile App (foto struk belanja fisik langsung mengekstrak merchant, daftar barang, dan nominal otomatis).
 4. **Menerima AI Insights:** Membaca peringatan jika boros (Warning System), rekomendasi penghematan (XAI), atau ngobrol dengan Chatbot AI.
-5. **Eksplorasi Edukasi:** Membaca modul Edukasi keuangan untuk meningkatkan XP.
+5. **Eksplorasi Edukasi:** Membaca modul Edukasi keuangan dan menyelesaikan kuis interaktif (dikelola via database CRUD) untuk meningkatkan XP.
 6. **Gamifikasi & Laporan:** Mendapatkan *Badge*, melihat *Leaderboard*, dan mengekspor Laporan Keuangan.
 7. **Pengaturan:** Mengganti foto profil, mengelola profil, atau Logout.
 

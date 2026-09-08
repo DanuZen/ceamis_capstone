@@ -53,8 +53,8 @@
 | FE-S03 | ⭐ RESTful API dapat **menyimpan data ke dalam database**. | ✅ | Supabase (PostgreSQL) sudah diimplementasikan di backend. |
 | FE-S04 | ⭐ RESTful API dibangun menggunakan **framework Express**. | ✅ | Menggunakan framework NestJS yang berjalan di atas Express.js. |
 | FE-S05 | ⭐ **Rekomendasi tools** untuk meningkatkan proses pengembangan: Bootstrap / Tailwind CSS, Axios. | ✅ | Menggunakan **Tailwind CSS v4** (`@tailwindcss/postcss`), **Lucide React** untuk ikon. |
-| FE-S06 | ⭐ Melakukan **deployment** aplikasi web ke server. | ❌ | Belum dilakukan deployment. Rekomendasi: Vercel (untuk Next.js). |
-| FE-S07 | ⭐ **Rekomendasi layanan hosting**: GitHub Pages, Netlify, atau Vercel. | ❌ | Belum ditentukan. Rekomendasi: **Vercel** (optimal untuk Next.js). |
+| FE-S06 | ⭐ Melakukan **deployment** aplikasi web ke server. | ✅ | Backend live di Hugging Face (`danuzen-ceamis-backend.hf.space`), AI Service live (`mtaufiqulhakim-ceamis-ai-service.hf.space`), CI/CD otomatis via GitHub Actions. |
+| FE-S07 | ⭐ **Rekomendasi layanan hosting**: GitHub Pages, Netlify, atau Vercel. | ✅ | Frontend Next.js siap dideploy ke **Vercel**, Backend & AI Service aktif di **Hugging Face Spaces**. |
 
 ---
 
@@ -160,7 +160,7 @@ Berikut adalah pemetaan antara file/komponen yang sudah ada di repository dengan
 
 | Learning Path | Main Quest | Side Quest | Total |
 |--------------|------------|------------|-------|
-| **Front End & Back End** | 7/7 ✅ · 0/7 🔧 · 0/7 ❌ | 5/7 ✅ · 0/7 🔧 · 2/7 ❌ | **12/14 done** |
+| **Front End & Back End** | 7/7 ✅ · 0/7 🔧 · 0/7 ❌ | 7/7 ✅ · 0/7 🔧 · 0/7 ❌ | **14/14 done** |
 | **Artificial Intelligence** | 4/4 ✅ · 0/4 🔧 · 0/4 ❌ | 5/5 ✅ · 0/5 🔧 · 0/5 ❌ | **9/9 done** |
 | **Data Science** | 6/7 ✅ · 0/7 🔧 · 1/7 ❌ | 1/4 ✅ · 0/4 🔧 · 3/4 ❌ | **7/11 done** |
 
@@ -168,35 +168,18 @@ Berikut adalah pemetaan antara file/komponen yang sudah ada di repository dengan
 
 ```
 Main Quest (MVP Wajib):     17/18 ✅ (94.4%)
-Side Quest (Nilai Tambah):  11/16 ✅ (68.8%)
-Total Checklist:            28/34 ✅ (82.4%)
+Side Quest (Nilai Tambah):  13/16 ✅ (81.3%)
+Total Checklist:            30/34 ✅ (88.2%)
 In Progress:                0/34 🔧  (0.0%)
-Belum Dimulai:              6/34 ❌  (17.6%)
+Belum Dimulai:              4/34 ❌  (11.8%)
 ```
 
 ---
 
-## 🚨 Prioritas Segera (Rekomendasi)
+> [!NOTE]
+> **Transisi ke CEAMIS 2.0:**  
+> Checklist di atas merupakan matriks evaluasi Capstone CEAMIS 1.0. Untuk backlog pengerjaan dan roadmap fase **CEAMIS 2.0** (Aplikasi Mobile Flutter, Smart OCR Struk, & tim inti Wira & Hafiz), silakan merujuk langsung ke **[`Tasks.md`](Tasks.md)**.
 
-> [!IMPORTANT]
-> Saat ini mayoritas Main Quest sudah terpenuhi. Fokus berikutnya adalah pada deployment dan minor features (Data Science).
+*Dokumen ini dibuat pada: **3 Mei 2026** — diarsipkan sebagai bukti pemenuhan checklist Capstone CEAMIS 1.0.*  
+*Terakhir diupdate: 8 September 2026*
 
-### 🔴 Prioritas Kritis (Blocking)
-
-*(Tidak ada prioritas blocking untuk tahap saat ini)*
-
-### 🟡 Prioritas Tinggi (Essential)
-
-1. **DS-06**: Membangun Dashboard interaktif dengan Streamlit (Main Quest DS tersisa)
-2. **FE-S06**: Melakukan deployment aplikasi web (misal ke Vercel untuk Frontend & Render/Railway untuk Backend & AI)
-
-### 🟢 Prioritas Menengah (Nice to Have)
-
-3. **DS-S04**: Membuat laporan teknis komprehensif dalam format PDF
-4. **DS-S02**: Deployment Streamlit Dashboard
-5. **FE-S07**: Penentuan layanan hosting tetap
-
----
-
-*Dokumen ini dibuat pada: **3 Mei 2026** — akan di-update seiring perkembangan proyek.*
-*Terakhir diupdate: 24 Mei 2026*
