@@ -41,22 +41,20 @@ export class AiService {
     investment_rate_raw?: number;
     dti_ratio?: number;
   }) {
-    const saving_rate = payload.savings_ratio / 100;
+    const saving_rate = Math.min(Math.max((payload.savings_ratio ?? 0) / 100, 0), 1);
+    const wants_ratio = payload.wants_ratio_raw !== undefined ? Math.min(Math.max(payload.wants_ratio_raw, 0), 1) : 0.28;
+    const dti_ratio = payload.dti_ratio !== undefined ? Math.min(Math.max(payload.dti_ratio, 0), 1) : 0.0;
+    const impulsive_ratio = payload.pct_risky_category ?? payload.pct_binge_spending ?? 0.08;
+    const budget_adherence = payload.pct_unbudgeted !== undefined ? Math.max(0, Math.min(1, 1 - payload.pct_unbudgeted)) : 0.85;
 
-    // Build FastAPI payload (Model 1 schema)
+    // Build FastAPI payload (Model 1 schema: segmen, saving_rate, wants_ratio, dti_ratio, impulsive_ratio, budget_adherence)
     const fastapiPayload = {
-      pct_late_night:       payload.pct_late_night       ?? 0.10,
-      pct_weekend:          payload.pct_weekend          ?? 0.30,
-      pct_unbudgeted:       payload.pct_unbudgeted       ?? 0.25,
-      pct_risky_category:   payload.pct_risky_category   ?? 0.20,
-      pct_binge_spending:   payload.pct_binge_spending   ?? 0.05,
-      avg_hourly_txn_count: payload.avg_hourly_txn_count ?? 1.5,
-      transaction_count:    payload.transaction_count    ?? 10,
-      saving_rate_raw:      Math.min(Math.max(saving_rate, 0), 1),
-      wants_ratio_raw:      payload.wants_ratio_raw      ?? 0.30,
-      investment_rate_raw:  payload.investment_rate_raw  ?? 0.05,
-      dti_ratio:            payload.dti_ratio            ?? 0.10,
-      segment_enc:          saving_rate > 0.2 ? 1 : 0,
+      segmen:           'A',
+      saving_rate:      Number(saving_rate.toFixed(2)),
+      wants_ratio:      Number(wants_ratio.toFixed(2)),
+      dti_ratio:        Number(dti_ratio.toFixed(2)),
+      impulsive_ratio:  Number(impulsive_ratio.toFixed(2)),
+      budget_adherence: Number(budget_adherence.toFixed(2)),
     };
 
     try {
@@ -73,10 +71,10 @@ export class AiService {
         health_score:      data.health_score,
         health_label:      data.health_label,
         risk_level:        this.scoreToRiskLevel(data.health_score),
-        triggered:         data.warning_triggered,
-        warning_triggered: data.warning_triggered,
-        xai_factors:       data.xai_factors ?? {},
-        message:           data.message ?? '',
+        triggered:         data.health_score < 40,
+        warning_triggered: data.health_score < 40,
+        xai_factors:       data.component_scores ?? {},
+        message:           Array.isArray(data.explanation) ? data.explanation.join('. ') : (data.message ?? ''),
         is_mock:           false,
       };
 

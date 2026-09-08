@@ -1,0 +1,37 @@
+name: Sync Backend to Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  sync-to-huggingface:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push backend subtree to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::Secret HF_TOKEN belum dikonfigurasi di GitHub Repository Secrets. Silakan tambahkan HF_TOKEN di Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Ekstrak commit history khusus folder backend ke branch sementara
+          git subtree split --prefix=backend -b hf-sync-branch
+
+          # Push paksa branch tersebut ke branch master Hugging Face Space
+          git push https://DanuZen:$HF_TOKEN@huggingface.co/spaces/DanuZen/ceamis-backend hf-sync-branch:master --force
