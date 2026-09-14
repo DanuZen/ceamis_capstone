@@ -9,6 +9,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { AiModule } from './ai/ai.module';
 import { WarningsModule } from './warnings/warnings.module';
+import { OcrModule } from './ocr/ocr.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { WarningsModule } from './warnings/warnings.module';
     OnboardingModule,
     AiModule,
     WarningsModule,
+    OcrModule,
   ],
 })
 export class AppModule {}
