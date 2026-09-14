@@ -57,6 +57,11 @@ desktop.ini
 **/.Python
 **/pip-log.txt
 **/pip-delete-this-directory.txt
+# ── Environment Variables ─────────────────────
+**/.env
+**/.env.*
+**/.env.local
+!**/.env.example
 **/.env.ai
 **/venv/
 **/.venv/
