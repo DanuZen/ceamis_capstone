@@ -3,79 +3,107 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
+import '../../../core/widgets/neo_brutal_card.dart';
+
 class HealthScoreScreen extends StatelessWidget {
   const HealthScoreScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Health Score')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text(
+          'Health Score',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Score Ring
-              _buildScoreRing(context),
+              // Score Hero Card
+              _buildScoreHero(context),
               const SizedBox(height: 24),
 
-              // Category Badge
-              _buildCategoryBadge(context),
-              const SizedBox(height: 24),
-
-              // Component Breakdown
+              // Component Breakdown Header
               Text(
-                'Breakdown Komponen',
-                style: Theme.of(context).textTheme.titleLarge,
+                'Breakdown Indikator',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.navy,
+                    ),
               ),
               const SizedBox(height: 12),
 
               _buildComponentCard(
-                icon: Icons.savings_outlined,
+                icon: Icons.savings_rounded,
+                iconBg: AppColors.lime,
                 label: 'Saving Rate',
                 value: '17.0%',
-                score: 0.75,
-                color: AppColors.sehat,
+                benchmark: 'Target: ≥ 20%',
+                score: 0.85,
+                statusColor: AppColors.lime,
+                statusText: 'SEHAT',
               ),
               _buildComponentCard(
-                icon: Icons.shopping_bag_outlined,
+                icon: Icons.shopping_bag_rounded,
+                iconBg: AppColors.orange,
                 label: 'Wants Ratio',
                 value: '28.0%',
-                score: 0.50,
-                color: AppColors.waspada,
+                benchmark: 'Target: ≤ 25%',
+                score: 0.65,
+                statusColor: AppColors.orange,
+                statusText: 'WASPADA',
               ),
               _buildComponentCard(
-                icon: Icons.flash_on_outlined,
+                icon: Icons.flash_on_rounded,
+                iconBg: AppColors.pink,
                 label: 'Impulsive Ratio',
                 value: '8.0%',
-                score: 0.75,
-                color: AppColors.sehat,
+                benchmark: 'Target: ≤ 10%',
+                score: 0.90,
+                statusColor: AppColors.lime,
+                statusText: 'SEHAT',
               ),
               _buildComponentCard(
-                icon: Icons.checklist_outlined,
+                icon: Icons.checklist_rounded,
+                iconBg: AppColors.cyan,
                 label: 'Budget Adherence',
                 value: '85.0%',
-                score: 0.75,
-                color: AppColors.sehat,
+                benchmark: 'Target: ≥ 80%',
+                score: 0.85,
+                statusColor: AppColors.lime,
+                statusText: 'SEHAT',
               ),
               _buildComponentCard(
-                icon: Icons.account_balance_outlined,
+                icon: Icons.account_balance_rounded,
+                iconBg: AppColors.purple,
                 label: 'DTI Ratio',
                 value: '0.0%',
+                benchmark: 'Target: ≤ 30%',
                 score: 1.0,
-                color: AppColors.sehat,
+                statusColor: AppColors.lime,
+                statusText: 'SEHAT',
               ),
 
               const SizedBox(height: 24),
 
-              // XAI Explanation
+              // CAMI XAI Explanation Card
               Text(
-                'Penjelasan AI 🤖',
-                style: Theme.of(context).textTheme.titleLarge,
+                'Analisis CAMI AI 🤖',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.navy,
+                    ),
               ),
               const SizedBox(height: 12),
               _buildExplanationCard(context),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -83,163 +111,222 @@ class HealthScoreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScoreRing(BuildContext context) {
+  Widget _buildScoreHero(BuildContext context) {
     const score = 78.5;
-    return Center(
-      child: SizedBox(
-        width: 180,
-        height: 180,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Background ring
-            SizedBox(
-              width: 180,
-              height: 180,
-              child: CircularProgressIndicator(
-                value: 1.0,
-                strokeWidth: 12,
-                backgroundColor: AppColors.surfaceVariant,
-                color: AppColors.surfaceVariant,
-              ),
-            ),
-            // Score ring
-            SizedBox(
-              width: 180,
-              height: 180,
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: score / 100),
-                duration: const Duration(milliseconds: 1500),
-                curve: Curves.easeOutCubic,
-                builder: (context, value, child) {
-                  return CircularProgressIndicator(
-                    value: value,
-                    strokeWidth: 12,
-                    strokeCap: StrokeCap.round,
-                    backgroundColor: Colors.transparent,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      _getScoreColor(score),
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Center text
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: score),
-                  duration: const Duration(milliseconds: 1500),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, value, child) {
-                    return Text(
-                      value.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontSize: 42,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -2,
-                      ),
-                    );
-                  },
+
+    return NeoBrutalCard(
+      backgroundColor: AppColors.lime,
+      borderRadius: 16,
+      shadowOffset: 5,
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.navy,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const Text(
-                  'dari 100',
+                child: const Text(
+                  'FINANCIAL STATUS',
                   style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 13,
+                    color: AppColors.lime,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.border,
+                    width: AppColors.borderWidth,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.navy,
+                      offset: Offset(2, 2),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  '🟢 SEHAT',
+                  style: TextStyle(
+                    color: AppColors.navy,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            score.toStringAsFixed(1),
+            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  fontSize: 64,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.navy,
+                  letterSpacing: -2,
+                  height: 1.0,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Skor Finansial Keseluruhan (dari 100)',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.navy,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppColors.border,
+                width: 2.0,
+              ),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.thumb_up_rounded, color: AppColors.navy, size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Pilar saving & adherence kuat! Hanya pengeluaran wants yang perlu sedikit direm.',
+                    style: TextStyle(
+                      color: AppColors.navy,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryBadge(BuildContext context) {
-    // Placeholder — this comes from health_score.category field
-    const category = 'Waspada'; // "Sehat" | "Waspada" | "Boros"
-    final color = _getCategoryColor(category);
-
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: color.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(_getCategoryIcon(category), color: color, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              'Kategori: $category',
-              style: TextStyle(
-                color: color,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildComponentCard({
     required IconData icon,
+    required Color iconBg,
     required String label,
     required String value,
+    required String benchmark,
     required double score,
-    required Color color,
+    required Color statusColor,
+    required String statusText,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+    return NeoBrutalCard(
+      backgroundColor: AppColors.surface,
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
+      borderRadius: 14,
+      shadowOffset: 3,
       child: Column(
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 22),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border, width: 2.0),
+                ),
+                child: Icon(
+                  icon,
+                  color: (iconBg == AppColors.purple) ? AppColors.white : AppColors.navy,
+                  size: 20,
                 ),
               ),
-              Text(
-                value,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: AppColors.navy,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      benchmark,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: AppColors.navy,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppColors.border, width: 1.2),
+                    ),
+                    child: Text(
+                      statusText,
+                      style: const TextStyle(
+                        color: AppColors.navy,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: score,
-              backgroundColor: AppColors.surfaceVariant,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              minHeight: 6,
+          const SizedBox(height: 12),
+          // Brutalist Progress Meter
+          Container(
+            height: 12,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.border, width: 1.5),
+            ),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: score.clamp(0.0, 1.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
             ),
           ),
         ],
@@ -248,75 +335,73 @@ class HealthScoreScreen extends StatelessWidget {
   }
 
   Widget _buildExplanationCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.1),
-            AppColors.accent.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-      ),
+    return NeoBrutalCard(
+      backgroundColor: AppColors.cyan,
+      borderRadius: 16,
+      shadowOffset: 4,
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.navy,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.psychology_rounded,
+                  color: AppColors.cyan,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Insight Keuangan Kamu',
+                style: TextStyle(
+                  color: AppColors.navy,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
           const Text(
-            'Saving rate kamu 17.0% — bagus!',
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            '• Saving rate kamu 17.0% — mendekati target ideal 20%. Pertahankan!',
+            style: TextStyle(
+              color: AppColors.navy,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 6),
           const Text(
-            'Pengeluaran wants kamu 28.0% — terlalu tinggi, idealnya di bawah 25%.',
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '— CAMI, AI Financial Advisor 🤖',
+            '• Rasio keinginan (wants) 28.0% sedikit melampaui batas aman 25%. Coba kurangi jajan kopi atau impulse buy.',
             style: TextStyle(
-              color: AppColors.textMuted,
+              color: AppColors.navy,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Divider(color: AppColors.navy, thickness: 1.5),
+          const SizedBox(height: 6),
+          const Text(
+            '— CAMI, Asisten AI Cerdas CEAMIS 🤖',
+            style: TextStyle(
+              color: AppColors.navy,
               fontSize: 12,
+              fontWeight: FontWeight.w800,
               fontStyle: FontStyle.italic,
             ),
           ),
         ],
       ),
     );
-  }
-
-  Color _getScoreColor(double score) {
-    if (score >= 80) return AppColors.sehat;
-    if (score >= 40) return AppColors.waspada;
-    return AppColors.boros;
-  }
-
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'Sehat':
-        return AppColors.sehat;
-      case 'Waspada':
-        return AppColors.waspada;
-      case 'Boros':
-        return AppColors.boros;
-      default:
-        return AppColors.textMuted;
-    }
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'Sehat':
-        return Icons.check_circle_outline;
-      case 'Waspada':
-        return Icons.warning_amber_outlined;
-      case 'Boros':
-        return Icons.error_outline;
-      default:
-        return Icons.help_outline;
-    }
   }
 }

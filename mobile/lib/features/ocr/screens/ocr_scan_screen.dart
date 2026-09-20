@@ -9,8 +9,11 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
 
+import '../../../core/widgets/neo_brutal_card.dart';
+import '../../../core/widgets/neo_brutal_button.dart';
+
 /// OCR Receipt Scanner Screen
-/// Flow: Camera/Gallery → ML Kit (on-device) → NestJS Proxy (Gemini) → Preview → Save
+/// Flow: Camera/Gallery → ML Kit (on-device) → Unified FastAPI (Gemini) → Preview → Save
 class OcrScanScreen extends StatefulWidget {
   const OcrScanScreen({super.key});
 
@@ -121,7 +124,15 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan Struk')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text(
+          'Scan Struk',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -131,7 +142,7 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
               // Instructions
               if (_imageFile == null) ...[
                 _buildInstructionCard(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 _buildCaptureButtons(),
               ],
 
@@ -158,7 +169,7 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
               // Parsed receipt preview
               if (_parsedReceipt != null && !_isProcessing) ...[
                 _buildParsedReceiptCard(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 _buildActionButtons(),
               ],
             ],
@@ -169,53 +180,83 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
   }
 
   Widget _buildInstructionCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
+    return NeoBrutalCard(
+      backgroundColor: AppColors.surface,
+      borderRadius: 16,
+      shadowOffset: 4,
+      padding: const EdgeInsets.all(22),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
+              color: AppColors.lime,
               shape: BoxShape.circle,
+              border: Border.all(color: AppColors.border, width: 2.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.navy,
+                  offset: Offset(3, 3),
+                  blurRadius: 0,
+                ),
+              ],
             ),
-            child: const Icon(Icons.document_scanner_rounded,
-                color: AppColors.primary, size: 48),
+            child: const Icon(
+              Icons.document_scanner_rounded,
+              color: AppColors.navy,
+              size: 44,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Text(
             'Pindai Struk Otomatis',
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.navy,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Foto struk belanjamu dan biarkan AI mengekstrak data transaksi secara otomatis. Pastikan struk terlihat jelas!',
+            'Foto struk belanjamu dan biarkan AI CEAMIS mengekstrak data transaksi secara instan!',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
-          const SizedBox(height: 16),
-          // Tips
-          _buildTip('📸', 'Pastikan pencahayaan cukup'),
-          _buildTip('📄', 'Foto struk secara lurus (tidak miring)'),
-          _buildTip('🔍', 'Pastikan teks terbaca jelas'),
+          const SizedBox(height: 20),
+          // Tips in mini brutal cards
+          _buildTip('📸', 'Pastikan pencahayaan cukup terang'),
+          _buildTip('📄', 'Foto struk secara tegak dan rata'),
+          _buildTip('🔍', 'Pastikan angka total terlihat jelas'),
         ],
       ),
     );
   }
 
   Widget _buildTip(String emoji, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border, width: 1.5),
+      ),
       child: Row(
         children: [
           Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 8),
-          Text(text, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: AppColors.navy,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -225,23 +266,33 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
     return Row(
       children: [
         Expanded(
-          child: SizedBox(
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: () => _pickImage(ImageSource.camera),
-              icon: const Icon(Icons.camera_alt_rounded),
-              label: const Text('Kamera'),
+          child: NeoBrutalButton(
+            onPressed: () => _pickImage(ImageSource.camera),
+            backgroundColor: AppColors.purple,
+            textColor: AppColors.white,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.camera_alt_rounded, size: 20, color: AppColors.white),
+                SizedBox(width: 8),
+                Text('Kamera'),
+              ],
             ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: SizedBox(
-            height: 52,
-            child: OutlinedButton.icon(
-              onPressed: () => _pickImage(ImageSource.gallery),
-              icon: const Icon(Icons.photo_library_rounded),
-              label: const Text('Galeri'),
+          child: NeoBrutalButton(
+            onPressed: () => _pickImage(ImageSource.gallery),
+            backgroundColor: AppColors.cyan,
+            textColor: AppColors.navy,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.photo_library_rounded, size: 20, color: AppColors.navy),
+                SizedBox(width: 8),
+                Text('Galeri'),
+              ],
             ),
           ),
         ),
@@ -250,63 +301,78 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
   }
 
   Widget _buildImagePreview() {
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.file(
-            _imageFile!,
-            width: double.infinity,
-            height: 200,
-            fit: BoxFit.cover,
-          ),
-        ),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _imageFile = null;
-                _rawText = null;
-                _parsedReceipt = null;
-                _errorMessage = null;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.close, color: Colors.white, size: 20),
+    return NeoBrutalCard(
+      padding: EdgeInsets.zero,
+      borderRadius: 16,
+      shadowOffset: 4,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(13),
+            child: Image.file(
+              _imageFile!,
+              width: double.infinity,
+              height: 220,
+              fit: BoxFit.cover,
             ),
           ),
-        ),
-      ],
+          Positioned(
+            top: 10,
+            right: 10,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _imageFile = null;
+                  _rawText = null;
+                  _parsedReceipt = null;
+                  _errorMessage = null;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.orange,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border, width: 2.0),
+                ),
+                child: const Icon(Icons.close, color: AppColors.white, size: 20),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildProcessingIndicator() {
-    return Container(
+    return NeoBrutalCard(
+      backgroundColor: AppColors.lime,
+      borderRadius: 16,
+      shadowOffset: 4,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
       child: const Column(
         children: [
-          CircularProgressIndicator(color: AppColors.primary),
+          CircularProgressIndicator(
+            color: AppColors.navy,
+            strokeWidth: 3.5,
+          ),
           SizedBox(height: 16),
           Text(
             'Menganalisis struk...',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(
+              color: AppColors.navy,
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+            ),
           ),
-          SizedBox(height: 4),
+          SizedBox(height: 6),
           Text(
-            'ML Kit → Gemini AI → Strukturisasi',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            'ML Kit (Device) ➔ FastAPI (Gemini AI) ➔ JSON',
+            style: TextStyle(
+              color: AppColors.navy,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -314,22 +380,24 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
   }
 
   Widget _buildErrorCard() {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
+    return NeoBrutalCard(
+      backgroundColor: const Color(0xFFFFEAEA),
+      borderColor: AppColors.orange,
+      borderRadius: 12,
+      shadowOffset: 3,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
-      ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.error),
+          const Icon(Icons.error_outline_rounded, color: AppColors.orange, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _errorMessage!,
-              style: const TextStyle(color: AppColors.error, fontSize: 13),
+              style: const TextStyle(
+                color: AppColors.orange,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -338,32 +406,52 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
   }
 
   Widget _buildRawTextCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return NeoBrutalCard(
+      backgroundColor: AppColors.surface,
+      borderRadius: 12,
+      shadowOffset: 3,
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Teks Terdeteksi (ML Kit)',
-            style: TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.border, width: 1.0),
+                ),
+                child: const Text(
+                  'OCR TEXT',
+                  style: TextStyle(
+                    color: AppColors.navy,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Teks Terdeteksi (ML Kit)',
+                style: TextStyle(
+                  color: AppColors.navy,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             _rawText!,
             style: const TextStyle(
               color: AppColors.textSecondary,
-              fontSize: 12,
+              fontSize: 11,
               fontFamily: 'monospace',
             ),
-            maxLines: 8,
+            maxLines: 6,
             overflow: TextOverflow.ellipsis,
           ),
         ],
@@ -373,25 +461,54 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
 
   Widget _buildParsedReceiptCard() {
     final receipt = _parsedReceipt!;
-    return Container(
+    return NeoBrutalCard(
+      backgroundColor: AppColors.surface,
+      borderRadius: 16,
+      shadowOffset: 5,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.auto_awesome, color: AppColors.accent, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Hasil Ekstraksi AI',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.accent,
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.lime,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.border, width: 2.0),
                     ),
+                    child: const Icon(Icons.receipt_long_rounded,
+                        color: AppColors.navy, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Hasil Ekstraksi AI',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.navy,
+                        ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.cyan,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.border, width: 1.5),
+                ),
+                child: const Text(
+                  'AI VERIFIED',
+                  style: TextStyle(
+                    color: AppColors.navy,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ],
           ),
@@ -399,15 +516,31 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
           _buildReceiptField('Merchant', receipt['merchant_name'] ?? '-'),
           _buildReceiptField('Tanggal', receipt['transaction_date'] ?? '-'),
           _buildReceiptField('Kategori', receipt['category'] ?? '-'),
-          _buildReceiptField('Total', 'Rp ${receipt['total_amount'] ?? 0}'),
-          _buildReceiptField(
-              'Metode Bayar', receipt['payment_method'] ?? '-'),
-          const SizedBox(height: 8),
-          Text(
-            '⚠️ Periksa dan koreksi data sebelum menyimpan',
-            style: TextStyle(
-              color: AppColors.warning.withValues(alpha: 0.8),
-              fontSize: 12,
+          _buildReceiptField('Total', 'Rp ${receipt['total_amount'] ?? 0}', isHighlight: true),
+          _buildReceiptField('Metode Bayar', receipt['payment_method'] ?? '-'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF9E6),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFD4A017), width: 1.5),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.info_outline_rounded, color: Color(0xFF8B6508), size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Periksa kembali data struk di atas sebelum menyimpan ke database.',
+                    style: TextStyle(
+                      color: Color(0xFF8B6508),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -415,20 +548,28 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
     );
   }
 
-  Widget _buildReceiptField(String label, String value) {
+  Widget _buildReceiptField(String label, String value, {bool isHighlight = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  color: AppColors.textMuted, fontSize: 13)),
-          Text(value,
-              style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: isHighlight ? AppColors.orange : AppColors.navy,
+              fontSize: isHighlight ? 16 : 14,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ],
       ),
     );
@@ -438,7 +579,7 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
+          child: NeoBrutalButton(
             onPressed: () {
               setState(() {
                 _imageFile = null;
@@ -447,54 +588,57 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
                 _errorMessage = null;
               });
             },
-            icon: const Icon(Icons.refresh),
-            label: const Text('Foto Ulang'),
+            backgroundColor: AppColors.surface,
+            textColor: AppColors.navy,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.refresh, size: 18, color: AppColors.navy),
+                SizedBox(width: 6),
+                Text('Foto Ulang'),
+              ],
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: SizedBox(
-            height: 48,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  if (_parsedReceipt != null) {
-                    try {
-                      await ApiClient().client.post(
-                        ApiEndpoints.transactions,
-                        data: {
-                          'amount': _parsedReceipt!['total_amount'] ?? 0,
-                          'category': _parsedReceipt!['category'] ?? 'Groceries',
-                          'merchant': _parsedReceipt!['merchant_name'] ?? 'Struk',
-                          'date': _parsedReceipt!['transaction_date'] ?? DateTime.now().toIso8601String(),
-                          'notes': 'Transaksi dari OCR Struk',
-                          'type': 'expense',
-                        },
-                      );
-                    } catch (saveErr) {
-                      debugPrint('[TRANSACTION] Local save note: $saveErr');
-                    }
-                  }
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Transaksi dari struk berhasil disimpan! ✅'),
-                      backgroundColor: AppColors.success,
-                    ),
+          child: NeoBrutalButton(
+            onPressed: () async {
+              if (_parsedReceipt != null) {
+                try {
+                  await ApiClient().client.post(
+                    ApiEndpoints.transactions,
+                    data: {
+                      'amount': _parsedReceipt!['total_amount'] ?? 0,
+                      'category': _parsedReceipt!['category'] ?? 'Groceries',
+                      'merchant': _parsedReceipt!['merchant_name'] ?? 'Struk',
+                      'date': _parsedReceipt!['transaction_date'] ?? DateTime.now().toIso8601String(),
+                      'notes': 'Transaksi dari OCR Struk',
+                      'type': 'expense',
+                    },
                   );
-                  context.go('/');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
+                } catch (saveErr) {
+                  debugPrint('[TRANSACTION] Local save note: $saveErr');
+                }
+              }
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Transaksi dari struk berhasil disimpan! ✅'),
+                  backgroundColor: AppColors.success,
                 ),
-                icon: const Icon(Icons.save_rounded),
-                label: const Text('Simpan'),
-              ),
+              );
+              context.go('/');
+            },
+            backgroundColor: AppColors.lime,
+            textColor: AppColors.navy,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.save_rounded, size: 18, color: AppColors.navy),
+                SizedBox(width: 6),
+                Text('Simpan Transaksi'),
+              ],
             ),
           ),
         ),

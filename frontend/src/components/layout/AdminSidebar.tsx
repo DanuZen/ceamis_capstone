@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  LayoutDashboard, BookOpen, Trophy, LogOut, FileQuestion
+  LayoutDashboard, BookOpen, Trophy, LogOut, FileQuestion,
+  Brain, FileSearch
 } from "lucide-react";
 
 import { useLanguage } from "@/context/LanguageContext";
@@ -30,6 +31,13 @@ export default function AdminSidebar({ isOpen = true }: { isOpen?: boolean }) {
       title: t("admin.sidebar.groups.overview"),
       items: [
         { href: "/admin/dashboard", label: t("admin.sidebar.dashboard"), icon: LayoutDashboard, color: "lime" },
+      ],
+    },
+    {
+      title: "AI Governance",
+      items: [
+        { href: "/admin/models", label: "Model Governance", icon: Brain, color: "purple" },
+        { href: "/admin/audit-logs", label: "Audit Logs", icon: FileSearch, color: "lime" },
       ],
     },
     {

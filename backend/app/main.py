@@ -1,11 +1,12 @@
 """
-FastAPI Entry Point — CEAMIS AI Service v0.3.0
-Catatan: health_score endpoint dinonaktifkan sementara jika
-         TensorFlow artifacts (model .keras) tidak tersedia.
+FastAPI Entry Point — CEAMIS AI Service v2.0.0
+CEAMIS 2.0 — Unified FastAPI Backend
 
-CHANGELOG v0.3.0:
+CHANGELOG v2.0.0:
+  - [NEW] Pre-Purchase Risk Check Engine (fitur inti baru)
+  - [NEW] Admin Governance Dashboard API
+  - [NEW] PrePurchaseRiskPredictor (7-feature ML + rule-based fallback)
   - Spending Cluster (Model 2) DIHAPUS — diganti threshold deterministik
-    dari health_score (field `category`: Sehat/Waspada/Boros)
   - DashboardInsight menggunakan `spending_category` bukan `persona`
 """
 
@@ -15,6 +16,7 @@ from contextlib import asynccontextmanager
 from app.api import (
     risk_profile, recommendation, chatbot, education, dashboard_insight
 )
+from app.api import pre_purchase, admin
 
 # Lazy import health_score (butuh TF — skip jika tidak tersedia)
 health_score = None
@@ -26,7 +28,7 @@ except Exception as e:
     print(f"[WARN] health_score module tidak bisa di-load: {e}")
     print("       Endpoint /predict/health-score akan return mock data")
 
-# Risk Profile artifacts
+# Risk Profile artifacts (legacy)
 try:
     from app.utils.preprocessor import load_risk_artifacts
     _load_risk = load_risk_artifacts
@@ -36,13 +38,24 @@ except Exception:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 Starting CEAMIS AI Service v0.3.0...")
+    print("🚀 Starting CEAMIS AI Service v2.0.0...")
 
-    # Model 3 — Risk Profile (Memuat model riil langsung ke dalam cache RAM)
+    # ★ NEW: Pre-Purchase Risk Predictor (7-feature ML engine)
     try:
-        from app.services.risk_predictor import risk_predictor
-        risk_predictor.load_model_to_memory()
-        print("✅ Model 3 (Risk Profile) ready — Cached in memory")
+        from app.services.pre_purchase_risk import risk_predictor
+        risk_predictor.load_model()
+        if risk_predictor.is_ml_available:
+            print("✅ Pre-Purchase Risk Model ready — ML inference active")
+        else:
+            print("⚠️  Pre-Purchase Risk Model — using rule-based fallback (no .joblib found)")
+    except Exception as e:
+        print(f"⚠️  Pre-Purchase Risk Model loading failed: {e}")
+
+    # Model 3 — Risk Profile (legacy, tetap dipertahankan)
+    try:
+        from app.services.risk_predictor import risk_predictor as legacy_risk
+        legacy_risk.load_model_to_memory()
+        print("✅ Model 3 (Risk Profile legacy) ready — Cached in memory")
     except Exception as e:
         print(f"⚠️  Model 3 tidak bisa di-load: {e}")
 
@@ -51,17 +64,17 @@ async def lifespan(app: FastAPI):
     print("✅ Spending Category — threshold dari health_score (Sehat/Waspada/Boros)")
 
     yield
-    print("👋 Shutting down CEAMIS AI Service...")
+    print("👋 Shutting down CEAMIS AI Service v2.0.0...")
 
 
 app = FastAPI(
     title="CEAMIS AI Service",
     description=(
-        "AI backend untuk CEAMIS — menyediakan prediksi Health Score finansial "
-        "(+ spending category threshold), Chatbot Gen-Z (CAMI), Edukasi Adaptif, "
-        "dan Risk Profile Classifier."
+        "Unified backend CEAMIS 2.0 — menyediakan Pre-Purchase Risk Check Engine "
+        "(fitur inti), Health Score finansial, Admin Governance Dashboard, "
+        "OCR Receipt Parsing, dan fitur pendukung lainnya."
     ),
-    version="0.3.0",
+    version="2.0.0",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -76,7 +89,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routers
+# ★ Core Feature: Pre-Purchase Risk Check
+app.include_router(pre_purchase.router, prefix="/api/v1", tags=["★ Pre-Purchase Risk Check (Core)"])
+
+# ★ Admin Governance Dashboard
+app.include_router(admin.router, prefix="/api/v1", tags=["★ Admin Governance"])
+
+# Supporting modules
 if health_score:
     app.include_router(health_score.router, prefix="/api/v1", tags=["Model 1 - Health Score ✅ Formula Based"])
 
@@ -127,22 +146,22 @@ if not health_score:
     app.include_router(hs_fallback, prefix="/api/v1")
 
 
-# Root endpoints
 @app.get("/", tags=["Root"])
 async def root():
     return {
         "service": "CEAMIS AI Service",
-        "version": "0.3.0",
+        "version": "2.0.0",
         "status": "running",
-        "models": {
-            "model_1_health_score":       "real ✅" if health_score else "fallback (TF not loaded)",
-            "spending_category":          "threshold dari health_score (Sehat/Waspada/Boros)",
-            "model_3_risk_profile":       "real ✅ (Random Forest)",
-            "model_4_chatbot":            "real ✅ (Gemini + Groq)",
-            "education":                  "real ✅ (GenAI)",
+        "core_features": {
+            "pre_purchase_risk_check":   "★ Core Feature — ML + Rule-Based Fallback",
+            "admin_governance":          "★ Model Registry & Audit Logs",
         },
-        "deprecated": {
-            "model_2_spending_cluster": "DIHAPUS — diganti threshold deterministik",
+        "supporting_features": {
+            "model_1_health_score":      "real ✅" if health_score else "fallback (TF not loaded)",
+            "spending_category":         "threshold dari health_score (Sehat/Waspada/Boros)",
+            "model_3_risk_profile":      "real ✅ (Random Forest)",
+            "model_4_chatbot":           "real ✅ (Gemini + Groq)",
+            "education":                 "real ✅ (GenAI)",
         },
         "docs": "/docs",
     }

@@ -2,62 +2,67 @@
 
 import 'package:flutter/material.dart';
 
-/// CEAMIS Design System — Color Palette
-/// Premium dark theme with vibrant accents for Gen-Z audience.
+/// CEAMIS Design System — Neo-Brutalism Color Palette
+/// 100% matched with web dashboard (frontend/src/app/globals.css).
 class AppColors {
   AppColors._();
 
-  // ── Primary Brand ──────────────────────────────
-  static const Color primary = Color(0xFF6C5CE7);
-  static const Color primaryLight = Color(0xFF9B8FFF);
-  static const Color primaryDark = Color(0xFF4834C7);
+  // ── Core Brand Colors (CEAMIS Neo-Brutalism) ────
+  static const Color navy = Color(0xFF0A192F);       // Hard border, shadow, main text
+  static const Color purple = Color(0xFF5833EE);     // Primary accent / CTA
+  static const Color lime = Color(0xFFB8FF00);       // Success, saving badge, electric highlight
+  static const Color orange = Color(0xFFFF5233);     // Danger, overbudget, warning
+  static const Color pink = Color(0xFFFF3366);       // Fun accent / wants tag
+  static const Color cyan = Color(0xFF00E5FF);       // Secondary accent / needs tag
+  static const Color white = Color(0xFFFFFFFF);
 
-  // ── Accent / Secondary ─────────────────────────
-  static const Color accent = Color(0xFF00D2FF);
-  static const Color accentLight = Color(0xFF7EEAFF);
-  static const Color accentDark = Color(0xFF009DC5);
+  // ── Role Aliases ────────────────────────────────
+  static const Color primary = purple;
+  static const Color accent = lime;
+  static const Color secondary = cyan;
 
-  // ── Semantic — Financial Status ────────────────
-  static const Color sehat = Color(0xFF00E676);      // Spending Category: Sehat
-  static const Color waspada = Color(0xFFFFAB00);     // Spending Category: Waspada
-  static const Color boros = Color(0xFFFF5252);       // Spending Category: Boros
+  // ── Status & Spending Category ──────────────────
+  static const Color sehat = lime;                   // Spending Category: Sehat
+  static const Color waspada = Color(0xFFF59E0B);    // Spending Category: Waspada
+  static const Color boros = orange;                 // Spending Category: Boros
 
-  // ── Semantic — General ─────────────────────────
-  static const Color success = Color(0xFF00E676);
-  static const Color warning = Color(0xFFFFAB00);
-  static const Color error = Color(0xFFFF5252);
-  static const Color info = Color(0xFF29B6F6);
+  static const Color success = lime;
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = orange;
+  static const Color info = cyan;
 
-  // ── Background & Surface (Dark Mode) ──────────
-  static const Color background = Color(0xFF0D0D1A);
-  static const Color surface = Color(0xFF1A1A2E);
-  static const Color surfaceVariant = Color(0xFF252542);
-  static const Color card = Color(0xFF16162A);
+  // ── Surface & Background (Neo-Brutalism Slate) ──
+  static const Color background = Color(0xFFF1F5F9);  // Alabaster slate light background
+  static const Color surface = Color(0xFFFFFFFF);     // Pure white card surfaces
+  static const Color surfaceVariant = Color(0xFFE2E8F0);
+  static const Color card = Color(0xFFFFFFFF);
 
-  // ── Text ───────────────────────────────────────
-  static const Color textPrimary = Color(0xFFF0F0F5);
-  static const Color textSecondary = Color(0xFFA0A0B8);
-  static const Color textMuted = Color(0xFF6B6B80);
+  // ── Text ─────────────────────────────────────────
+  static const Color textPrimary = navy;             // High contrast deep navy
+  static const Color textSecondary = Color(0xFF526082);
+  static const Color textMuted = Color(0xFF94A3B8);
+  static const Color textInverse = white;
 
-  // ── Borders & Dividers ─────────────────────────
-  static const Color border = Color(0xFF2A2A45);
-  static const Color divider = Color(0xFF22223A);
+  // ── Border & Hard Shadow ─────────────────────────
+  static const Color border = navy;
+  static const Color shadow = navy;
+  static const double borderWidth = 2.5;
 
-  // ── Gradient Presets ───────────────────────────
+  // ── Gradients ────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primary, accent],
+    colors: [purple, cyan],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  static const LinearGradient cardGradient = LinearGradient(
-    colors: [Color(0xFF1E1E38), Color(0xFF16162A)],
+  static const LinearGradient limeGradient = LinearGradient(
+    colors: [lime, Color(0xFFD4FF55)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient scoreGradient = LinearGradient(
-    colors: [Color(0xFF6C5CE7), Color(0xFF00D2FF)],
+    colors: [purple, lime],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
