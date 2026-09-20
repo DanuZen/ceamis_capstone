@@ -118,6 +118,15 @@ export const aiApi = {
     }),
 };
 
+// ── OCR Receipt Gateway ───────────────────────────────────────
+export const ocrApi = {
+  parseReceipt: (payload: OcrParsePayload) =>
+    request<OcrParseApiResponse>('/ocr/parse-receipt', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+};
+
 // ── Warnings ──────────────────────────────────────────────────
 export const warningsApi = {
   getAll: (userId: string) =>
@@ -266,4 +275,35 @@ export interface Warning {
   is_resolved: boolean;
   resolved_at?: string;
   created_at: string;
+}
+
+export interface OcrParsePayload {
+  raw_text: string;
+  image_url?: string;
+  user_id?: string;
+}
+
+export interface OcrItem {
+  name: string;
+  qty: number;
+  price: number;
+  total: number;
+}
+
+export interface ParsedReceiptData {
+  merchant_name: string;
+  transaction_date: string;
+  category: string;
+  total_amount: number;
+  payment_method: string;
+  items: OcrItem[];
+  auto_tag: 'needs' | 'wants';
+  confidence_score: number;
+  is_mock?: boolean;
+}
+
+export interface OcrParseApiResponse {
+  status: string;
+  message: string;
+  data: ParsedReceiptData;
 }

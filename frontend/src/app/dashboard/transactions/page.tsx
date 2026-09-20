@@ -9,6 +9,7 @@ import { aiApi } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/components/ui/Toast";
 import { translateCategoryName, translateClusterLabel } from "@/lib/translateCategory";
+import ReceiptOcrCard from "./components/ReceiptOcrCard";
 
 // ── Tipe response Model 2 (Spending Pattern Clustering) ──────────────────────
 interface SpendingClusterResult {
@@ -431,70 +432,22 @@ export default function TransactionsPage() {
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
-        {/* Quick Input Section */}
-        <div className="animate-slide-up" style={{ flex: "1 1 300px", maxWidth: "100%", animationDelay: "100ms", display: "flex", flexDirection: "column" }}>
-          <div className="card-brutal" style={{ height: "700px", minHeight: "700px", maxHeight: "700px", background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-              <Zap size={28} color="var(--color-white)" fill="var(--color-orange)" style={{ background: "var(--color-orange)", borderRadius: "var(--radius-brutal-sm)", padding: "4px", border: "2px solid var(--color-navy)" }} />
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", color: "var(--color-navy)", margin: 0, fontWeight: 900 }}>{t("dashboard.transactions.quickInputTitle")}</h3>
-            </div>
-            <p style={{ fontSize: "1rem", color: "var(--color-text-muted)", marginBottom: "2rem", lineHeight: 1.5, fontWeight: 500 }}>
-              {t("dashboard.transactions.quickInputDesc")}
-            </p>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
-              {(type === "pemasukan" ? [
-                { label: language === "id" ? "Gaji Bulanan" : "Monthly Salary", amount: "5000000", desc: language === "id" ? "Gaji Bulanan" : "Salary", color: "var(--color-lime)", icon: Banknote, type: "pemasukan" as const, badge: "INCOME" },
-                { label: language === "id" ? "Hasil Bisnis" : "Business", amount: "1500000", desc: language === "id" ? "Keuntungan Bisnis" : "Business Profit", color: "var(--color-lime)", icon: TrendingUp, type: "pemasukan" as const, badge: "INCOME" },
-                { label: language === "id" ? "Project Freelance" : "Freelance", amount: "500000", desc: language === "id" ? "Project Freelance" : "Freelance Project", color: "var(--color-orange)", icon: Laptop, type: "pemasukan" as const, badge: "INCOME" },
-                { label: language === "id" ? "Pemberian" : "Gift", amount: "200000", desc: language === "id" ? "Dikasih Orang Tua/Teman" : "Gift", color: "var(--color-orange)", icon: ShoppingBag, type: "pemasukan" as const, badge: "INCOME" },
-                { label: language === "id" ? "Bonus Tahunan" : "Annual Bonus", amount: "1000000", desc: language === "id" ? "Bonus" : "Bonus", color: "var(--color-purple)", icon: Sparkles, type: "pemasukan" as const, badge: "INCOME" },
-                { label: language === "id" ? "Pemasukan Lain" : "Other", amount: "100000", desc: language === "id" ? "Pemasukan Lainnya" : "Other Income", color: "var(--color-purple)", icon: Wallet, type: "pemasukan" as const, badge: "INCOME" },
-              ] : [
-                { label: t("dashboard.transactions.quickCoffeeLabel"), amount: "25000", desc: t("dashboard.transactions.quickCoffeeDesc"), color: "var(--color-orange)", icon: Coffee, type: "wants" as const, badge: "WANT" },
-                { label: t("dashboard.transactions.quickSnackLabel"), amount: "15000", desc: t("dashboard.transactions.quickSnackDesc"), color: "var(--color-orange)", icon: ShoppingBag, type: "wants" as const, badge: "WANT" },
-                { label: t("dashboard.transactions.quickFoodLabel"), amount: "35000", desc: t("dashboard.transactions.quickFoodDesc"), color: "var(--color-lime)", icon: Utensils, type: "needs" as const, badge: "NEED" },
-                { label: t("dashboard.transactions.quickGasLabel"), amount: "20000", desc: t("dashboard.transactions.quickGasDesc"), color: "var(--color-lime)", icon: Car, type: "needs" as const, badge: "NEED" },
-                { label: t("dashboard.transactions.quickSaveLabel"), amount: "50000", desc: t("dashboard.transactions.quickSaveDesc"), color: "var(--color-purple)", icon: Wallet, type: "save" as const, badge: "SAVE" },
-                { label: t("dashboard.transactions.quickInvestLabel"), amount: "100000", desc: t("dashboard.transactions.quickInvestDesc"), color: "var(--color-purple)", icon: TrendingUp, type: "save" as const, badge: "SAVE" },
-              ]).map((btn) => (
-                <button
-                  key={btn.label}
-                  type="button"
-                  onClick={() => { 
-                    handleQuickInput(btn.desc, btn.amount, type); 
-                    if (type !== "pemasukan") setTag(btn.type as any); 
-                  }}
-                  className="btn-brutal"
-                  style={{
-                    background: "var(--color-white)", padding: "1rem",
-                    display: "flex", flexDirection: "row", alignItems: "center", gap: "1rem",
-                    border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
-                    boxShadow: "4px 4px 0px var(--color-navy)", transition: "all 0.1s", position: "relative",
-                    justifyContent: "flex-start", width: "100%"
-                  }}
-                >
-                  <div style={{ background: btn.color, padding: "0.6rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                    <btn.icon size={22} color={btn.color === "var(--color-lime)" ? "var(--color-navy)" : "var(--color-white)"} />
-                  </div>
-                  <span style={{ fontWeight: 800, fontSize: "1rem", color: "var(--color-navy)", flex: 1, textAlign: "left" }}>{btn.label}</span>
-                  <div style={{
-                    fontSize: "0.65rem", fontWeight: 800, padding: "0.25rem 0.5rem",
-                    background: btn.color,
-                    border: "2px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)",
-                    color: btn.color === "var(--color-lime)" ? "var(--color-navy)" : "var(--color-white)",
-                    boxShadow: "2px 2px 0px var(--color-navy)"
-                  }}>
-                    {btn.badge}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <div style={{ marginTop: "auto", paddingTop: "2rem", width: "100%" }}>
-              {/* Tempat kosong bekas tips keuangan, form dibuat auto stretch */}
-            </div>
-          </div>
+        {/* Smart OCR Scan Struk Section (Replaces Quick Input) */}
+        <div style={{ flex: "1 1 320px", maxWidth: "100%", display: "flex", flexDirection: "column" }}>
+          <ReceiptOcrCard
+            onApplyData={(parsed) => {
+              setDesc(parsed.merchant_name || parsed.items?.[0]?.name || "Struk Belanja");
+              const amtNum = parsed.total_amount || 0;
+              setAmountRaw(amtNum.toString());
+              setAmount(amtNum > 0 ? amtNum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "");
+              setType("pengeluaran");
+              setTag(parsed.auto_tag || "needs");
+              
+              if (parsed.category) {
+                setCategory(parsed.category);
+              }
+            }}
+          />
         </div>
 
         {/* Form Section */}

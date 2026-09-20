@@ -55,18 +55,18 @@
 * **Prioritas:** P0
 * **Deskripsi:** Rancang prompt engineering sistematis untuk Gemini 2.0 Flash agar mampu mengekstrak teks struk belanjaan Indonesia (Indomaret, Alfamart, restoran, SPBU) menjadi JSON murni.
 * **Kriteria Selesai (DoD):**
-  - [ ] JSON Schema mengekstrak: `merchant_name`, `date`, `total_amount`, `category`, `items`, dan `tag` (`needs` vs `wants`).
-  - [ ] Evaluasi akurasi prompt minimal pada 15 variasi teks struk riil.
-  - [ ] Parameter `responseMimeType: "application/json"` terkonfigurasi.
+  - [x] JSON Schema mengekstrak: `merchant_name`, `date`, `total_amount`, `category`, `items`, dan `tag` (`needs` vs `wants`).
+  - [x] Evaluasi akurasi prompt minimal pada 15 variasi teks struk riil.
+  - [x] Parameter `responseMimeType: "application/json"` terkonfigurasi.
 
 ### [T-202] Modul Backend OCR di NestJS (`/ocr`)
 * **PIC:** Wira
 * **Prioritas:** P0
 * **Deskripsi:** Buat modul baru di NestJS `backend/src/ocr/` yang bertindak sebagai API gateway ke Google Gemini 2.0.
 * **Kriteria Selesai (DoD):**
-  - [ ] Endpoint `POST /api/v1/ocr/parse-receipt` menerima payload `{ raw_text: string }`.
-  - [ ] Backend memanggil Gemini dengan API Key yang aman di server.
-  - [ ] Rate-limiting terpasang untuk mencegah penyalahgunaan kuota.
+  - [x] Endpoint `POST /api/v1/ocr/parse-receipt` menerima payload `{ raw_text: string }`.
+  - [x] Backend memanggil Gemini dengan API Key yang aman di server.
+  - [x] Rate-limiting terpasang untuk mencegah penyalahgunaan kuota.
 
 ### [T-203] Setup Supabase Storage Bucket untuk Bukti Struk
 * **PIC:** Hafiz & Wira
