@@ -77,6 +77,17 @@ desktop.ini
 **/artifacts_risk/**/*.pt
 **/artifacts_risk/**/*.bin
 
+# ── Flutter / Dart ────────────────────────────
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
+**/*.iml
+
 # ── Misc ──────────────────────────────────────
 **/.cache/
 **/tmp/

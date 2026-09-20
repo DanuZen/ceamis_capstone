@@ -1,24 +1,26 @@
-# Gunakan Node.js 22 (native WebSocket support — dibutuhkan oleh Supabase)
-FROM node:22-alpine
+# 1. Gunakan base image Python 3.11 slim
+FROM python:3.11-slim
 
-# Set direktori kerja di dalam container
-WORKDIR /usr/src/app
+# 2. Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV MPLBACKEND=Agg
 
-# Copy package.json dan package-lock.json terlebih dahulu (untuk caching)
-COPY package*.json ./
+# 3. UBAH KE /code AGAR TIDAK TABRAKAN DENGAN FOLDER APP KAMU
+WORKDIR /code
 
-# Install dependencies (gunakan ci untuk memastikan instalasi bersih sesuai package-lock)
-RUN npm ci
+# 4. Copy file requirements ke folder /code
+COPY requirements.txt /code/
 
-# Copy seluruh source code
-COPY . .
+# 5. Install dependensi Python
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 
-# Build aplikasi NestJS (hasilnya akan masuk ke folder /dist)
-RUN npm run build
+# 6. Copy seluruh kode proyek ke folder /code
+COPY . /code/
 
-# Hugging Face Spaces Docker (secara default) mengharuskan aplikasi berjalan di port 7860
-EXPOSE 7860
-ENV PORT=7860
+# 7. Expose port API
+EXPOSE 8000
 
-# Command untuk menjalankan aplikasi di mode production
-CMD ["npm", "run", "start:prod"]
+# 8. Jalankan Uvicorn dari folder /code
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

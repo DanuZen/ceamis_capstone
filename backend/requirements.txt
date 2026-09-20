@@ -1,0 +1,25 @@
+# ─── Core Framework ────────────────────────────────────────────────────────────
+fastapi==0.136.1
+uvicorn[standard]==0.46.0
+pydantic==2.12.3
+pydantic-settings==2.14.0
+python-dotenv==1.2.2
+python-multipart==0.0.26
+httpx==0.28.1
+
+# ─── ML / Deep Learning ────────────────────────────────────────────────────────
+scikit-learn
+joblib
+numpy
+pandas
+
+# ─── Generative AI ─────────────────────────────────────────────────────────────
+google-genai
+groq
+openai
+
+# ─── Database & Auth ──────────────────────────────────────────────────────────
+supabase>=2.13.0
+pyjwt[crypto]>=2.9.0
+cryptography>=43.0.0
+
