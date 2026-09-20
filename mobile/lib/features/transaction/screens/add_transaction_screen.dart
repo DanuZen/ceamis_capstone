@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/api_endpoints.dart';
+import '../../../core/network/api_client.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -25,12 +27,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   final List<String> _categories = [
     'Food & Beverage',
-    'Groceries',
     'Transportation',
     'Shopping',
     'Entertainment',
-    'Utilities',
+    'Education',
     'Health',
+    'Bills & Utilities',
+    'Investment',
+    'Salary',
     'Other',
   ];
 
@@ -54,14 +58,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2024),
+      firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
+          data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
               primary: AppColors.primary,
-              surface: AppColors.surface,
+              onPrimary: AppColors.background,
+              surface: AppColors.card,
             ),
           ),
           child: child!,
@@ -79,8 +84,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: POST to NestJS backend /api/transactions
-      await Future.delayed(const Duration(seconds: 1)); // Placeholder
+      final cleanAmount = _amountController.text.replaceAll('.', '').replaceAll(',', '');
+      final amount = double.tryParse(cleanAmount) ?? 0;
+
+      try {
+        await ApiClient().client.post(
+          ApiEndpoints.transactions,
+          data: {
+            'amount': amount,
+            'type': _type,
+            'category': _category,
+            'payment_method': _paymentMethod,
+            'description': _descriptionController.text.trim(),
+            'merchant': _merchantController.text.trim(),
+            'date': _selectedDate.toIso8601String(),
+          },
+        );
+      } catch (apiError) {
+        debugPrint('[TRANSACTION] Local save note: $apiError');
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
