@@ -48,71 +48,85 @@ Kurikulum literasi finansial interaktif yang terbagi ke dalam level pemahaman (*
 
 Sistem CEAMIS didesain secara modular (*microservices monorepo*) dengan memisahkan antarmuka pengguna, logika bisnis, dan komputasi model AI untuk skalabilitas maksimal:
 
-| Layer | Teknologi Utama | Hosting / Deployment | Keterangan |
+| Layer | Teknologi Utama | Target Pengguna | Keterangan |
 | --- | --- | --- | --- |
-| **Frontend Web** | Next.js (App Router), React, CSS | **Vercel** (`ceamis-capstone.vercel.app`) | Antarmuka bergaya *Neo-Brutalism Design* yang interaktif. |
-| **Backend API** | NestJS (Node.js, Express) | **Hugging Face Spaces** (Docker SDK) | Melayani endpoint API utama (transaksi, users, onboarding, warnings). Otomatis di-deploy via GitHub Actions. |
-| **Database Utama** | Supabase PostgreSQL, Prisma ORM | **Supabase Cloud** (AWS AP-Northeast-1) | Database relasional dengan manajemen *Transaction Pooler* (Port 6543). |
-| **AI Microservice** | FastAPI (Python), Scikit-Learn, GenAI | **Hugging Face Spaces** (Docker SDK) | Endpoint inferensi Machine Learning (Health Score, K-Means Cluster, Risk Profile, CAMI Chatbot). |
+| **Mobile App** | Flutter (Dart), Riverpod, GoRouter, Dio, ML Kit | **End-User (Gen-Z)** | Aplikasi seluler utama: pencatatan transaksi, intervensi pra-pembelian, dan Smart OCR struk. |
+| **Backend Terpadu** | FastAPI (Python 3.11+), Pydantic v2, Uvicorn | Server / API | Satu-satunya backend sistem: melayani Auth, CRUD transaksi, evaluasi risiko pra-pembelian, dan proxy Gemini OCR. |
+| **Web Admin** | Next.js (App Router), React, CSS Neo-Brutalism | **Admin / Operator** | Dashboard monitoring metrik model ML, audit log intervensi, dan administrasi sistem. |
+| **Database & Auth** | Supabase Cloud (PostgreSQL 15+), GoTrue JWT | Cloud Services | Basis data relasional dengan Row-Level Security (RLS) dan autentikasi token. |
 
-## Struktur Folder
+---
 
-Berikut adalah topologi arsitektur sistem pada tingkat repositori (*monorepo*):
+## Struktur Folder Monorepo
 
 ```text
-ceamis/
-├── frontend/              # Antarmuka web utama (Next.js App Router)
-│   ├── src/app/           # Routing halaman & logika Server Actions
-│   ├── src/components/    # Komponen React (Neo-Brutalist UI)
-│   ├── src/context/       # Global State Management (User, Transactions)
-│   └── prisma/            # Skema Database (schema.prisma) & Migrasi SQL
-├── backend/               # Main API & Business Logic (NestJS)
-│   ├── src/               # Controller, Modules, dan Services utama
-│   └── supabase/          # Konfigurasi klien database
-├── ai-service/            # Microservice AI & Machine Learning (FastAPI)
-│   ├── app/               # Logika API Endpoint, Routing, & Inferensi Model
-│   └── models/            # Model Machine Learning hasil pelatihan (.pkl, .h5)
-└── docs/                  # Pusat Dokumentasi Lengkap Proyek
+ceamis_capstone/
+├── mobile/                        # 📱 Aplikasi Mobile Flutter (Klien Utama Pengguna)
+│   ├── lib/                       # Kode sumber Dart (core, features, router, theme)
+│   ├── android/ & ios/            # Runner platform native
+│   └── README.md                  # Panduan lengkap penggunaan aplikasi mobile
+├── backend/                       # 🚀 1 Backend FastAPI Modular (Python 3.11+)
+│   ├── app/                       # Logika bisnis modular (auth, transactions, pre_purchase, ocr, dll)
+│   ├── artifacts/                 # Model Machine Learning hasil pelatihan (.joblib)
+│   └── requirements.txt           # Dependensi Python backend
+├── frontend/                      # 💻 Next.js Web (Khusus Admin Dashboard)
+│   └── src/                       # Halaman monitoring metrik model & audit log
+├── backend_nestjs_archive/        # 📦 Arsip kode backend NestJS 1.0 (disimpan untuk referensi)
+└── docs/
+    ├── ceamis 1.0/                # Arsip dokumentasi spesifikasi 1.0
+    ├── ceamis 2.0/                # 🌟 Sumber kebenaran dokumentasi arsitektur aktif (PRD, Arsitektur, API, ML, dll)
+    └── README.md                  # Indeks navigasi pusat dokumentasi
 ```
-Catatan: Berkas model Machine Learning hasil pelatihan untuk direktori ai-service/models/ dapat diunduh melalui [Tautan Google Drive Model AI CEAMIS](https://drive.google.com/drive/folders/1w-o9hI_MvdU4Od1sKxT0G02hv9cRQL_E?usp=sharing).
 
-## Panduan Menjalankan Proyek Lokal (Development)
+---
 
-Sistem menggunakan arsitektur *monorepo*. Layanan AI Microservice sudah aktif 24/7 di Hugging Face Space cloud, sehingga secara default Anda **hanya perlu menjalankan 2 terminal lokal**:
+## Panduan Menjalankan Proyek Lokal (Quick Start)
 
-**1. Menjalankan Backend API (NestJS)**
-Backend utama berjalan di port 3001 dan bertugas melayani data transaksi, profil, serta proxy inferensi AI.
+### 1. 📱 Menjalankan Aplikasi Mobile (Flutter)
+Panduan lengkap dapat dibaca di **[`mobile/README.md`](mobile/README.md)**.
+
+```bash
+# 1. Buka emulator Android (atau hubungkan HP fisik)
+flutter emulators --launch Pixel_5
+
+# 2. Masuk ke folder mobile dan jalankan aplikasi
+cd mobile
+flutter pub get
+flutter run
+```
+*Aplikasi akan otomatis terpasang dan berjalan di layar ponsel/emulator Anda.*
+
+---
+
+### 2. 🚀 Menjalankan Backend FastAPI (Python)
+Backend modular terpadu berjalan di port **8000** dan menyediakan Swagger UI interaktif di `/docs`.
+
 ```bash
 cd backend
-npm install
-npm run start:dev
-# Berjalan di http://localhost:3001
-```
 
-**2. Menjalankan Frontend (Next.js)**
-Antarmuka pengguna berjalan di port 3000.
+# Aktifkan virtual environment
+# Windows (PowerShell):
+.\.venv\Scripts\Activate.ps1
+# Linux / macOS:
+# source .venv/bin/activate
+
+# Install dependensi & jalankan server
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+*Akses dokumentasi API interaktif di: **http://localhost:8000/docs***
+
+---
+
+### 3. 💻 Menjalankan Admin Dashboard (Next.js)
+Portal admin untuk peninjauan metrik model ML dan audit log berjalan di port **3000**.
+
 ```bash
 cd frontend
 npm install
-npx prisma generate
 npm run dev
-# Buka http://localhost:3000 di browser
 ```
-
-*(Opsional)* **Menjalankan AI Service Lokal:**
-Hanya jika Anda ingin melatih ulang (*re-train*) model Machine Learning atau mengembangkan modul Python secara offline:
-```bash
-cd ai-service
-venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-
-## Alur Deployment & CI/CD (Monorepo)
-
-- **Frontend:** Terhubung langsung ke Vercel via GitHub repository integration. Setiap push ke `main` otomatis men-trigger build Next.js.
-- **Backend (NestJS API):** Dikelola di dalam monorepo dan di-deploy otomatis ke **Hugging Face Docker Space** (`DanuZen/ceamis-backend`) menggunakan **GitHub Actions Workflow** ([`.github/workflows/deploy-backend.yml`](.github/workflows/deploy-backend.yml)).
-- **AI Service:** Berjalan mandiri di **Hugging Face Docker Space** (`mtaufiqulhakim/ceamis-ai-service`).
+*Buka **http://localhost:3000** di browser Anda.*
 
 ## Tim Pengembang
 
