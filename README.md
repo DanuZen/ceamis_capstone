@@ -50,10 +50,10 @@ Sistem CEAMIS didesain secara modular (*microservices monorepo*) dengan memisahk
 
 | Layer | Teknologi Utama | Target Pengguna | Keterangan |
 | --- | --- | --- | --- |
-| **Mobile App** | Flutter (Dart), Riverpod, GoRouter, Dio, ML Kit | **End-User (Gen-Z)** | Aplikasi seluler utama: pencatatan transaksi, intervensi pra-pembelian, dan Smart OCR struk. |
-| **Backend Terpadu** | FastAPI (Python 3.11+), Pydantic v2, Uvicorn | Server / API | Satu-satunya backend sistem: melayani Auth, CRUD transaksi, evaluasi risiko pra-pembelian, dan proxy Gemini OCR. |
-| **Web Admin** | Next.js (App Router), React, CSS Neo-Brutalism | **Admin / Operator** | Dashboard monitoring metrik model ML, audit log intervensi, dan administrasi sistem. |
-| **Database & Auth** | Supabase Cloud (PostgreSQL 15+), GoTrue JWT | Cloud Services | Basis data relasional dengan Row-Level Security (RLS) dan autentikasi token. |
+| **Mobile App** | Flutter (Dart), Riverpod, GoRouter, Dio, ML Kit | **End-User (On-the-go)** | Penggunaan mobile harian: Cek risiko cepat pra-beli, pencatatan transaksi, Smart OCR struk instan, dan notifikasi impuls. |
+| **Web Portal (Desktop)** | Next.js 16 (App Router), React 19, CSS Neo-Brutalism | **End-User & Admin** | **User Desktop:** Dashboard analitik mendalam, simulasi cek risiko pra-beli, perencanaan pagu, utang, dan edukasi.<br>**Admin:** Model Governance Dashboard, Audit Log Intervensi AI, dan manajemen kurikulum kuis. |
+| **Backend Terpadu** | FastAPI (Python 3.11+), Pydantic v2, Uvicorn | Server / API | Backend tunggal terpadu: melayani Auth, transaksi, evaluasi 7 fitur risiko pra-pembelian, dan proxy Gemini OCR. |
+| **Database & Auth** | Supabase Cloud (PostgreSQL 15+), GoTrue JWT | Cloud Services | Basis data relasional dengan Row-Level Security (RLS) dan autentikasi token multi-platform tersinkronisasi. |
 
 ---
 
@@ -99,16 +99,20 @@ flutter run
 ---
 
 ### 2. 🚀 Menjalankan Backend FastAPI (Python)
-Backend modular terpadu berjalan di port **8000** dan menyediakan Swagger UI interaktif di `/docs`.
+Panduan lengkap dapat dibaca di **[`backend/README.md`](backend/README.md)**.
 
+**Cara Paling Cepat (1-Klik):**
+* Di PowerShell: Masuk ke folder `backend` dan jalankan `.\run.ps1`
+* Di Windows Explorer: Double-click file **`backend/run.bat`**
+*(Script otomatis membuat venv, menginstall requirements, dan menyalakan server di port 8000).*
+
+**Cara Manual:**
 ```bash
 cd backend
 
-# Aktifkan virtual environment
-# Windows (PowerShell):
-.\.venv\Scripts\Activate.ps1
-# Linux / macOS:
-# source .venv/bin/activate
+# Buat & aktifkan virtual environment (Windows):
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 
 # Install dependensi & jalankan server
 pip install -r requirements.txt

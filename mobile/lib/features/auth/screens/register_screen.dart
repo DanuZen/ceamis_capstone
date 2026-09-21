@@ -232,9 +232,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       NeoBrutalButton(
                         onPressed: _isLoading ? null : _handleRegister,
                         isLoading: _isLoading,
-                        backgroundColor: AppColors.purple,
-                        textColor: AppColors.white,
-                        child: const Text('Daftar Sekarang ✨'),
+                        backgroundColor: AppColors.lime,
+                        textColor: AppColors.navy,
+                        child: const Text('Daftar Sekarang'),
                       ),
                     ],
                   ),

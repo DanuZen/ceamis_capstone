@@ -137,8 +137,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
           { name: t("navbar.searchHistory") || "History", path: "/dashboard/history" },
           { name: t("navbar.searchPlanning") || "Planning", path: "/dashboard/planning" },
           { name: t("navbar.searchDebt") || "Debt", path: "/dashboard/debt" },
-          { name: t("navbar.searchEducation") || "Education", path: "/dashboard/education" },
-          { name: t("navbar.searchChatbot") || "AI Chatbot", path: "/dashboard/chatbot" },
+          { name: "Cek Pra-Beli (AI)", path: "/dashboard/pre-purchase" },
           { name: t("navbar.searchProfile") || "Profile", path: "/dashboard/profile" },
         ];
         const match = navPages.find(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -169,7 +168,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
     { name: language === "id" ? "Riwayat" : "History", path: "/dashboard/history", desc: language === "id" ? "Riwayat Transaksi & Filter" : "Transaction History" },
     { name: language === "id" ? "Perencanaan" : "Planning", path: "/dashboard/planning", desc: language === "id" ? "Atur Anggaran / Budget" : "Manage Budgeting" },
     { name: language === "id" ? "Utang & Piutang" : "Debt", path: "/dashboard/debt", desc: language === "id" ? "Catatan Utang Piutang" : "Debt Management" },
-    { name: language === "id" ? "Edukasi" : "Education", path: "/dashboard/education", desc: language === "id" ? "Modul Belajar Keuangan" : "Financial Education" },
+    { name: language === "id" ? "Cek Pra-Beli (AI)" : "Pre-Purchase Check", path: "/dashboard/pre-purchase", desc: language === "id" ? "Analisis Risiko Keputusan Pembelian" : "Purchase Risk Evaluation Engine" },
     { name: language === "id" ? "Profil" : "Profile", path: "/dashboard/profile", desc: language === "id" ? "Pengaturan Akun" : "Profile Settings" },
   ];
   const filteredNavPages = navPages.filter(p => 
@@ -243,8 +242,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
         </div>
 
         {/* Global Search */}
-        {!pathname.includes("chatbot") && (
-          <div className="navbar-search" style={{ position: "relative", width: "300px" }}>
+        <div className="navbar-search" style={{ position: "relative", width: "300px" }}>
             <Search size={18} color="var(--color-text-muted)" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }} />
             <input 
               type="text" 
@@ -253,8 +251,6 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
               onKeyDown={handleSearch}
               placeholder={
                 isNavSearch ? (language === "id" ? "Apa yang kamu cari?" : "What are you looking for?") :
-                pathname.includes("quiz") ? t("navbar.searchQuiz") :
-                pathname.includes("education") ? t("navbar.searchEducation") :
                 pathname.includes("planning") ? t("navbar.searchPlanning") :
                 pathname.includes("debt") ? t("navbar.searchDebt") :
                 pathname.includes("history") ? t("navbar.searchHistory") :
@@ -357,8 +353,7 @@ export default function Navbar({ toggleSidebar, isOpen = true }: NavbarProps) {
               </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
         {/* Date Display */}

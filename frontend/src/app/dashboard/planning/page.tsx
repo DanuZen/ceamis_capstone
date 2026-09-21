@@ -223,7 +223,7 @@ const RISK_BUDGET_CONFIG: Record<string, {
 };
 
 // ── Shared Risk Profile Colors ──────────────────────
-export const COLOR_MAP: Record<string, { bg: string; icon: string; text: string }> = {
+const COLOR_MAP: Record<string, { bg: string; icon: string; text: string }> = {
   "Konservatif": { bg: "var(--color-lime)",   icon: "var(--color-navy)",  text: "#4a7c00" },
   "Moderat":     { bg: "var(--color-purple)", icon: "var(--color-white)", text: "var(--color-purple)" },
   "Agresif":     { bg: "var(--color-orange)", icon: "var(--color-navy)",  text: "#b85c00" },

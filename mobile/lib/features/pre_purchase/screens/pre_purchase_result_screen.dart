@@ -94,16 +94,16 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
     }
   }
 
-  String get _riskEmoji {
+  IconData get _riskIcon {
     switch (widget.riskLevel) {
       case 'HIGH':
-        return '🔴';
+        return Icons.warning_rounded;
       case 'MEDIUM':
-        return '🟡';
+        return Icons.error_outline_rounded;
       case 'LOW':
-        return '🟢';
+        return Icons.check_circle_rounded;
       default:
-        return '⚪';
+        return Icons.info_outline_rounded;
     }
   }
 
@@ -219,7 +219,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
 
   Widget _buildRiskScoreCard(BuildContext context) {
     return NeoBrutalCard(
-      backgroundColor: _riskColor.withValues(alpha: 0.08),
+      backgroundColor: AppColors.surface,
       shadowColor: _riskColor,
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -234,7 +234,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
               border: Border.all(color: _riskColor, width: 3),
             ),
             child: Center(
-              child: Text(_riskEmoji, style: const TextStyle(fontSize: 36)),
+              child: Icon(_riskIcon, size: 36, color: _riskColor),
             ),
           ),
           const SizedBox(height: 16),
@@ -459,7 +459,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
 
   Widget _buildSavingsImpact(BuildContext context) {
     return NeoBrutalCard(
-      backgroundColor: AppColors.cyan.withValues(alpha: 0.06),
+      backgroundColor: AppColors.surface,
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -609,9 +609,9 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
 
   void _handleDecision(String decision) {
     final messages = {
-      'PROCEED': 'Keputusan dicatat. Semoga belanjanya bermanfaat! 🛍️',
+      'PROCEED': 'Keputusan dicatat. Semoga belanjanya bermanfaat!',
       'ADJUST': 'Bagus! Kamu bisa menyesuaikan nominal belanja.',
-      'POSTPONE': 'Pilihan bijak untuk menunda belanja! 💪',
+      'POSTPONE': 'Pilihan bijak untuk menunda belanja!',
     };
 
     ScaffoldMessenger.of(context).showSnackBar(

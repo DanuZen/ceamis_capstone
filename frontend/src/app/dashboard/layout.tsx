@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
-import FloatingChatWidget from "@/components/layout/FloatingChatWidget";
 import { TransactionProvider } from "@/context/TransactionContext";
 import { UserProvider, useUser } from "@/context/UserContext";
 import { GuestProvider, useGuest } from "@/context/GuestContext";
@@ -36,7 +35,7 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
             }
           }
         } catch (e) {
-          console.error("Failed to check onboarding date:", e);
+          console.warn("Could not check onboarding date (backend may be unreachable):", e);
         }
       };
       
@@ -71,7 +70,6 @@ export default function DashboardLayout({
                 <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isOpen={isSidebarOpen} />
                 <main className="dashboard-main">{children}</main>
               </div>
-              <FloatingChatWidget />
             </div>
           </OnboardingGuard>
         </TransactionProvider>

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
 
-/// Main app shell with bottom navigation bar.
+/// Main app shell with Neo-Brutalism floating bottom navigation dock.
+/// Features a prominent, distinctly shaped center action button for "Catat Transaksi".
 class MainShell extends StatelessWidget {
   final Widget child;
   const MainShell({super.key, required this.child});
@@ -12,11 +13,31 @@ class MainShell extends StatelessWidget {
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     if (location == '/') return 0;
-    if (location == '/health-score') return 1;
-    if (location == '/pre-purchase') return 2;
-    if (location == '/add-transaction') return 3;
-    if (location == '/ocr-scan') return 4;
+    if (location == '/pre-purchase' || location.startsWith('/pre-purchase')) return 1;
+    if (location == '/add-transaction' || location == '/ocr-scan') return 2;
+    if (location == '/health-score') return 3;
+    if (location == '/history-report') return 4;
     return 0;
+  }
+
+  void _onItemTapped(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/');
+        break;
+      case 1:
+        context.go('/pre-purchase');
+        break;
+      case 2:
+        context.go('/add-transaction');
+        break;
+      case 3:
+        context.go('/health-score');
+        break;
+      case 4:
+        context.go('/history-report');
+        break;
+    }
   }
 
   @override
@@ -25,71 +46,94 @@ class MainShell extends StatelessWidget {
 
     return Scaffold(
       body: child,
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(
-            top: BorderSide(
-              color: AppColors.border,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          height: 68,
+          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 14, top: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppColors.navy,
               width: AppColors.borderWidth,
             ),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.navy,
+                offset: Offset(3, 4),
+                blurRadius: 0,
+              ),
+            ],
           ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: BottomNavigationBar(
-            currentIndex: selectedIndex,
-            backgroundColor: AppColors.surface,
-            selectedItemColor: AppColors.purple,
-            unselectedItemColor: AppColors.navy,
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            selectedFontSize: 11,
-            unselectedFontSize: 11,
-            onTap: (index) {
-              switch (index) {
-                case 0:
-                  context.go('/');
-                  break;
-                case 1:
-                  context.go('/health-score');
-                  break;
-                case 2:
-                  context.go('/pre-purchase');
-                  break;
-                case 3:
-                  context.go('/add-transaction');
-                  break;
-                case 4:
-                  context.go('/ocr-scan');
-                  break;
-              }
-            },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home_rounded),
-                label: 'Home',
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // 0: Home (Beranda)
+              Expanded(
+                child: Center(
+                  child: _buildNavItem(
+                    context: context,
+                    index: 0,
+                    selectedIndex: selectedIndex,
+                    inactiveIcon: Icons.grid_view_outlined,
+                    activeIcon: Icons.grid_view_rounded,
+                    tooltip: 'Beranda',
+                  ),
+                ),
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_outline_rounded),
-                activeIcon: Icon(Icons.favorite_rounded),
-                label: 'Health',
+
+              // 1: Cek Risiko
+              Expanded(
+                child: Center(
+                  child: _buildNavItem(
+                    context: context,
+                    index: 1,
+                    selectedIndex: selectedIndex,
+                    inactiveIcon: Icons.shield_outlined,
+                    activeIcon: Icons.shield_rounded,
+                    tooltip: 'Cek Risiko',
+                  ),
+                ),
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.shield_outlined),
-                activeIcon: Icon(Icons.shield_rounded),
-                label: 'Cek Risiko',
+
+              // 2: Distinct Center Action Button for Catat Transaksi (Balanced 1/5 slot)
+              Expanded(
+                child: Center(
+                  child: _buildCenterActionButton(
+                    context: context,
+                    isSelected: selectedIndex == 2,
+                  ),
+                ),
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.add_circle_outline_rounded),
-                activeIcon: Icon(Icons.add_circle_rounded),
-                label: 'Tambah',
+
+              // 3: Health Score
+              Expanded(
+                child: Center(
+                  child: _buildNavItem(
+                    context: context,
+                    index: 3,
+                    selectedIndex: selectedIndex,
+                    inactiveIcon: Icons.auto_graph_outlined,
+                    activeIcon: Icons.auto_graph_rounded,
+                    tooltip: 'Skor Keuangan',
+                  ),
+                ),
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.document_scanner_outlined),
-                activeIcon: Icon(Icons.document_scanner_rounded),
-                label: 'Scan',
+
+              // 4: Riwayat & Laporan (Unified)
+              Expanded(
+                child: Center(
+                  child: _buildNavItem(
+                    context: context,
+                    index: 4,
+                    selectedIndex: selectedIndex,
+                    inactiveIcon: Icons.analytics_outlined,
+                    activeIcon: Icons.analytics_rounded,
+                    tooltip: 'Laporan',
+                  ),
+                ),
               ),
             ],
           ),
@@ -97,5 +141,91 @@ class MainShell extends StatelessWidget {
       ),
     );
   }
-}
 
+  /// Distinctly styled, prominent Neo-Brutalist center action button for input transaksi
+  Widget _buildCenterActionButton({
+    required BuildContext context,
+    required bool isSelected,
+  }) {
+    return GestureDetector(
+      onTap: () => _onItemTapped(context, 2),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.navy : AppColors.lime,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.navy,
+            width: 2.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.navy,
+              offset: isSelected ? const Offset(1, 1) : const Offset(2.5, 2.5),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Icon(
+            Icons.add_rounded,
+            size: 28,
+            color: isSelected ? AppColors.lime : AppColors.navy,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required BuildContext context,
+    required int index,
+    required int selectedIndex,
+    required IconData inactiveIcon,
+    required IconData activeIcon,
+    required String tooltip,
+  }) {
+    final isSelected = index == selectedIndex;
+
+    return GestureDetector(
+      onTap: () => _onItemTapped(context, index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.navy : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: isSelected
+              ? Border.all(
+                  color: AppColors.navy,
+                  width: 1.5,
+                )
+              : null,
+          boxShadow: isSelected
+              ? const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    offset: Offset(1, 2),
+                    blurRadius: 2,
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Icon(
+            isSelected ? activeIcon : inactiveIcon,
+            size: 22,
+            color: isSelected ? AppColors.lime : AppColors.navy.withValues(alpha: 0.65),
+          ),
+        ),
+      ),
+    );
+  }
+}

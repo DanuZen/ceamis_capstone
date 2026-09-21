@@ -8,9 +8,10 @@ import { ocrApi, ParsedReceiptData } from "@/lib/api";
 
 interface ReceiptOcrCardProps {
   onApplyData: (data: ParsedReceiptData) => void;
+  onSaveDirectly?: (data: ParsedReceiptData) => void;
 }
 
-export default function ReceiptOcrCard({ onApplyData }: ReceiptOcrCardProps) {
+export default function ReceiptOcrCard({ onApplyData, onSaveDirectly }: ReceiptOcrCardProps) {
   const { t } = useLanguage();
   const { showToast } = useToast();
 
@@ -21,10 +22,12 @@ export default function ReceiptOcrCard({ onApplyData }: ReceiptOcrCardProps) {
   
   const [loading, setLoading] = useState(false);
   const [extractedData, setExtractedData] = useState<ParsedReceiptData | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   const handleFileChange = (file: File | null) => {
     if (!file) return;
     setSelectedFile(file);
+    setIsSaved(false);
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
@@ -44,6 +47,7 @@ export default function ReceiptOcrCard({ onApplyData }: ReceiptOcrCardProps) {
     }
 
     setLoading(true);
+    setIsSaved(false);
     try {
       const response = await ocrApi.parseReceipt({
         raw_text: textToScan,
@@ -51,10 +55,12 @@ export default function ReceiptOcrCard({ onApplyData }: ReceiptOcrCardProps) {
 
       if (response && response.data) {
         setExtractedData(response.data);
+        // Otomatis masukkan hasil ekstraksi langsung ke formulir transaksi di sebelah kanan
+        onApplyData(response.data);
         showToast(
           response.data.is_mock
-            ? "Struk berhasil diekstrak (metode heuristic fallback)"
-            : "Struk berhasil diekstrak menggunakan Gemini 2.0 Flash!",
+            ? "Struk berhasil diekstrak dan siap disimpan!"
+            : "Struk berhasil diekstrak dengan Gemini 2.0 Flash dan siap disimpan!",
           "success"
         );
       }
@@ -344,29 +350,84 @@ export default function ReceiptOcrCard({ onApplyData }: ReceiptOcrCardProps) {
             </div>
           )}
 
-          {/* Apply button */}
-          <button
-            type="button"
-            onClick={handleApplyToForm}
-            className="btn-brutal"
-            style={{
-              width: "100%",
-              padding: "0.6rem",
-              fontSize: "0.85rem",
-              fontWeight: 900,
-              background: "var(--color-lime)",
-              color: "var(--color-navy)",
-              border: "2px solid var(--color-navy)",
-              boxShadow: "3px 3px 0px var(--color-navy)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.4rem",
-              marginTop: "0.3rem",
-            }}
-          >
-            {t("dashboard.transactions.ocrApplyBtn")} <ArrowRight size={14} />
-          </button>
+          {/* Action buttons */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.6rem" }}>
+            {onSaveDirectly && (
+              isSaved ? (
+                <div
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    fontSize: "0.9rem",
+                    fontWeight: 900,
+                    background: "var(--color-lime)",
+                    color: "var(--color-navy)",
+                    border: "2.5px solid var(--color-navy)",
+                    boxShadow: "3px 3px 0px var(--color-navy)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <CheckCircle2 size={18} color="var(--color-navy)" />
+                  Tercatat di Riwayat Transaksi!
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!extractedData) return;
+                    onSaveDirectly(extractedData);
+                    setIsSaved(true);
+                  }}
+                  className="btn-brutal"
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    fontSize: "0.9rem",
+                    fontWeight: 900,
+                    background: "var(--color-lime)",
+                    color: "var(--color-navy)",
+                    border: "2.5px solid var(--color-navy)",
+                    boxShadow: "3px 3px 0px var(--color-navy)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  <CheckCircle2 size={18} color="var(--color-navy)" />
+                  Simpan Langsung ke Riwayat
+                </button>
+              )
+            )}
+
+            <button
+              type="button"
+              onClick={handleApplyToForm}
+              className="btn-brutal"
+              style={{
+                width: "100%",
+                padding: "0.6rem",
+                fontSize: "0.85rem",
+                fontWeight: 800,
+                background: "var(--color-white)",
+                color: "var(--color-navy)",
+                border: "2px solid var(--color-navy)",
+                boxShadow: "2px 2px 0px var(--color-navy)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.4rem",
+                cursor: "pointer",
+              }}
+            >
+              <span>{t("dashboard.transactions.ocrApplyBtn") || "Masukkan ke Formulir"}</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
       )}
     </div>

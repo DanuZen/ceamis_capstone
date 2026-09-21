@@ -226,35 +226,37 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
           ),
           const SizedBox(height: 20),
           // Tips in mini brutal cards
-          _buildTip('📸', 'Pastikan pencahayaan cukup terang'),
-          _buildTip('📄', 'Foto struk secara tegak dan rata'),
-          _buildTip('🔍', 'Pastikan angka total terlihat jelas'),
+          _buildTip(Icons.camera_alt_outlined, 'Pastikan pencahayaan cukup terang'),
+          _buildTip(Icons.receipt_outlined, 'Foto struk secara tegak dan rata'),
+          _buildTip(Icons.search_rounded, 'Pastikan angka total terlihat jelas'),
         ],
       ),
     );
   }
 
-  Widget _buildTip(String emoji, String text) {
+  Widget _buildTip(IconData icon, String text) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border, width: 1.5),
+        border: Border.all(
+          color: AppColors.border,
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 10),
+          Icon(icon, size: 18, color: AppColors.navy),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                color: AppColors.navy,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.navy,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
         ],
@@ -268,12 +270,12 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
         Expanded(
           child: NeoBrutalButton(
             onPressed: () => _pickImage(ImageSource.camera),
-            backgroundColor: AppColors.purple,
-            textColor: AppColors.white,
+            backgroundColor: AppColors.lime,
+            textColor: AppColors.navy,
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.camera_alt_rounded, size: 20, color: AppColors.white),
+                Icon(Icons.camera_alt_rounded, size: 20, color: AppColors.navy),
                 SizedBox(width: 8),
                 Text('Kamera'),
               ],
@@ -284,7 +286,7 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
         Expanded(
           child: NeoBrutalButton(
             onPressed: () => _pickImage(ImageSource.gallery),
-            backgroundColor: AppColors.cyan,
+            backgroundColor: AppColors.surface,
             textColor: AppColors.navy,
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -381,7 +383,7 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
 
   Widget _buildErrorCard() {
     return NeoBrutalCard(
-      backgroundColor: const Color(0xFFFFEAEA),
+      backgroundColor: AppColors.orange.withValues(alpha: 0.15),
       borderColor: AppColors.orange,
       borderRadius: 12,
       shadowOffset: 3,
@@ -522,19 +524,19 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF9E6),
+              color: AppColors.yellow.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFD4A017), width: 1.5),
+              border: Border.all(color: AppColors.navy, width: 1.5),
             ),
             child: const Row(
               children: [
-                Icon(Icons.info_outline_rounded, color: Color(0xFF8B6508), size: 18),
+                Icon(Icons.info_outline_rounded, color: AppColors.navy, size: 18),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Periksa kembali data struk di atas sebelum menyimpan ke database.',
                     style: TextStyle(
-                      color: Color(0xFF8B6508),
+                      color: AppColors.navy,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -624,7 +626,7 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Transaksi dari struk berhasil disimpan! ✅'),
+                  content: Text('Transaksi dari struk berhasil disimpan!'),
                   backgroundColor: AppColors.success,
                 ),
               );

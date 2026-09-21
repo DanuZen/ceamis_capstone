@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/neo_brutal_card.dart';
 import '../../../core/widgets/neo_brutal_button.dart';
+import '../../../core/widgets/neo_brutal_dropdown.dart';
 import '../providers/pre_purchase_provider.dart';
 import 'pre_purchase_result_screen.dart';
 
@@ -35,11 +36,11 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
   late Animation<double> _pulseAnimation;
 
   final List<Map<String, dynamic>> _categories = [
-    {'name': 'Shopping', 'icon': Icons.shopping_bag_rounded, 'color': AppColors.pink},
+    {'name': 'Shopping', 'icon': Icons.shopping_bag_rounded, 'color': AppColors.lime},
     {'name': 'F&B', 'icon': Icons.restaurant_rounded, 'color': AppColors.orange},
-    {'name': 'Entertainment', 'icon': Icons.movie_rounded, 'color': AppColors.purple},
-    {'name': 'Transport', 'icon': Icons.directions_car_rounded, 'color': AppColors.cyan},
-    {'name': 'Education', 'icon': Icons.school_rounded, 'color': AppColors.lime},
+    {'name': 'Entertainment', 'icon': Icons.movie_rounded, 'color': AppColors.blue},
+    {'name': 'Transport', 'icon': Icons.directions_car_rounded, 'color': AppColors.yellow},
+    {'name': 'Tagihan', 'icon': Icons.receipt_long_rounded, 'color': AppColors.blue},
   ];
 
   @override
@@ -111,7 +112,7 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 120),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -127,23 +128,35 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
               Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Category Selector
-                    _buildCategorySelector(context),
-                    const SizedBox(height: 20),
+                    // Unified Form Card with Harmonized Field Sizes
+                    NeoBrutalCard(
+                      backgroundColor: AppColors.surface,
+                      padding: const EdgeInsets.all(20),
+                      borderRadius: 16,
+                      shadowOffset: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // 1. Nominal Input (Standardized Size)
+                          _buildAmountInput(context),
+                          const SizedBox(height: 16),
 
-                    // Amount Input
-                    _buildAmountInput(context),
-                    const SizedBox(height: 16),
+                          // 2. Kategori Dropdown (The 4+ categories in a clean dropdown)
+                          _buildCategoryDropdown(context),
+                          const SizedBox(height: 16),
 
-                    // Merchant Input
-                    _buildMerchantInput(context),
-                    const SizedBox(height: 16),
+                          // 3. Merchant Input (Standardized Size)
+                          _buildMerchantInput(context),
+                          const SizedBox(height: 16),
 
-                    // Notes Input
-                    _buildNotesInput(context),
-                    const SizedBox(height: 28),
+                          // 4. Notes Input (Standardized Size)
+                          _buildNotesInput(context),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
                     // Submit Button
                     ScaleTransition(
@@ -151,18 +164,25 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
                       child: NeoBrutalButton(
                         onPressed: _isLoading ? null : _handleSubmit,
                         isLoading: _isLoading,
-                        backgroundColor: AppColors.purple,
+                        backgroundColor: AppColors.lime,
+                        textColor: AppColors.navy,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
-                            Icon(Icons.shield_rounded, color: AppColors.white, size: 22),
+                            Icon(Icons.shield_rounded, color: AppColors.navy, size: 22),
                             SizedBox(width: 10),
-                            Text('Cek Risiko Sekarang'),
+                            Text(
+                              'Cek Risiko Sekarang',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.navy,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -202,7 +222,7 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
                     ),
               ),
               Text(
-                'Pikirkan sebelum membeli ✨',
+                'Pikirkan sebelum membeli',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -217,7 +237,7 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
 
   Widget _buildInfoBanner() {
     return NeoBrutalCard(
-      backgroundColor: AppColors.lime.withValues(alpha: 0.15),
+      backgroundColor: AppColors.surface,
       padding: const EdgeInsets.all(14),
       shadowOffset: 3,
       child: Row(
@@ -237,7 +257,7 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
               'Masukkan rencana belanjamu untuk mengecek tingkat risiko keuangan sebelum memutuskan.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.navy,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     height: 1.4,
                   ),
             ),
@@ -247,118 +267,46 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
     );
   }
 
-  Widget _buildCategorySelector(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Kategori',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.navy,
-              ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 90,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: _categories.length,
-            separatorBuilder: (context2, index2) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final cat = _categories[index];
-              final isSelected = _selectedCategory == cat['name'];
-              return GestureDetector(
-                onTap: () => setState(() => _selectedCategory = cat['name']),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: isSelected ? (cat['color'] as Color).withValues(alpha: 0.15) : AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? cat['color'] : AppColors.border,
-                      width: AppColors.borderWidth,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isSelected ? cat['color'] : AppColors.navy,
-                        offset: Offset(isSelected ? 3 : 2, isSelected ? 3 : 2),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        cat['icon'] as IconData,
-                        color: isSelected ? cat['color'] : AppColors.textSecondary,
-                        size: 28,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        cat['name'] as String,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                          color: isSelected ? AppColors.navy : AppColors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+  Widget _buildCategoryDropdown(BuildContext context) {
+    return NeoBrutalDropdown<String>(
+      label: 'Kategori',
+      value: _selectedCategory,
+      prefixIcon: Icons.category_outlined,
+      items: _categories.map((cat) {
+        return NeoDropdownItem<String>(
+          value: cat['name'] as String,
+          label: cat['name'] as String,
+          icon: cat['icon'] as IconData,
+          color: cat['color'] as Color?,
+        );
+      }).toList(),
+      onChanged: (val) {
+        setState(() => _selectedCategory = val);
+      },
     );
   }
 
   Widget _buildAmountInput(BuildContext context) {
-    return NeoBrutalCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Nominal Rencana Belanja',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.navy,
-                ),
-          ),
-          const SizedBox(height: 10),
-          TextFormField(
-            controller: _amountController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.navy,
-                ),
-            decoration: InputDecoration(
-              prefixText: 'Rp ',
-              prefixStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textSecondary,
-                  ),
-              hintText: '0',
-              filled: true,
-              fillColor: AppColors.background,
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Masukkan nominal';
-              final amount = double.tryParse(value.replaceAll(RegExp(r'[^\d]'), ''));
-              if (amount == null || amount <= 0) return 'Nominal harus lebih dari 0';
-              return null;
-            },
-          ),
-        ],
+    return TextFormField(
+      controller: _amountController,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w800,
+        color: AppColors.navy,
       ),
+      decoration: const InputDecoration(
+        labelText: 'Nominal Belanja (Rp)',
+        hintText: '0',
+        prefixIcon: Icon(Icons.payments_outlined, color: AppColors.navy),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) return 'Masukkan nominal belanja';
+        final amount = double.tryParse(value.replaceAll(RegExp(r'[^\d]'), ''));
+        if (amount == null || amount <= 0) return 'Nominal harus lebih dari 0';
+        return null;
+      },
     );
   }
 
@@ -366,13 +314,14 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
     return TextFormField(
       controller: _merchantController,
       style: const TextStyle(
+        fontSize: 15,
         fontWeight: FontWeight.w600,
         color: AppColors.navy,
       ),
       decoration: const InputDecoration(
-        labelText: 'Nama Merchant (opsional)',
-        hintText: 'Contoh: Uniqlo, Starbucks',
-        prefixIcon: Icon(Icons.storefront_rounded),
+        labelText: 'Nama Merchant (Opsional)',
+        hintText: 'Contoh: Uniqlo, Starbucks, Netflix',
+        prefixIcon: Icon(Icons.storefront_outlined, color: AppColors.navy),
       ),
     );
   }
@@ -380,15 +329,15 @@ class _PrePurchaseScreenState extends ConsumerState<PrePurchaseScreen>
   Widget _buildNotesInput(BuildContext context) {
     return TextFormField(
       controller: _notesController,
-      maxLines: 2,
       style: const TextStyle(
+        fontSize: 15,
         fontWeight: FontWeight.w600,
         color: AppColors.navy,
       ),
       decoration: const InputDecoration(
-        labelText: 'Catatan (opsional)',
+        labelText: 'Catatan (Opsional)',
         hintText: 'Alasan rencana belanja...',
-        prefixIcon: Icon(Icons.note_rounded),
+        prefixIcon: Icon(Icons.note_alt_outlined, color: AppColors.navy),
       ),
     );
   }

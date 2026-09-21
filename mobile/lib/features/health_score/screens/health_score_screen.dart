@@ -52,7 +52,7 @@ class HealthScoreScreen extends StatelessWidget {
               ),
               _buildComponentCard(
                 icon: Icons.shopping_bag_rounded,
-                iconBg: AppColors.orange,
+                iconBg: AppColors.surfaceVariant,
                 label: 'Wants Ratio',
                 value: '28.0%',
                 benchmark: 'Target: ≤ 25%',
@@ -62,7 +62,7 @@ class HealthScoreScreen extends StatelessWidget {
               ),
               _buildComponentCard(
                 icon: Icons.flash_on_rounded,
-                iconBg: AppColors.pink,
+                iconBg: AppColors.surfaceVariant,
                 label: 'Impulsive Ratio',
                 value: '8.0%',
                 benchmark: 'Target: ≤ 10%',
@@ -72,7 +72,7 @@ class HealthScoreScreen extends StatelessWidget {
               ),
               _buildComponentCard(
                 icon: Icons.checklist_rounded,
-                iconBg: AppColors.cyan,
+                iconBg: AppColors.surfaceVariant,
                 label: 'Budget Adherence',
                 value: '85.0%',
                 benchmark: 'Target: ≥ 80%',
@@ -82,7 +82,7 @@ class HealthScoreScreen extends StatelessWidget {
               ),
               _buildComponentCard(
                 icon: Icons.account_balance_rounded,
-                iconBg: AppColors.purple,
+                iconBg: AppColors.surfaceVariant,
                 label: 'DTI Ratio',
                 value: '0.0%',
                 benchmark: 'Target: ≤ 30%',
@@ -93,9 +93,9 @@ class HealthScoreScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // CAMI XAI Explanation Card
+              // XAI Explanation Card
               Text(
-                'Analisis CAMI AI 🤖',
+                'Analisis XAI Finansial',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w900,
                       color: AppColors.navy,
@@ -157,13 +157,27 @@ class HealthScoreScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Text(
-                  '🟢 SEHAT',
-                  style: TextStyle(
-                    color: AppColors.navy,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: AppColors.lime,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.navy, width: 1),
+                      ),
+                      child: const SizedBox(width: 8, height: 8),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'SEHAT',
+                      style: TextStyle(
+                        color: AppColors.navy,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -392,7 +406,7 @@ class HealthScoreScreen extends StatelessWidget {
           const Divider(color: AppColors.navy, thickness: 1.5),
           const SizedBox(height: 6),
           const Text(
-            '— CAMI, Asisten AI Cerdas CEAMIS 🤖',
+            '— CAMI, Asisten AI Cerdas CEAMIS',
             style: TextStyle(
               color: AppColors.navy,
               fontSize: 12,

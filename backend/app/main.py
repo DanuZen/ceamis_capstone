@@ -14,9 +14,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.api import (
-    risk_profile, recommendation, chatbot, education, dashboard_insight
+    recommendation, dashboard_insight
 )
-from app.api import pre_purchase, admin
+from app.api import pre_purchase, admin, ocr
 
 # Lazy import health_score (butuh TF — skip jika tidak tersedia)
 health_score = None
@@ -99,11 +99,9 @@ app.include_router(admin.router, prefix="/api/v1", tags=["★ Admin Governance"]
 if health_score:
     app.include_router(health_score.router, prefix="/api/v1", tags=["Model 1 - Health Score ✅ Formula Based"])
 
-app.include_router(risk_profile.router,    prefix="/api/v1", tags=["Model 3 - Risk Profile ✅"])
 app.include_router(dashboard_insight.router, prefix="/api/v1", tags=["LLM-Powered XAI Insights 🌟"])
 app.include_router(recommendation.router,  prefix="/api/v1", tags=["Recommendation"])
-app.include_router(chatbot.router,         prefix="/api/v1", tags=["Chatbot CAMI ✅"])
-app.include_router(education.router,       prefix="/api/v1", tags=["Education ✅"])
+app.include_router(ocr.router, prefix="/api/v1", tags=["OCR Receipt Parsing"])
 
 
 # ── Health Score Fallback (jika TF tidak tersedia) ──────────────────────────
@@ -157,11 +155,10 @@ async def root():
             "admin_governance":          "★ Model Registry & Audit Logs",
         },
         "supporting_features": {
-            "model_1_health_score":      "real ✅" if health_score else "fallback (TF not loaded)",
+            "model_1_health_score":      "real ✅" if health_score else "fallback (formula based)",
             "spending_category":         "threshold dari health_score (Sehat/Waspada/Boros)",
-            "model_3_risk_profile":      "real ✅ (Random Forest)",
-            "model_4_chatbot":           "real ✅ (Gemini + Groq)",
-            "education":                 "real ✅ (GenAI)",
+            "xai_dashboard_insight":     "real ✅ (Explainable AI Financial Insights)",
+            "recommendation":            "real ✅ (Prioritized Action Items)",
         },
         "docs": "/docs",
     }

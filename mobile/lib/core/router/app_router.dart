@@ -9,12 +9,21 @@ import '../../features/ocr/screens/ocr_scan_screen.dart';
 import '../../features/health_score/screens/health_score_screen.dart';
 import '../../features/pre_purchase/screens/pre_purchase_screen.dart';
 import '../../features/pre_purchase/screens/pre_purchase_result_screen.dart';
+import '../../features/history_report/screens/history_report_screen.dart';
+import '../../features/profile/screens/profile_screen.dart';
 import '../widgets/main_shell.dart';
 
 /// CEAMIS GoRouter configuration
 final appRouter = GoRouter(
-  initialLocation: '/login',
+  initialLocation: '/',
   routes: [
+    // Profile screen
+    GoRoute(
+      path: '/profile',
+      name: 'profile',
+      builder: (context, state) => const ProfileScreen(),
+    ),
+
     // Auth routes
     GoRoute(
       path: '/login',
@@ -77,6 +86,14 @@ final appRouter = GoRouter(
           path: '/ocr-scan',
           name: 'ocr-scan',
           builder: (context, state) => const OcrScanScreen(),
+        ),
+        GoRoute(
+          path: '/history-report',
+          name: 'history-report',
+          builder: (context, state) {
+            final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0;
+            return HistoryReportScreen(initialTab: tab);
+          },
         ),
       ],
     ),

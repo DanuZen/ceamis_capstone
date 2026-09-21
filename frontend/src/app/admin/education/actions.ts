@@ -31,7 +31,6 @@ export async function updateModule(id: number, data: any) {
     data
   });
   revalidatePath('/admin/education');
-  revalidatePath(`/dashboard/education`);
   return mod;
 }
 

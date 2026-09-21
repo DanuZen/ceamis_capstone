@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Selamat datang kembali! Yuk cek keuanganmu. 👋',
+                        'Selamat datang kembali! Yuk cek keuanganmu.',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 24),
@@ -198,9 +198,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       NeoBrutalButton(
                         onPressed: _isLoading ? null : _handleLogin,
                         isLoading: _isLoading,
-                        backgroundColor: AppColors.purple,
-                        textColor: AppColors.white,
-                        child: const Text('Masuk Sekarang 🚀'),
+                        backgroundColor: AppColors.lime,
+                        textColor: AppColors.navy,
+                        child: const Text(
+                          'Masuk Sekarang ➔',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      NeoBrutalButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () async {
+                                await ApiClient().saveToken('dev_access_token');
+                                if (context.mounted) context.go('/');
+                              },
+                        backgroundColor: AppColors.surface,
+                        textColor: AppColors.navy,
+                        child: const Text(
+                          'Masuk Cepat (Demo Mode)',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
                       ),
                     ],
                   ),
@@ -228,8 +246,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Daftar di sini',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.purple,
-                              fontWeight: FontWeight.w800,
+                              color: AppColors.navy,
+                              fontWeight: FontWeight.w900,
                               decoration: TextDecoration.underline,
                             ),
                       ),

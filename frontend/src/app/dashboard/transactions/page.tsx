@@ -180,9 +180,14 @@ export default function TransactionsPage() {
   // Auto-update category when type, tag, or language changes
   useEffect(() => {
     if (type === "pemasukan") {
-      setCategory(currentCategoryOptions.pemasukan[0]);
+      if (!currentCategoryOptions.pemasukan.includes(category)) {
+        setCategory(currentCategoryOptions.pemasukan[0]);
+      }
     } else {
-      setCategory(currentCategoryOptions[tag]?.[0] || "");
+      const allowed = currentCategoryOptions[tag] || [];
+      if (!allowed.includes(category)) {
+        setCategory(allowed[0] || "");
+      }
     }
   }, [type, tag, dynamicNeeds, dynamicWants, dynamicSavings, language]);
 
@@ -436,16 +441,105 @@ export default function TransactionsPage() {
         <div style={{ flex: "1 1 320px", maxWidth: "100%", display: "flex", flexDirection: "column" }}>
           <ReceiptOcrCard
             onApplyData={(parsed) => {
-              setDesc(parsed.merchant_name || parsed.items?.[0]?.name || "Struk Belanja");
+              // 1. Deskripsi / Merchant
+              let merchant = (parsed.merchant_name || "").trim();
+              if (/^(STK|INV|TRX|STRUK|ID|NO)[-:\s#]/i.test(merchant) && parsed.items?.[0]?.name) {
+                merchant = parsed.items[0].name;
+              }
+              setDesc(merchant || "Belanja Struk");
+
+              // 2. Nominal
               const amtNum = parsed.total_amount || 0;
               setAmountRaw(amtNum.toString());
               setAmount(amtNum > 0 ? amtNum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "");
+
+              // 3. Tipe & Tag
               setType("pengeluaran");
-              setTag(parsed.auto_tag || "needs");
-              
-              if (parsed.category) {
-                setCategory(parsed.category);
+              const newTag = parsed.auto_tag === "wants" ? "wants" : "needs";
+              setTag(newTag);
+
+              // 4. Pemetaan Kategori ke Opsi Bahasa Indonesia
+              const catRaw = (parsed.category || "").toLowerCase();
+              let targetCat = "Makanan & Minuman";
+
+              if (catRaw.includes("grocer") || catRaw.includes("supermarket") || catRaw.includes("pasar") || catRaw.includes("rumah")) {
+                targetCat = "Kebutuhan Rumah";
+              } else if (catRaw.includes("food") || catRaw.includes("beverage") || catRaw.includes("makan") || catRaw.includes("minum") || catRaw.includes("resto")) {
+                targetCat = "Makanan & Minuman";
+              } else if (catRaw.includes("transport") || catRaw.includes("bensin") || catRaw.includes("ojol")) {
+                targetCat = "Transportasi";
+              } else if (catRaw.includes("util") || catRaw.includes("tagihan") || catRaw.includes("listrik")) {
+                targetCat = "Tagihan & Utilitas";
+              } else if (catRaw.includes("health") || catRaw.includes("sehat") || catRaw.includes("obat") || catRaw.includes("apotek")) {
+                targetCat = "Kesehatan";
+              } else if (catRaw.includes("shop") || catRaw.includes("belanja") || catRaw.includes("fashion") || catRaw.includes("baju")) {
+                targetCat = "Belanja Pribadi";
+              } else if (catRaw.includes("entertain") || catRaw.includes("hibur") || catRaw.includes("bioskop") || catRaw.includes("game")) {
+                targetCat = "Hiburan";
+              } else if (catRaw.includes("hobi") || catRaw.includes("hobby")) {
+                targetCat = "Hobi";
               }
+
+              const validOptions = currentCategoryOptions[newTag] || currentCategoryOptions.needs;
+              if (validOptions.includes(targetCat)) {
+                setCategory(targetCat);
+              } else {
+                setCategory(validOptions[0]);
+              }
+            }}
+            onSaveDirectly={async (parsed) => {
+              // 1. Deskripsi / Merchant
+              let merchant = (parsed.merchant_name || "").trim();
+              if (/^(STK|INV|TRX|STRUK|ID|NO)[-:\s#]/i.test(merchant) && parsed.items?.[0]?.name) {
+                merchant = parsed.items[0].name;
+              }
+              const finalDesc = merchant || "Belanja Struk";
+
+              // 2. Nominal
+              const amtNum = parsed.total_amount || 0;
+
+              // 3. Tipe & Tag
+              const newTag = parsed.auto_tag === "wants" ? "wants" : "needs";
+
+              // 4. Pemetaan Kategori ke Opsi Bahasa Indonesia
+              const catRaw = (parsed.category || "").toLowerCase();
+              let targetCat = "Makanan & Minuman";
+
+              if (catRaw.includes("grocer") || catRaw.includes("supermarket") || catRaw.includes("pasar") || catRaw.includes("rumah")) {
+                targetCat = "Kebutuhan Rumah";
+              } else if (catRaw.includes("food") || catRaw.includes("beverage") || catRaw.includes("makan") || catRaw.includes("minum") || catRaw.includes("resto")) {
+                targetCat = "Makanan & Minuman";
+              } else if (catRaw.includes("transport") || catRaw.includes("bensin") || catRaw.includes("ojol")) {
+                targetCat = "Transportasi";
+              } else if (catRaw.includes("util") || catRaw.includes("tagihan") || catRaw.includes("listrik")) {
+                targetCat = "Tagihan & Utilitas";
+              } else if (catRaw.includes("health") || catRaw.includes("sehat") || catRaw.includes("obat") || catRaw.includes("apotek")) {
+                targetCat = "Kesehatan";
+              } else if (catRaw.includes("shop") || catRaw.includes("belanja") || catRaw.includes("fashion") || catRaw.includes("baju")) {
+                targetCat = "Belanja Pribadi";
+              } else if (catRaw.includes("entertain") || catRaw.includes("hibur") || catRaw.includes("bioskop") || catRaw.includes("game")) {
+                targetCat = "Hiburan";
+              } else if (catRaw.includes("hobi") || catRaw.includes("hobby")) {
+                targetCat = "Hobi";
+              }
+
+              const validOptions = currentCategoryOptions[newTag] || currentCategoryOptions.needs;
+              const finalCat = validOptions.includes(targetCat) ? targetCat : validOptions[0];
+
+              await addTransaction({
+                description: finalDesc,
+                amount: amtNum,
+                type: "pengeluaran",
+                category: finalCat,
+                tag: newTag,
+              });
+              unlockBadge("firstStep");
+              showToast(`Transaksi "${finalDesc}" (Rp ${amtNum.toLocaleString("id-ID")}) berhasil dicatat ke riwayat!`, "success");
+
+              // Reset input form
+              setDesc("");
+              setAmount("");
+              setAmountRaw("");
             }}
           />
         </div>

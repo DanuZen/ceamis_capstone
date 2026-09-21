@@ -7,13 +7,13 @@ import {
   Wallet, 
   History, 
   AlertTriangle, 
-  BookOpen,
   LogOut,
   User,
   HandCoins,
   FileText,
   Target,
-  Lock
+  Lock,
+  ShieldAlert
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useGuest } from "@/context/GuestContext";
@@ -45,11 +45,11 @@ const navGroups: NavGroup[] = [
     title: "sidebar.groups.keuangan",
     items: [
       { href: "/dashboard/transactions", label: "sidebar.transactions", icon: Wallet, color: "lime" },
+      { href: "/dashboard/pre-purchase", label: "Cek Pra-Beli (AI)", icon: ShieldAlert, color: "pink" },
       { href: "/dashboard/debt", label: "sidebar.debt", icon: HandCoins, color: "orange" },
       { href: "/dashboard/history", label: "sidebar.history", icon: History, color: "orange" },
       { href: "/dashboard/planning", label: "sidebar.planning", icon: Target, color: "purple", guestRestricted: true },
       { href: "/dashboard/reports", label: "sidebar.reports", icon: FileText, color: "lime" },
-      { href: "/dashboard/education", label: "sidebar.education", icon: BookOpen, color: "orange", guestRestricted: true },
       { href: "/dashboard/warnings", label: "sidebar.warnings", icon: AlertTriangle, color: "pink", guestRestricted: true },
     ],
   },

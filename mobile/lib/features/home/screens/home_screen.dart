@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Halo, Bestie! 👋',
+                        'Halo, Danu!',
                         style: Theme.of(context).textTheme.displayMedium?.copyWith(
                               fontWeight: FontWeight.w900,
                               color: AppColors.navy,
@@ -43,28 +43,32 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.lime,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.border,
-                        width: AppColors.borderWidth,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: AppColors.navy,
-                          offset: Offset(3, 3),
-                          blurRadius: 0,
+                  GestureDetector(
+                    onTap: () => context.push('/profile'),
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.lime,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: AppColors.borderWidth,
                         ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.person_rounded,
-                      color: AppColors.navy,
-                      size: 28,
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.navy,
+                            offset: Offset(3, 3),
+                            blurRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: AppColors.navy,
+                        size: 28,
+                      ),
                     ),
                   ),
                 ],
@@ -73,6 +77,10 @@ class HomeScreen extends StatelessWidget {
 
               // Health Score Card (Neo-Brutalist Lime Card)
               _buildHealthScoreCard(context),
+              const SizedBox(height: 20),
+
+              // 2x2 Bento Metric Grid (Dribbble inspired)
+              _buildBentoMetrics(context),
               const SizedBox(height: 20),
 
               // Quick Actions
@@ -90,40 +98,48 @@ class HomeScreen extends StatelessWidget {
                           color: AppColors.navy,
                         ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.border,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Text(
-                      '3 Terbaru',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w700,
+                  GestureDetector(
+                    onTap: () => context.go('/history-report'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 1.5,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
                             color: AppColors.navy,
+                            offset: Offset(2, 2),
+                            blurRadius: 0,
                           ),
+                        ],
+                      ),
+                      child: Text(
+                        'Lihat Semua ➔',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.navy,
+                            ),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
 
-              // Transactions
+              // Transactions (Consistent clean icons)
               _buildTransactionItem(
                 icon: Icons.restaurant_rounded,
-                iconBg: AppColors.orange,
                 title: 'Makan Siang',
                 subtitle: 'Food & Beverage',
                 amount: '-Rp 35.000',
                 isExpense: true,
               ),
               _buildTransactionItem(
-                icon: Icons.coffee_rounded,
-                iconBg: AppColors.pink,
+                icon: Icons.local_cafe_rounded,
                 title: 'Kopi Kekinian',
                 subtitle: 'Food & Beverage',
                 amount: '-Rp 28.000',
@@ -131,12 +147,12 @@ class HomeScreen extends StatelessWidget {
               ),
               _buildTransactionItem(
                 icon: Icons.account_balance_wallet_rounded,
-                iconBg: AppColors.lime,
-                title: 'Uang Jajan',
+                title: 'Gaji Bulanan',
                 subtitle: 'Income Transfer',
-                amount: '+Rp 500.000',
+                amount: '+Rp 5.200.000',
                 isExpense: false,
               ),
+              const SizedBox(height: 100),
             ],
           ),
         ),
@@ -198,13 +214,27 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Text(
-                  '🟢 SEHAT',
-                  style: TextStyle(
-                    color: AppColors.navy,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: AppColors.lime,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.navy, width: 1),
+                      ),
+                      child: const SizedBox(width: 8, height: 8),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'SEHAT',
+                      style: TextStyle(
+                        color: AppColors.navy,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -267,6 +297,124 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // ── 2x2 Bento Metrics Grid (Dribbble Screen 1 inspired) ────
+  Widget _buildBentoMetrics(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricTile(
+                title: 'Pemasukan',
+                value: 'Rp 5.200.000',
+                badgeText: 'Credited',
+                badgeColor: AppColors.blue,
+                isPositive: true,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMetricTile(
+                title: 'Pengeluaran',
+                value: 'Rp 1.450.000',
+                badgeText: 'Debit',
+                badgeColor: AppColors.orange,
+                isPositive: false,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricTile(
+                title: 'Sisa Pagu',
+                value: 'Rp 3.750.000',
+                badgeText: '72% Pagu',
+                badgeColor: AppColors.lime,
+                textColor: AppColors.navy,
+                badgeTextColor: AppColors.navy,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMetricTile(
+                title: 'Saving Rate',
+                value: '28.4%',
+                badgeText: 'Optimal',
+                badgeColor: AppColors.lime,
+                textColor: AppColors.navy,
+                badgeTextColor: AppColors.navy,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricTile({
+    required String title,
+    required String value,
+    required String badgeText,
+    required Color badgeColor,
+    Color? textColor,
+    Color? badgeTextColor,
+    bool? isPositive,
+  }) {
+    return NeoBrutalCard(
+      backgroundColor: AppColors.surface,
+      borderRadius: 14,
+      shadowOffset: 3,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: badgeColor,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.navy, width: 1.5),
+                ),
+                child: Text(
+                  badgeText,
+                  style: TextStyle(
+                    color: badgeTextColor ?? AppColors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: textColor ?? AppColors.navy,
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildQuickActions(BuildContext context) {
     return Row(
       children: [
@@ -275,9 +423,17 @@ class HomeScreen extends StatelessWidget {
             context,
             icon: Icons.add_rounded,
             label: 'Tambah\nTransaksi',
-            badgeColor: AppColors.purple,
-            iconColor: AppColors.white,
             onTap: () => context.go('/add-transaction'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildActionCard(
+            context,
+            icon: Icons.shield_rounded,
+            label: 'Cek Risiko\nPra-Beli',
+            isHighlight: true,
+            onTap: () => context.go('/pre-purchase'),
           ),
         ),
         const SizedBox(width: 12),
@@ -286,20 +442,7 @@ class HomeScreen extends StatelessWidget {
             context,
             icon: Icons.document_scanner_rounded,
             label: 'Scan\nStruk',
-            badgeColor: AppColors.cyan,
-            iconColor: AppColors.navy,
             onTap: () => context.go('/ocr-scan'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionCard(
-            context,
-            icon: Icons.insights_rounded,
-            label: 'Lihat\nInsight',
-            badgeColor: AppColors.pink,
-            iconColor: AppColors.white,
-            onTap: () => context.go('/health-score'),
           ),
         ),
       ],
@@ -310,12 +453,11 @@ class HomeScreen extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
-    required Color badgeColor,
-    required Color iconColor,
     required VoidCallback onTap,
+    bool isHighlight = false,
   }) {
     return NeoBrutalCard(
-      backgroundColor: AppColors.surface,
+      backgroundColor: isHighlight ? AppColors.lime : AppColors.surface,
       borderRadius: 14,
       shadowOffset: 3,
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
@@ -325,7 +467,7 @@ class HomeScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: badgeColor,
+              color: isHighlight ? AppColors.navy : AppColors.lime,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: AppColors.border,
@@ -339,7 +481,11 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(icon, color: iconColor, size: 24),
+            child: Icon(
+              icon,
+              color: isHighlight ? AppColors.lime : AppColors.navy,
+              size: 24,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
@@ -358,7 +504,6 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildTransactionItem({
     required IconData icon,
-    required Color iconBg,
     required String title,
     required String subtitle,
     required String amount,
@@ -376,7 +521,7 @@ class HomeScreen extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: iconBg,
+              color: AppColors.surfaceVariant,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: AppColors.border,
@@ -413,17 +558,19 @@ class HomeScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: isExpense ? const Color(0xFFFFEAEA) : const Color(0xFFF2FFE5),
+              color: isExpense
+                  ? AppColors.orange.withValues(alpha: 0.15)
+                  : AppColors.lime.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isExpense ? AppColors.orange : const Color(0xFF5BA300),
+                color: isExpense ? AppColors.orange : AppColors.navy,
                 width: 1.5,
               ),
             ),
             child: Text(
               amount,
               style: TextStyle(
-                color: isExpense ? AppColors.orange : const Color(0xFF386B00),
+                color: isExpense ? AppColors.orange : AppColors.navy,
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
               ),
