@@ -11,51 +11,56 @@
    ═══════════════════════════════════════════════ */
 
 :root {
-  /* ── Brand Colors (CEAMIS Dark Tech Palette) ── */
+  /* ── Brand Colors (4-Color Palette: Red #dc2626, Lime #b8ff00, Yellow #ffe100, Blue #1d4ed8) ── */
   --color-navy: #0A192F;
-  --color-purple: #5833EE;
-  --color-lime: #B8FF00;
-  --color-orange: #FF5233;
-  --color-pink: #FF3366;
-  --color-cyan: #00E5FF;
+  --color-red: #dc2626;
+  --color-lime: #b8ff00;
+  --color-yellow: #ffe100;
+  --color-blue: #1d4ed8;
+
+  /* Strict Replacement: No Purple or Pink */
+  --color-purple: #1d4ed8; /* Purple is replaced by Blue #1d4ed8 */
+  --color-pink: #dc2626;   /* Pink is replaced by Red #dc2626 */
+  --color-orange: #ffe100; /* Orange is mapped to Yellow #ffe100 */
+  --color-cyan: #1d4ed8;   /* Cyan is mapped to Blue #1d4ed8 */
   --color-white: #FFFFFF;
 
-  --color-primary: var(--color-purple);
-  --color-primary-hover: #4726C9;
-  --color-primary-light: rgba(88, 51, 238, 0.1);
+  --color-primary: var(--color-lime);
+  --color-primary-hover: #A3E600;
+  --color-primary-light: rgba(184, 255, 0, 0.15);
 
   /* ── Status Colors ── */
   --color-success: var(--color-lime);
-  --color-warning: #F59E0B;
-  --color-danger: var(--color-orange);
-  --color-info: #3B82F6;
+  --color-warning: var(--color-yellow);
+  --color-danger: var(--color-red);
+  --color-info: var(--color-blue);
 
   /* ── Surface & Background ── */
-  --color-bg: #F1F5F9;
+  --color-bg: #F8FAFC;
   --color-surface: var(--color-white);
   --color-surface-elevated: #FFFFFF;
 
   /* ── Border & Shadow ── */
   --color-border: var(--color-navy);
-  --color-border-light: rgba(248, 250, 252, 0.2);
+  --color-border-light: rgba(10, 25, 47, 0.15);
   --border-width: 2.5px;
-  --shadow-brutal: 4px 4px 0px var(--color-purple);
-  --shadow-brutal-sm: 2px 2px 0px var(--color-purple);
-  --shadow-brutal-lg: 6px 6px 0px var(--color-purple);
-  --shadow-brutal-pressed: 1px 1px 0px var(--color-purple);
+  --shadow-brutal: 4px 4px 0px var(--color-navy);
+  --shadow-brutal-sm: 2px 2px 0px var(--color-navy);
+  --shadow-brutal-lg: 6px 6px 0px var(--color-navy);
+  --shadow-brutal-pressed: 1px 1px 0px var(--color-navy);
 
   /* ── Text ── */
   --color-text: var(--color-navy);
   --color-text-inverse: var(--color-white);
-  --color-text-muted: #526082;
-  --color-text-light: #9CA3AF;
+  --color-text-muted: #475569;
+  --color-text-light: #64748B;
 
   /* ── Typography ── */
   --font-heading: 'Quicksand', sans-serif;
   --font-body: 'Inter', sans-serif;
 
   /* ── Spacing ── */
-  --radius-brutal: 12px;
+  --radius-brutal: 16px;
   --radius-brutal-sm: 8px;
   --radius-brutal-lg: 16px;
 
@@ -104,16 +109,19 @@
 }
 
 html {
-  zoom: 0.9;
+  min-height: 100%;
 }
 
 body {
-  background: var(--color-bg);
+  background-color: #F8FAFC;
+  background-image: radial-gradient(#CBD5E1 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
   color: var(--color-text);
   font-family: var(--font-body);
   margin: 0;
   padding: 0;
-  min-height: calc(100vh / 0.9);
+  min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
