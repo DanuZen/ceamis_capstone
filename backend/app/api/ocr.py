@@ -7,11 +7,14 @@ Ekstraksi teks struk belanja menjadi transaksi terstruktur via Gemini 2.0 Flash 
 import os
 import re
 import json
+import logging
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import httpx
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ocr", tags=["OCR Receipt Parsing"])
 
@@ -138,7 +141,7 @@ async def parse_receipt(req: ParseReceiptRequest):
 
     if gemini_key:
         try:
-            endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+            endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
             prompt = f"""
 Kamu adalah mesin pengekstrak data dari teks mentah hasil OCR struk belanjaan Indonesia (Indomaret, Alfamart, restoran, SPBU, supermarket, dll).
 Kembalikan HANYA JSON valid tanpa format markdown ```json atau karakter lain di luar JSON.
@@ -167,7 +170,11 @@ Teks Mentah Struk:
             }
 
             async with httpx.AsyncClient(timeout=15.0) as client:
-                resp = await client.post(endpoint, json=payload)
+                resp = await client.post(
+                    endpoint,
+                    json=payload,
+                    headers={"x-goog-api-key": gemini_key},
+                )
                 if resp.status_code == 200:
                     data = resp.json()
                     candidate_text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
@@ -199,7 +206,10 @@ Teks Mentah Struk:
                     )
                     return ParseReceiptResponse(success=True, data=parsed_data)
         except Exception as e:
-            print(f"[OCR] Gemini API failed, falling back to heuristic: {e}")
+            logger.warning(
+                "Gemini API failed, falling back to heuristic parser",
+                exc_info=True,
+            )
 
     # Fallback heuristic
     fallback_data = heuristic_parse_receipt(raw_text)
