@@ -12,6 +12,7 @@ import { useTransactions } from "@/context/TransactionContext";
 import { useToast } from "@/components/ui/Toast";
 import { getBadges } from "@/app/admin/gamification/actions";
 import React from "react";
+import PageBanner from "@/components/layout/PageBanner";
 
 const BADGE_ICON_MAP: Record<string, React.ElementType> = {
   Target, Shield, Flame, Zap, Star, Medal, Trophy
@@ -61,9 +62,10 @@ export default function ProfilePage() {
   }, [transactions]);
 
   const stats = [
-    { label: t("dashboard.profile.totalTransactions"), value: txCount.toString(), icon: TrendingUp, color: "purple" },
-    { label: t("dashboard.profile.activeDays"), value: userData.streak.toString(), icon: Calendar, color: "lime" },
-    { label: t("dashboard.profile.badgesEarned"), value: `${userData.unlockedBadges?.length || 0}/8`, icon: Award, color: "orange" },
+    { label: "LEVEL AKUN", value: `LVL ${userData.level}`, icon: Zap, color: "blue", badge: "Gamifikasi", subtext: `XP: ${userData.xp}` },
+    { label: t("dashboard.profile.totalTransactions") || "TOTAL TRANSAKSI", value: `${txCount} Trx`, icon: TrendingUp, color: "lime", badge: "Aktivitas", subtext: `${transactions.filter(t => t.type === "pengeluaran").length} Belanja` },
+    { label: t("dashboard.profile.activeDays") || "HARI AKTIF", value: `${userData.streak} Hari`, icon: Calendar, color: "yellow", badge: "Disiplin", subtext: "Streak Berjalan" },
+    { label: t("dashboard.profile.badgesEarned") || "LENCANA TERBUKA", value: `${userData.unlockedBadges?.length || 0}/8`, icon: Award, color: "red", badge: "Prestasi", subtext: "Koleksi Badge" },
   ];
 
   const [editForm, setEditForm] = useState({ ...userData });
@@ -96,6 +98,19 @@ export default function ProfilePage() {
 
   return (
     <div style={{ paddingBottom: "2rem" }}>
+      {/* Header Banner */}
+      <PageBanner
+        badgeText="PROFIL & PRESTASI"
+        title="Profil Pengguna & Pencapaian"
+        description="Kelola identitas akun, pantau statistik performa finansial personal, dan koleksi lencana gamifikasi kamu."
+        rightCard={{
+          icon: <Award size={20} className="text-[#1d4ed8]" />,
+          label: "TOTAL LENCANA",
+          value: `${userData.unlockedBadges?.length || 0} Terbuka`
+        }}
+        className="mb-6"
+      />
+
       {/* Profile Header Card */}
       <div
         className="card-brutal animate-bounce-in"
@@ -243,61 +258,61 @@ export default function ProfilePage() {
       </div>
 
       {/* Stats Cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "1.25rem",
-          marginBottom: "2.5rem",
-        }}
-        className="stagger-children"
-      >
-        {stats.map((stat) => (
+      <div className="dashboard-bento-grid stagger-children" style={{ marginBottom: "1.5rem" }}>
+        {stats.map((stat, idx) => (
           <div
-            key={stat.label}
-            className="card-brutal"
+            key={idx}
             style={{
+              background: "#FFFFFF",
+              border: "2.5px solid var(--color-navy)",
+              borderRadius: "16px",
+              boxShadow: "4px 4px 0px var(--color-navy)",
+              padding: "1.15rem 1.25rem",
               display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-              padding: "1.25rem",
+              flexDirection: "column",
+              justifyContent: "space-between",
             }}
           >
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                minWidth: "48px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "var(--radius-brutal-sm)",
-                border: "2px solid var(--color-navy)",
-                boxShadow: "2px 2px 0px var(--color-navy)",
-                background: `var(--color-${stat.color})`,
-              }}
-            >
-              <stat.icon size={24} color="var(--color-navy)" strokeWidth={2.5} />
-            </div>
-            <div>
-              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>
-                {stat.value}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+                {stat.label}
+              </span>
+              <div
+                style={{
+                  width: "28px",
+                  height: "28px",
+                  background: `var(--color-${stat.color})`,
+                  border: "1.5px solid var(--color-navy)",
+                  borderRadius: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <stat.icon size={16} color="var(--color-navy)" strokeWidth={2.5} />
               </div>
-              <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{stat.label}</div>
+            </div>
+
+            <div style={{ margin: "0.65rem 0" }}>
+              <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+                {stat.value}
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ background: "#F1F5F9", border: "1px solid #CBD5E1", borderRadius: "999px", padding: "2px 8px", fontSize: "0.68rem", fontWeight: 700, color: "var(--color-navy)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                {stat.badge}
+              </span>
+              <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+                {stat.subtext}
+              </span>
             </div>
           </div>
         ))}
       </div>
 
       {/* Progress Bars Section */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "1.5rem",
-          marginBottom: "3rem",
-        }}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 items-stretch">
         {/* Streak HP Bar */}
         <div
           className="card-brutal animate-bounce-in"
@@ -597,8 +612,9 @@ export default function ProfilePage() {
           <div className="card-brutal animate-bounce-in" style={{
             background: "var(--color-bg)", width: "100%", maxWidth: "450px",
             padding: "2rem", position: "relative",
-            border: "3px solid var(--color-navy)",
-            boxShadow: "8px 8px 0px var(--color-purple)"
+            border: "2.5px solid var(--color-navy)",
+            borderRadius: "16px",
+            boxShadow: "4px 4px 0px var(--color-purple)"
           }}>
             <button onClick={() => setIsEditing(false)} style={{
               position: "absolute", top: "1.25rem", right: "1.25rem",

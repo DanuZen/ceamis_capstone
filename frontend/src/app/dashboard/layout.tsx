@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
 import { TransactionProvider } from "@/context/TransactionContext";
@@ -52,6 +52,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth > 768) {
@@ -64,16 +65,35 @@ export default function DashboardLayout({
       <UserProvider>
         <TransactionProvider>
           <OnboardingGuard>
-            <div className={`dashboard-layout ${isSidebarOpen ? "" : "dashboard-layout--collapsed"}`}>
-              <Sidebar isOpen={isSidebarOpen} />
-              <div className="dashboard-content">
-                <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isOpen={isSidebarOpen} />
-                <main className="dashboard-main">{children}</main>
-              </div>
-            </div>
+            <DashboardShell isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
+              {children}
+            </DashboardShell>
           </OnboardingGuard>
         </TransactionProvider>
       </UserProvider>
     </GuestProvider>
+  );
+}
+
+function DashboardShell({
+  isSidebarOpen,
+  setIsSidebarOpen,
+  children,
+}: {
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (v: boolean) => void;
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  return (
+    <div className={`dashboard-layout ${isSidebarOpen ? "" : "dashboard-layout--collapsed"}`}>
+      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <div className="dashboard-content">
+        <Navbar isOpen={isSidebarOpen} />
+        <main className="dashboard-main" style={{ padding: "0.75rem 2rem 2rem 2rem" }}>
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

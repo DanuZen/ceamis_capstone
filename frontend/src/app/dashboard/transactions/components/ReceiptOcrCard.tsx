@@ -81,355 +81,411 @@ export default function ReceiptOcrCard({ onApplyData, onSaveDirectly }: ReceiptO
     <div
       className="card-brutal animate-slide-up"
       style={{
-        height: "700px",
-        minHeight: "700px",
-        maxHeight: "700px",
+        height: "100%",
+        minHeight: "560px",
         background: "var(--color-white)",
-        border: "4px solid var(--color-navy)",
-        padding: "2rem",
-        boxShadow: "10px 10px 0px var(--color-navy)",
+        border: "2.5px solid var(--color-navy)",
+        borderRadius: "16px",
+        padding: "1.25rem 1.5rem",
+        boxShadow: "4px 4px 0px var(--color-navy)",
         display: "flex",
         flexDirection: "column",
-        overflowY: "auto",
+        justifyContent: "space-between",
+        boxSizing: "border-box",
       }}
     >
-      {/* Card Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem" }}>
-        <Sparkles
-          size={28}
-          color="var(--color-navy)"
-          style={{
-            background: "var(--color-lime)",
-            borderRadius: "var(--radius-brutal-sm)",
-            padding: "4px",
-            border: "2px solid var(--color-navy)",
-            boxShadow: "2px 2px 0px var(--color-navy)",
-          }}
-        />
-        <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", color: "var(--color-navy)", margin: 0, fontWeight: 900 }}>
-          {t("dashboard.transactions.ocrCardTitle")}
-        </h3>
-      </div>
-      
-      <p style={{ fontSize: "0.95rem", color: "var(--color-text-muted)", marginBottom: "1.25rem", lineHeight: 1.4, fontWeight: 500 }}>
-        {t("dashboard.transactions.ocrCardDesc")}
-      </p>
-
-      {/* Tab Selector */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-        <button
-          type="button"
-          onClick={() => setActiveTab("upload")}
-          className="btn-brutal"
-          style={{
-            flex: 1,
-            padding: "0.6rem 0.5rem",
-            fontSize: "0.85rem",
-            fontWeight: 800,
-            background: activeTab === "upload" ? "var(--color-lime)" : "var(--color-white)",
-            color: "var(--color-navy)",
-            border: "2.5px solid var(--color-navy)",
-            boxShadow: activeTab === "upload" ? "3px 3px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.4rem",
-          }}
-        >
-          <Upload size={14} /> {t("dashboard.transactions.ocrUploadTab")}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("text")}
-          className="btn-brutal"
-          style={{
-            flex: 1,
-            padding: "0.6rem 0.5rem",
-            fontSize: "0.85rem",
-            fontWeight: 800,
-            background: activeTab === "text" ? "var(--color-purple)" : "var(--color-white)",
-            color: activeTab === "text" ? "var(--color-white)" : "var(--color-navy)",
-            border: "2.5px solid var(--color-navy)",
-            boxShadow: activeTab === "text" ? "3px 3px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.4rem",
-          }}
-        >
-          <FileText size={14} /> {t("dashboard.transactions.ocrTextTab")}
-        </button>
-      </div>
-
-      {/* Input Section */}
-      {activeTab === "upload" ? (
-        <div style={{ marginBottom: "1rem" }}>
-          <label
-            htmlFor="receipt-file-input"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "1.25rem",
-              border: "3px dashed var(--color-navy)",
-              borderRadius: "var(--radius-brutal-sm)",
-              background: "var(--color-bg)",
-              cursor: "pointer",
-              textAlign: "center",
-              gap: "0.5rem",
-            }}
-          >
-            {imagePreview ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", width: "100%" }}>
-                <img
-                  src={imagePreview}
-                  alt="Receipt Preview"
-                  style={{ width: "54px", height: "54px", objectFit: "cover", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}
-                />
-                <div style={{ textAlign: "left", flex: 1, overflow: "hidden" }}>
-                  <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {selectedFile?.name}
-                  </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                    {(selectedFile?.size || 0) / 1024 > 1024
-                      ? `${((selectedFile?.size || 0) / (1024 * 1024)).toFixed(2)} MB`
-                      : `${Math.round((selectedFile?.size || 0) / 1024)} KB`}
-                  </div>
-                </div>
-                <CheckCircle2 size={20} color="var(--color-navy)" fill="var(--color-lime)" />
-              </div>
-            ) : (
-              <>
-                <Upload size={28} color="var(--color-navy)" />
-                <span style={{ fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)" }}>
-                  {t("dashboard.transactions.ocrDropzone")}
-                </span>
-              </>
-            )}
-            <input
-              id="receipt-file-input"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-            />
-          </label>
-        </div>
-      ) : (
-        <div style={{ marginBottom: "1rem" }}>
-          <textarea
-            value={rawText}
-            onChange={(e) => setRawText(e.target.value)}
-            rows={4}
-            className="input-brutal"
-            placeholder={t("dashboard.transactions.ocrPastePlaceholder")}
-            style={{
-              width: "100%",
-              padding: "0.85rem",
-              fontSize: "0.85rem",
-              fontFamily: "monospace",
-              border: "3px solid var(--color-navy)",
-              boxShadow: "3px 3px 0px var(--color-navy)",
-              background: "var(--color-bg)",
-              resize: "none",
-            }}
-          />
-        </div>
-      )}
-
-      {/* Action Scan Button */}
-      <button
-        type="button"
-        onClick={handleScanReceipt}
-        disabled={loading}
-        className="btn-brutal"
-        style={{
-          width: "100%",
-          padding: "0.85rem",
-          fontWeight: 900,
-          fontSize: "1rem",
-          background: "var(--color-orange)",
-          color: "var(--color-white)",
-          border: "3px solid var(--color-navy)",
-          boxShadow: "4px 4px 0px var(--color-navy)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.5rem",
-          marginBottom: "1rem",
-          opacity: loading ? 0.7 : 1,
-          cursor: loading ? "wait" : "pointer",
-        }}
-      >
-        {loading ? (
-          <>
-            <Loader2 size={18} className="animate-spin" />
-            {t("dashboard.transactions.ocrScanning")}
-          </>
-        ) : (
-          <>
-            <Sparkles size={18} />
-            {t("dashboard.transactions.ocrScanBtn")}
-          </>
-        )}
-      </button>
-
-      {/* Result Preview Box */}
-      {extractedData && (
-        <div
-          className="animate-bounce-in"
-          style={{
-            background: "#FFF7ED",
-            border: "3px solid var(--color-navy)",
-            borderRadius: "var(--radius-brutal-sm)",
-            padding: "1rem",
-            boxShadow: "4px 4px 0px var(--color-navy)",
-            marginTop: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.6rem",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "2px solid rgba(10,25,47,0.1)", paddingBottom: "0.4rem" }}>
-            <span style={{ fontWeight: 900, fontSize: "0.9rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-              <CheckCircle2 size={16} color="var(--color-navy)" fill="var(--color-lime)" />
-              {t("dashboard.transactions.ocrPreviewTitle")}
-            </span>
-            <span
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        {/* Card Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <div 
               style={{
-                fontSize: "0.7rem",
-                fontWeight: 800,
-                padding: "0.15rem 0.4rem",
-                borderRadius: "var(--radius-brutal-sm)",
-                border: "1.5px solid var(--color-navy)",
-                background: extractedData.auto_tag === "needs" ? "var(--color-lime)" : "var(--color-orange)",
-                color: extractedData.auto_tag === "needs" ? "var(--color-navy)" : "var(--color-white)",
-              }}
-            >
-              {extractedData.auto_tag.toUpperCase()}
-            </span>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.4rem", fontSize: "0.8rem", color: "var(--color-navy)" }}>
-            <div>
-              <span style={{ opacity: 0.75 }}>{t("dashboard.transactions.ocrMerchant")}:</span>
-              <div style={{ fontWeight: 800 }}>{extractedData.merchant_name}</div>
-            </div>
-            <div>
-              <span style={{ opacity: 0.75 }}>{t("dashboard.transactions.ocrTotal")}:</span>
-              <div style={{ fontWeight: 900, color: "var(--color-navy)", fontSize: "0.9rem" }}>
-                Rp {extractedData.total_amount.toLocaleString("id-ID")}
-              </div>
-            </div>
-            <div>
-              <span style={{ opacity: 0.75 }}>{t("dashboard.transactions.ocrCategory")}:</span>
-              <div style={{ fontWeight: 800 }}>{extractedData.category}</div>
-            </div>
-            <div>
-              <span style={{ opacity: 0.75 }}>{t("dashboard.transactions.ocrDate")}:</span>
-              <div style={{ fontWeight: 800 }}>{extractedData.transaction_date}</div>
-            </div>
-          </div>
-
-          {/* Items breakdown list */}
-          {extractedData.items && extractedData.items.length > 0 && (
-            <div style={{ fontSize: "0.75rem", borderTop: "1px dashed rgba(10,25,47,0.15)", paddingTop: "0.4rem" }}>
-              <div style={{ fontWeight: 800, marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                <ShoppingBag size={12} /> {t("dashboard.transactions.ocrItems")} ({extractedData.items.length}):
-              </div>
-              <div style={{ maxHeight: "60px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
-                {extractedData.items.map((item, idx) => (
-                  <div key={idx} style={{ display: "flex", justifyContent: "space-between", opacity: 0.85 }}>
-                    <span>• {item.name} (x{item.qty})</span>
-                    <span style={{ fontWeight: 700 }}>Rp {item.total.toLocaleString("id-ID")}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Action buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.6rem" }}>
-            {onSaveDirectly && (
-              isSaved ? (
-                <div
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem",
-                    fontSize: "0.9rem",
-                    fontWeight: 900,
-                    background: "var(--color-lime)",
-                    color: "var(--color-navy)",
-                    border: "2.5px solid var(--color-navy)",
-                    boxShadow: "3px 3px 0px var(--color-navy)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.5rem",
-                  }}
-                >
-                  <CheckCircle2 size={18} color="var(--color-navy)" />
-                  Tercatat di Riwayat Transaksi!
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!extractedData) return;
-                    onSaveDirectly(extractedData);
-                    setIsSaved(true);
-                  }}
-                  className="btn-brutal"
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem",
-                    fontSize: "0.9rem",
-                    fontWeight: 900,
-                    background: "var(--color-lime)",
-                    color: "var(--color-navy)",
-                    border: "2.5px solid var(--color-navy)",
-                    boxShadow: "3px 3px 0px var(--color-navy)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.5rem",
-                    cursor: "pointer",
-                  }}
-                >
-                  <CheckCircle2 size={18} color="var(--color-navy)" />
-                  Simpan Langsung ke Riwayat
-                </button>
-              )
-            )}
-
-            <button
-              type="button"
-              onClick={handleApplyToForm}
-              className="btn-brutal"
-              style={{
-                width: "100%",
-                padding: "0.6rem",
-                fontSize: "0.85rem",
-                fontWeight: 800,
-                background: "var(--color-white)",
-                color: "var(--color-navy)",
+                width: "34px",
+                height: "34px",
+                background: "var(--color-lime)",
                 border: "2px solid var(--color-navy)",
-                boxShadow: "2px 2px 0px var(--color-navy)",
+                borderRadius: "8px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "0.4rem",
-                cursor: "pointer",
+                boxShadow: "2px 2px 0px var(--color-navy)",
+                flexShrink: 0
               }}
             >
-              <span>{t("dashboard.transactions.ocrApplyBtn") || "Masukkan ke Formulir"}</span>
-              <ArrowRight size={14} />
-            </button>
+              <Sparkles size={17} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 900, color: "var(--color-navy)", margin: 0, lineHeight: 1.2 }}>
+                {t("dashboard.transactions.ocrCardTitle")}
+              </h3>
+              <p style={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, margin: "2px 0 0 0" }}>
+                {t("dashboard.transactions.ocrCardDesc")}
+              </p>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Tab Selector */}
+        <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.85rem" }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("upload")}
+            className="btn-brutal"
+            style={{
+              flex: 1,
+              padding: "0.35rem 0.5rem",
+              fontSize: "0.75rem",
+              fontWeight: 800,
+              borderRadius: "8px",
+              background: activeTab === "upload" ? "var(--color-lime)" : "var(--color-white)",
+              color: "var(--color-navy)",
+              border: "1.8px solid var(--color-navy)",
+              boxShadow: activeTab === "upload" ? "2px 2px 0px var(--color-navy)" : "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.35rem",
+              cursor: "pointer",
+            }}
+          >
+            <Upload size={13} /> {t("dashboard.transactions.ocrUploadTab")}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("text")}
+            className="btn-brutal"
+            style={{
+              flex: 1,
+              padding: "0.35rem 0.5rem",
+              fontSize: "0.75rem",
+              fontWeight: 800,
+              borderRadius: "8px",
+              background: activeTab === "text" ? "var(--color-purple)" : "var(--color-white)",
+              color: activeTab === "text" ? "var(--color-white)" : "var(--color-navy)",
+              border: "1.8px solid var(--color-navy)",
+              boxShadow: activeTab === "text" ? "2px 2px 0px var(--color-navy)" : "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.35rem",
+              cursor: "pointer",
+            }}
+          >
+            <FileText size={13} /> {t("dashboard.transactions.ocrTextTab")}
+          </button>
+        </div>
+
+        {/* Input Section */}
+        {activeTab === "upload" ? (
+          <div style={{ marginBottom: "0.85rem" }}>
+            <label
+              htmlFor="receipt-file-input"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "1rem",
+                border: "2px dashed var(--color-navy)",
+                borderRadius: "12px",
+                background: "#F8FAFC",
+                cursor: "pointer",
+                textAlign: "center",
+                gap: "0.4rem",
+              }}
+            >
+              {imagePreview ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", width: "100%" }}>
+                  <img
+                    src={imagePreview}
+                    alt="Receipt Preview"
+                    style={{ width: "48px", height: "48px", objectFit: "cover", borderRadius: "8px", border: "1.8px solid var(--color-navy)" }}
+                  />
+                  <div style={{ textAlign: "left", flex: 1, overflow: "hidden" }}>
+                    <div style={{ fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {selectedFile?.name}
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }}>
+                      {(selectedFile?.size || 0) / 1024 > 1024
+                        ? `${((selectedFile?.size || 0) / (1024 * 1024)).toFixed(2)} MB`
+                        : `${Math.round((selectedFile?.size || 0) / 1024)} KB`}
+                    </div>
+                  </div>
+                  <CheckCircle2 size={18} color="var(--color-navy)" fill="var(--color-lime)" />
+                </div>
+              ) : (
+                <>
+                  <Upload size={24} color="var(--color-navy)" />
+                  <span style={{ fontWeight: 800, fontSize: "0.78rem", color: "var(--color-navy)" }}>
+                    {t("dashboard.transactions.ocrDropzone")}
+                  </span>
+                </>
+              )}
+              <input
+                id="receipt-file-input"
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+              />
+            </label>
+          </div>
+        ) : (
+          <div style={{ marginBottom: "0.85rem" }}>
+            <textarea
+              value={rawText}
+              onChange={(e) => setRawText(e.target.value)}
+              rows={4}
+              className="input-brutal"
+              placeholder={t("dashboard.transactions.ocrPastePlaceholder")}
+              style={{
+                width: "100%",
+                padding: "0.65rem",
+                fontSize: "0.8rem",
+                fontFamily: "monospace",
+                border: "1.8px solid var(--color-navy)",
+                borderRadius: "8px",
+                boxShadow: "2px 2px 0px var(--color-navy)",
+                background: "var(--color-bg)",
+                resize: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+        )}
+
+        {/* Action Scan Button */}
+        <button
+          type="button"
+          onClick={handleScanReceipt}
+          disabled={loading}
+          className="btn-brutal"
+          style={{
+            width: "100%",
+            padding: "0.65rem",
+            fontWeight: 900,
+            fontSize: "0.85rem",
+            background: "var(--color-orange)",
+            color: "var(--color-white)",
+            border: "2px solid var(--color-navy)",
+            borderRadius: "10px",
+            boxShadow: "3px 3px 0px var(--color-navy)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.4rem",
+            marginBottom: "0.85rem",
+            opacity: loading ? 0.7 : 1,
+            cursor: loading ? "wait" : "pointer",
+          }}
+        >
+          {loading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              {t("dashboard.transactions.ocrScanning")}
+            </>
+          ) : (
+            <>
+              <Sparkles size={16} />
+              {t("dashboard.transactions.ocrScanBtn")}
+            </>
+          )}
+        </button>
+
+        {/* Result Preview Box */}
+        {extractedData && (
+          <div
+            className="animate-bounce-in"
+            style={{
+              background: "#FFF7ED",
+              border: "2px solid var(--color-navy)",
+              borderRadius: "12px",
+              padding: "0.85rem 1rem",
+              boxShadow: "2px 2px 0px var(--color-navy)",
+              marginTop: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1.5px solid rgba(10,25,47,0.1)", paddingBottom: "0.35rem" }}>
+              <span style={{ fontWeight: 900, fontSize: "0.82rem", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                <CheckCircle2 size={15} color="var(--color-navy)" fill="var(--color-lime)" />
+                {t("dashboard.transactions.ocrPreviewTitle")}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.65rem",
+                  fontWeight: 800,
+                  padding: "0.15rem 0.4rem",
+                  borderRadius: "6px",
+                  border: "1.2px solid var(--color-navy)",
+                  background: extractedData.auto_tag === "needs" ? "var(--color-lime)" : "var(--color-orange)",
+                  color: extractedData.auto_tag === "needs" ? "var(--color-navy)" : "var(--color-white)",
+                }}
+              >
+                {extractedData.auto_tag.toUpperCase()}
+              </span>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.35rem", fontSize: "0.75rem", color: "var(--color-navy)" }}>
+              <div>
+                <span style={{ opacity: 0.75 }}>{t("dashboard.transactions.ocrMerchant")}:</span>
+                <div style={{ fontWeight: 800 }}>{extractedData.merchant_name}</div>
+              </div>
+              <div>
+                <span style={{ opacity: 0.75 }}>{t("dashboard.transactions.ocrTotal")}:</span>
+                <div style={{ fontWeight: 900, color: "var(--color-navy)", fontSize: "0.82rem" }}>
+                  Rp {extractedData.total_amount.toLocaleString("id-ID")}
+                </div>
+              </div>
+              <div>
+                <span style={{ opacity: 0.75 }}>{t("dashboard.transactions.ocrCategory")}:</span>
+                <div style={{ fontWeight: 800 }}>{extractedData.category}</div>
+              </div>
+              <div>
+                <span style={{ opacity: 0.75 }}>{t("dashboard.transactions.ocrDate")}:</span>
+                <div style={{ fontWeight: 800 }}>{extractedData.transaction_date}</div>
+              </div>
+            </div>
+
+            {/* Items breakdown list */}
+            {extractedData.items && extractedData.items.length > 0 && (
+              <div style={{ fontSize: "0.72rem", borderTop: "1px dashed rgba(10,25,47,0.15)", paddingTop: "0.35rem" }}>
+                <div style={{ fontWeight: 800, marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                  <ShoppingBag size={11} /> {t("dashboard.transactions.ocrItems")} ({extractedData.items.length}):
+                </div>
+                <div style={{ maxHeight: "60px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+                  {extractedData.items.map((item, idx) => (
+                    <div key={idx} style={{ display: "flex", justifyContent: "space-between", opacity: 0.85 }}>
+                      <span>• {item.name} (x{item.qty})</span>
+                      <span style={{ fontWeight: 700 }}>Rp {item.total.toLocaleString("id-ID")}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.4rem" }}>
+              {onSaveDirectly && (
+                isSaved ? (
+                  <div
+                    style={{
+                      width: "100%",
+                      padding: "0.55rem",
+                      fontSize: "0.82rem",
+                      fontWeight: 900,
+                      background: "var(--color-lime)",
+                      color: "var(--color-navy)",
+                      border: "2px solid var(--color-navy)",
+                      borderRadius: "8px",
+                      boxShadow: "2px 2px 0px var(--color-navy)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <CheckCircle2 size={16} color="var(--color-navy)" />
+                    Tercatat di Riwayat Transaksi!
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!extractedData) return;
+                      onSaveDirectly(extractedData);
+                      setIsSaved(true);
+                    }}
+                    className="btn-brutal"
+                    style={{
+                      width: "100%",
+                      padding: "0.55rem",
+                      fontSize: "0.82rem",
+                      fontWeight: 900,
+                      background: "var(--color-lime)",
+                      color: "var(--color-navy)",
+                      border: "2px solid var(--color-navy)",
+                      borderRadius: "8px",
+                      boxShadow: "2px 2px 0px var(--color-navy)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.4rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <CheckCircle2 size={16} color="var(--color-navy)" />
+                    Simpan Langsung ke Riwayat
+                  </button>
+                )
+              )}
+
+              <button
+                type="button"
+                onClick={handleApplyToForm}
+                className="btn-brutal"
+                style={{
+                  width: "100%",
+                  padding: "0.5rem",
+                  fontSize: "0.78rem",
+                  fontWeight: 800,
+                  background: "var(--color-white)",
+                  color: "var(--color-navy)",
+                  border: "1.8px solid var(--color-navy)",
+                  borderRadius: "8px",
+                  boxShadow: "2px 2px 0px var(--color-navy)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.35rem",
+                  cursor: "pointer",
+                }}
+              >
+                <span>{t("dashboard.transactions.ocrApplyBtn") || "Masukkan ke Formulir"}</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer Info Strip */}
+      <div style={{ marginTop: "auto", paddingTop: "0.85rem" }}>
+        <div 
+          style={{
+            background: "rgba(184, 255, 0, 0.14)",
+            border: "1.8px solid var(--color-navy)",
+            boxShadow: "2px 2px 0px var(--color-navy)",
+            borderRadius: "10px",
+            padding: "0.6rem 0.75rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.6rem"
+          }}
+        >
+          <div 
+            style={{
+              background: "var(--color-lime)",
+              border: "1.2px solid var(--color-navy)",
+              borderRadius: "6px",
+              width: "24px",
+              height: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}
+          >
+            <Sparkles size={12} color="var(--color-navy)" strokeWidth={2.5} />
+          </div>
+          <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-navy)", lineHeight: 1.3 }}>
+            Gemini 2.0 Flash mengekstrak merchant, nominal, tanggal, dan menandai pos Kebutuhan atau Keinginan secara otomatis.
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

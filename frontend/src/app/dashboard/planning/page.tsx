@@ -21,6 +21,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { onboardingApi } from "@/lib/api";
 import { translateCategoryName, translateRiskProfile } from "@/lib/translateCategory";
 import { getDebts, getRiskProfile, saveRiskProfile } from "./actions";
+import PageBanner from "@/components/layout/PageBanner";
 
 // ── Icon Mapping (replaces emojis) ──────────────
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
@@ -224,9 +225,9 @@ const RISK_BUDGET_CONFIG: Record<string, {
 
 // ── Shared Risk Profile Colors ──────────────────────
 const COLOR_MAP: Record<string, { bg: string; icon: string; text: string }> = {
-  "Konservatif": { bg: "var(--color-lime)",   icon: "var(--color-navy)",  text: "#4a7c00" },
-  "Moderat":     { bg: "var(--color-purple)", icon: "var(--color-white)", text: "var(--color-purple)" },
-  "Agresif":     { bg: "var(--color-orange)", icon: "var(--color-navy)",  text: "#b85c00" },
+  "Konservatif": { bg: "var(--color-lime)", icon: "var(--color-navy)",  text: "#15803d" },
+  "Moderat":     { bg: "var(--color-blue)", icon: "var(--color-white)", text: "#1d4ed8" },
+  "Agresif":     { bg: "var(--color-red)",  icon: "var(--color-white)", text: "#dc2626" },
 };
 
 // Fallback default (Moderat)
@@ -268,7 +269,7 @@ const ICON_OPTIONS = [
   { key: "graduation", label: "Pendidikan" },
 ];
 
-// ── Model 3: Risk Profile ─────────────────────────────────────────────────────
+// ── Risk Profile Analysis ────────────────────────────────────────────────────
 const PROFILE_INFO: Record<string, { description: string; suggestion: string; color: string; accentColor: string }> = {
   "Konservatif": {
     description: "Kamu lebih nyaman dengan pendekatan keuangan yang aman dan stabil. Fokus utamamu saat ini adalah memastikan kebutuhan dasar terpenuhi dan mulai membangun kebiasaan menabung.",
@@ -279,14 +280,14 @@ const PROFILE_INFO: Record<string, { description: string; suggestion: string; co
   "Moderat": {
     description: "Kamu sudah cukup sadar finansial dan mulai berani mengelola keuangan lebih aktif. Kamu punya keseimbangan antara keamanan dan keinginan berkembang.",
     suggestion: "Tetapkan target tabungan yang lebih ambisius dan mulai pisahkan pos pengeluaran dengan lebih terstruktur. Dana darurat 3 bulan adalah target berikutnya.",
-    color: "var(--color-purple)",
+    color: "var(--color-blue)",
     accentColor: "var(--color-white)",
   },
   "Agresif": {
     description: "Kamu sangat goal-oriented dan punya disiplin finansial yang tinggi. Kamu siap untuk mengoptimalkan keuangan secara penuh dan mengejar target tabungan yang ambisius.",
     suggestion: "Maksimalkan saving rate kamu dan buat target tabungan yang spesifik dengan deadline jelas. Kamu sudah siap untuk strategi keuangan yang lebih advanced.",
-    color: "var(--color-orange)",
-    accentColor: "var(--color-navy)",
+    color: "var(--color-red)",
+    accentColor: "var(--color-white)",
   },
 };
 
@@ -321,7 +322,7 @@ export default function PlanningPage() {
   const [baseIncome, setBaseIncome] = useState<number>(0);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
 
-  // ── Model 3 state ──────────────────────────────────────────────────────────
+  // ── Risk Profile state ────────────────────────────────────────────────────
   const [riskResult, setRiskResult] = useState<RiskResult | null>(null);
   const [riskLoading, setRiskLoading] = useState(false);
 
@@ -869,21 +870,21 @@ export default function PlanningPage() {
 
     return (
       <div key={item.id} className="card-brutal" style={{
-        display: "flex", flexDirection: "column", gap: "1.25rem", padding: "1.5rem",
-        background: isOverBudget ? "#fff5f5" : "var(--color-white)",
-        border: `3px solid ${isOverBudget ? "#e74c3c" : "var(--color-navy)"}`,
-        borderRadius: "var(--radius-brutal-sm)",
-        boxShadow: isOverBudget ? "6px 6px 0px #e74c3c" : "6px 6px 0px var(--color-navy)",
-        transition: "all 0.3s"
+        display: "flex", flexDirection: "column", gap: "0.65rem", padding: "0.85rem 1rem",
+        background: isOverBudget ? "#fff5f5" : "#F8FAFC",
+        border: `2px solid ${isOverBudget ? "#e74c3c" : "var(--color-navy)"}`,
+        borderRadius: "12px",
+        boxShadow: isOverBudget ? "2px 2px 0px #e74c3c" : "2px 2px 0px var(--color-navy)",
+        transition: "all 0.2s"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <div style={{ transform: "scale(1.2)", transformOrigin: "left center" }}>
-            <IconBox iconKey={item.icon} size={20} bg={isOverBudget ? "#e74c3c" : item.type === "needs" ? "var(--color-lime)" : item.type === "wants" ? "var(--color-orange)" : "var(--color-purple)"} />
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ flexShrink: 0 }}>
+            <IconBox iconKey={item.icon} size={18} bg={isOverBudget ? "#e74c3c" : item.type === "needs" ? "var(--color-lime)" : item.type === "wants" ? "var(--color-orange)" : "var(--color-purple)"} />
           </div>
           <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontWeight: 900, fontSize: "1.1rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{translateCategoryName(item.name, t)}</span>
+            <span style={{ fontWeight: 900, fontSize: "0.95rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{translateCategoryName(item.name, t)}</span>
             {isEditingCategory && (
-              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
                 <input 
                   type="text" 
                   value={item.allocated === 0 ? "" : item.allocated.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
@@ -893,46 +894,46 @@ export default function PlanningPage() {
                     handleAdjustAllocation(item.id, val);
                   }}
                   className="input-brutal"
-                  style={{ width: "130px", padding: "0.4rem 0.6rem", fontSize: "0.85rem", border: "2.5px solid var(--color-navy)", fontWeight: 800 }}
+                  style={{ width: "120px", padding: "0.3rem 0.5rem", fontSize: "0.8rem", border: "1.8px solid var(--color-navy)", borderRadius: "6px", fontWeight: 800 }}
                   placeholder="0"
                 />
                 <button 
                   type="button"
                   onClick={() => handleDeleteCategory(item.id, item.type)}
                   className="btn-brutal"
-                  style={{ background: "#ffebee", border: "2.5px solid var(--color-navy)", cursor: "pointer", padding: "0.4rem 0.5rem", color: "#e74c3c", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  style={{ background: "#ffebee", border: "1.8px solid var(--color-navy)", borderRadius: "6px", cursor: "pointer", padding: "0.3rem 0.4rem", color: "#e74c3c", display: "flex", alignItems: "center", justifyContent: "center" }}
                   title="Hapus Kategori"
                 >
-                  <Trash2 size={22} />
+                  <Trash2 size={16} />
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-            <span style={{ fontWeight: 900, fontFamily: "var(--font-heading)", fontSize: "1.1rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>
-              {formatRp(item.spent)} <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>/ {formatRp(item.allocated)}</span>
+            <span style={{ fontWeight: 800, fontFamily: "var(--font-heading)", fontSize: "0.92rem", color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>
+              {formatRp(item.spent)} <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", fontWeight: 700 }}>/ {formatRp(item.allocated)}</span>
             </span>
-            <span style={{ fontSize: "0.9rem", fontWeight: 800, color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{pct}%</span>
+            <span style={{ fontSize: "0.82rem", fontWeight: 900, color: isOverBudget ? "#e74c3c" : "var(--color-navy)" }}>{pct}%</span>
           </div>
-          <div style={{ width: "100%", height: "16px", background: "var(--color-bg)", border: `2.5px solid ${isOverBudget ? "#e74c3c" : "var(--color-navy)"}`, borderRadius: "100px", overflow: "hidden", position: "relative" }}>
+          <div style={{ width: "100%", height: "10px", background: "var(--color-bg)", border: `1.5px solid ${isOverBudget ? "#e74c3c" : "var(--color-navy)"}`, borderRadius: "100px", overflow: "hidden", position: "relative" }}>
             <div style={{
               width: `${Math.min(pct, 100)}%`, height: "100%", borderRadius: "100px",
               background: isOverBudget ? "#e74c3c" : isNearLimit ? "var(--color-orange)" : `var(--color-${item.type === "needs" ? "lime" : item.type === "wants" ? "orange" : "purple"})`,
-              transition: "width 0.5s ease", borderRight: pct > 0 ? `2.5px solid ${isOverBudget ? "#c0392b" : "var(--color-navy)"}` : "none"
+              transition: "width 0.5s ease", borderRight: pct > 0 ? `1.5px solid ${isOverBudget ? "#c0392b" : "var(--color-navy)"}` : "none"
             }} />
           </div>
           {isOverBudget && (
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "#e74c3c", padding: "0.4rem 0.75rem", borderRadius: "var(--radius-brutal-sm)", border: "2px solid #c0392b", marginTop: "0.25rem" }}>
-              <AlertTriangle size={14} color="white" />
-              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "white" }}>{t("dashboard.planning.overBudgetWarning") || "Spending exceeds allocation limit!"}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "#e74c3c", padding: "0.3rem 0.6rem", borderRadius: "6px", border: "1.5px solid #c0392b", marginTop: "0.2rem" }}>
+              <AlertTriangle size={12} color="white" />
+              <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "white" }}>{t("dashboard.planning.overBudgetWarning") || "Spending exceeds allocation limit!"}</span>
             </div>
           )}
           {isNearLimit && (
-            <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#e67e22", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-              <AlertTriangle size={12} /> {t("dashboard.planning.approachingLimit") || "Approaching limit"} ({pct}%)
+            <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#e67e22", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+              <AlertTriangle size={11} /> {t("dashboard.planning.approachingLimit") || "Approaching limit"} ({pct}%)
             </span>
           )}
         </div>
@@ -950,66 +951,85 @@ export default function PlanningPage() {
 
   const pageContent = (
     <div style={{ paddingBottom: "3rem" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "2.5rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
-        <div style={{
-          width: "72px", height: "72px", background: "var(--color-purple)",
-          borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
-          boxShadow: "4px 4px 0px var(--color-navy)", display: "flex",
-          alignItems: "center", justifyContent: "center", flexShrink: 0
-        }}>
-          <Target size={40} color="var(--color-white)" strokeWidth={2.5} />
-        </div>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            {t("dashboard.planning.title")}
-          </h1>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 600 }}>
-            {t("dashboard.planning.desc")}
-          </p>
-        </div>
-      </div>
+      {/* Header Banner */}
+      <PageBanner
+        badgeText="PERENCANAAN STRATEGIS"
+        title={t("dashboard.planning.title") || "Perencanaan Keuangan"}
+        description={t("dashboard.planning.desc") || "Kelola anggaran dan target tabungan kamu. Keuangan terencana bikin hidup lebih tenang!"}
+        rightCard={{
+          icon: <Target size={24} className="text-[#0A192F]" />,
+          label: "TOTAL POS ANGGARAN",
+          value: `${budgetWithSpent.length} Kategori`,
+        }}
+        className="mb-4"
+      />
 
       {/* Top Row: 4 Stats Cards */}
-      <div className="stagger-children" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
+      <div className="dashboard-bento-grid stagger-children" style={{ marginBottom: "1.5rem" }}>
 
         {/* Risk Profile Card - FIRST */}
         {(() => {
           const profile = riskResult?.risk_profile ?? "";
           const colors = COLOR_MAP[profile];
           return (
-            <div className="card-brutal" style={{
-              display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem",
-              background: "var(--color-white)",
-              border: "3px solid var(--color-navy)",
-              boxShadow: "4px 4px 0px var(--color-navy)",
-              borderRadius: "var(--radius-brutal-sm)", transition: "all 0.3s"
-            }}>
-              <div style={{
-                background: colors ? colors.bg : "var(--color-bg)",
-                width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center",
-                borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)",
-                boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0
-              }}>
-                <Brain size={24} color={colors ? colors.icon : "var(--color-text-muted)"} strokeWidth={2.5} />
-              </div>
-              <div style={{ overflow: "hidden" }}>
-                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: colors ? colors.text : "var(--color-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {translateRiskProfile(profile, t) || "—"}
+            <div
+              style={{
+                background: "#FFFFFF",
+                border: "2.5px solid var(--color-navy)",
+                borderRadius: "16px",
+                boxShadow: "4px 4px 0px var(--color-navy)",
+                padding: "1.15rem 1.25rem",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+                  {t("dashboard.planning.riskProfileLabel") || "PROFIL RISIKO"}
+                </span>
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    background: colors ? colors.bg : "#E2E8F0",
+                    border: "1.5px solid var(--color-navy)",
+                    borderRadius: "6px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Brain size={16} color={colors ? colors.icon : "var(--color-navy)"} strokeWidth={2.5} />
                 </div>
-                <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", fontWeight: 700 }}>{t("dashboard.planning.riskProfileLabel") || "Profil Risiko"}</div>
+              </div>
+
+              <div style={{ margin: "0.65rem 0" }}>
+                <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: colors ? colors.text : "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
+                  {translateRiskProfile(profile, t) || "Moderat"}
+                </span>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ background: colors ? colors.bg : "#F1F5F9", border: "1px solid #CBD5E1", borderRadius: "999px", padding: "2px 8px", fontSize: "0.68rem", fontWeight: 700, color: "var(--color-navy)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <Sparkles size={12} strokeWidth={2.5} /> Analisis Finansial
+                </span>
+                <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+                  Toleransi Risiko
+                </span>
               </div>
             </div>
           );
         })()}
 
         {[
-          { id: "needs", label: t("dashboard.planning.needs"), amount: badgeNeedsRp, color: "lime", Icon: Home },
-          { id: "wants", label: t("dashboard.planning.wants"), amount: badgeWantsRp, color: "orange", Icon: Gamepad2 },
-          { id: "savings", label: t("dashboard.planning.savings"), amount: badgeSavingsRp, color: "purple", Icon: Banknote },
+          { id: "needs", label: t("dashboard.planning.needs") || "Kebutuhan", amount: badgeNeedsRp, color: "lime", Icon: Home, badgeColor: "var(--color-lime)", ratio: "50%" },
+          { id: "wants", label: t("dashboard.planning.wants") || "Keinginan", amount: badgeWantsRp, color: "yellow", Icon: Gamepad2, badgeColor: "#FFE100", ratio: "30%" },
+          { id: "savings", label: t("dashboard.planning.savings") || "Tabungan", amount: badgeSavingsRp, color: "blue", Icon: Banknote, badgeColor: "#DBEAFE", ratio: "20%" },
         ].map((s, idx) => {
           const isActive = activeFilter === s.id;
           const typeItems = budgetWithSpent.filter(b => b.type === s.id);
+          const totalSpent = typeItems.reduce((acc, curr) => acc + (curr.spent || 0), 0);
           const hasOverBudget = typeItems.some(b => b.spent > b.allocated && b.allocated > 0);
           const hasNearLimit = typeItems.some(b => {
             const pct = b.allocated > 0 ? Math.round((b.spent / b.allocated) * 100) : 0;
@@ -1020,26 +1040,66 @@ export default function PlanningPage() {
           return (
             <div 
               key={idx} 
-              onClick={() => setActiveFilter(s.id as any)}
-              className="card-brutal" 
+              onClick={() => setActiveFilter(activeFilter === s.id ? "all" : (s.id as any))}
               style={{ 
-                position: "relative", cursor: "pointer", display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem", 
-                background: isActive ? `var(--color-${s.color})` : "var(--color-white)", 
-                border: hasOverBudget ? "3px solid #e74c3c" : "3px solid var(--color-navy)", 
-                boxShadow: hasOverBudget ? "4px 4px 0px #e74c3c" : isActive ? "4px 4px 0px var(--color-navy)" : "2px 2px 0px var(--color-navy)", 
-                transform: isActive ? "translate(-2px, -2px)" : "none", 
-                borderRadius: "var(--radius-brutal-sm)", transition: "all 0.2s" 
+                position: "relative",
+                cursor: "pointer",
+                background: isActive ? "#F8FAFC" : "#FFFFFF", 
+                border: hasOverBudget ? "2.5px solid #e74c3c" : isActive ? "2.5px solid var(--color-navy)" : "2.5px solid var(--color-navy)", 
+                boxShadow: isActive ? "2px 2px 0px var(--color-navy)" : "4px 4px 0px var(--color-navy)", 
+                transform: isActive ? "translate(2px, 2px)" : "none", 
+                borderRadius: "16px",
+                padding: "1.15rem 1.25rem",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                transition: "all 0.15s ease" 
               }}
             >
-              <div style={{ background: isActive ? "var(--color-white)" : `var(--color-${s.color})`, width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
-                <s.Icon size={24} color={isActive ? "var(--color-navy)" : s.color === "lime" ? "var(--color-navy)" : "var(--color-white)"} strokeWidth={2.5} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+                    {s.label} ({s.ratio})
+                  </span>
+                  {isActive && (
+                    <span style={{ background: "var(--color-navy)", color: "#FFFFFF", fontSize: "0.6rem", fontWeight: 800, padding: "1px 5px", borderRadius: "4px" }}>
+                      AKTIF
+                    </span>
+                  )}
+                </div>
+                <div 
+                  style={{ 
+                    width: "28px", 
+                    height: "28px", 
+                    background: s.badgeColor, 
+                    border: "1.5px solid var(--color-navy)", 
+                    borderRadius: "6px", 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center" 
+                  }}
+                >
+                  <s.Icon size={16} color="var(--color-navy)" strokeWidth={2.5} />
+                </div>
               </div>
-              <div style={{ overflow: "hidden" }}>
-                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: isActive && s.color !== "lime" && s.color !== "orange" ? "var(--color-white)" : "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{formatRp(s.amount)}</div>
-                <div style={{ fontSize: "0.85rem", color: isActive && s.color !== "lime" && s.color !== "orange" ? "var(--color-white)" : isActive ? "var(--color-navy)" : "var(--color-text-muted)", fontWeight: 700 }}>{s.label}</div>
+
+              <div style={{ margin: "0.65rem 0" }}>
+                <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
+                  {formatRp(s.amount)}
+                </span>
               </div>
+
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "0.72rem", color: hasOverBudget ? "#DC2626" : "#475569", fontWeight: 700 }}>
+                  Terpakai: {formatRp(totalSpent)}
+                </span>
+                <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+                  {typeItems.length} pos
+                </span>
+              </div>
+
               {hasAnyWarning && (
-                <span style={{ position: "absolute", top: "-6px", right: "-6px", width: "16px", height: "16px", borderRadius: "50%", background: hasOverBudget ? "#e74c3c" : "#e67e22", border: "2px solid var(--color-white)", boxShadow: "0 0 0 2px " + (hasOverBudget ? "#e74c3c" : "#e67e22"), animation: "pulse-border 1.2s ease-in-out infinite", display: "flex", alignItems: "center", justifyContent: "center" }} title={hasOverBudget ? (t("dashboard.planning.overBudgetWarning") || "Over budget!") : (t("dashboard.planning.approachingLimit") || "Approaching limit")} />
+                <span style={{ position: "absolute", top: "-6px", right: "-6px", width: "14px", height: "14px", borderRadius: "50%", background: hasOverBudget ? "#e74c3c" : "#e67e22", border: "2px solid var(--color-white)", boxShadow: "0 0 0 2px " + (hasOverBudget ? "#e74c3c" : "#e67e22"), animation: "pulse-border 1.2s ease-in-out infinite", display: "flex", alignItems: "center", justifyContent: "center" }} title={hasOverBudget ? (t("dashboard.planning.overBudgetWarning") || "Over budget!") : (t("dashboard.planning.approachingLimit") || "Approaching limit")} />
               )}
             </div>
           );
@@ -1047,199 +1107,87 @@ export default function PlanningPage() {
 
       </div>
 
-      <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
+      {/* ── Main 2-Column Grid (2 Large Enclosing Cards) ────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 items-stretch">
         
-        {/* ── Sidebar (Left) ──────────────────────────────────────── */}
-        <div style={{ flex: "1 1 calc(75% - 0.3125rem)", minWidth: "320px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 2 }}>
-          {/* ── BUDGET VIEW ────────────────────── */}
-          <div className="card-brutal animate-slide-up" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "700px", minHeight: "700px", maxHeight: "700px", display: "flex", flexDirection: "column" }}>
-            
-
-            
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
-              <div>
-                {activeFilter === "needs" && (
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.85rem", background: "var(--color-white)", padding: "0.5rem 1rem 0.5rem 0.5rem", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
-                    <div style={{ background: "var(--color-lime)", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
-                      <AlertTriangle size={22} color="var(--color-navy)" strokeWidth={2.5} />
-                    </div>
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      {t("dashboard.planning.needs") || "Kebutuhan"}
-                    </h3>
-                  </div>
-                )}
-                {activeFilter === "wants" && (
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.85rem", background: "var(--color-white)", padding: "0.5rem 1rem 0.5rem 0.5rem", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
-                    <div style={{ background: "var(--color-orange)", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
-                      <Sparkles size={22} color="var(--color-white)" strokeWidth={2.5} />
-                    </div>
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      {t("dashboard.transactions.wants") || "Keinginan"}
-                    </h3>
-                  </div>
-                )}
-                {activeFilter === "savings" && (
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.85rem", background: "var(--color-white)", padding: "0.5rem 1rem 0.5rem 0.5rem", border: "3px solid var(--color-navy)", borderRadius: "var(--radius-brutal-sm)", boxShadow: "4px 4px 0px var(--color-navy)" }}>
-                    <div style={{ background: "var(--color-purple)", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)" }}>
-                      <ShieldCheck size={22} color="var(--color-white)" strokeWidth={2.5} />
-                    </div>
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.2rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
-                      {t("dashboard.transactions.save")}
-                    </h3>
-                  </div>
-                )}
-              </div>
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                <button onClick={() => setIsEditingCategory(!isEditingCategory)} className="btn-brutal" style={{
-                  padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
-                  background: isEditingCategory ? "var(--color-lime)" : "var(--color-bg)", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.5rem",
-                  boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)", transition: "all 0.2s"
-                }} title={t("dashboard.planning.editAllocation") || "Edit Alokasi Budget"}>
-                  {isEditingCategory ? <CheckCircle2 size={18} /> : <Edit3 size={18} />} 
-                  {isEditingCategory ? t("dashboard.planning.saveBtn") : t("dashboard.planning.editBtn")}
-                </button>
-                <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
-                  padding: "0.75rem 1.25rem", fontWeight: 900, fontSize: "0.95rem",
-                  background: showAddCategory ? "var(--color-orange)" : "var(--color-navy)",
-                  color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.5rem",
-                  boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)"
-                }}>
-                  <Plus size={18} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
-                  {showAddCategory ? (t("dashboard.planning.cancelBtn") || "Batal") : t("dashboard.planning.addCategory")}
-                </button>
-              </div>
-            </div>
-
-            {showAddCategory && (
-              <div className="card-brutal animate-bounce-in" style={{ padding: "2rem", marginBottom: "2.5rem", background: "var(--color-white)", boxShadow: "6px 6px 0px var(--color-navy)", overflow: "visible", border: "3px dashed var(--color-navy)" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", alignItems: "flex-end" }}>
-                  <div>
-                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>ICON</label>
-                    <IconPicker 
-                      value={newCategory.icon} 
-                      onChange={v => setNewCategory({ ...newCategory, icon: v })} 
-                      options={ICON_OPTIONS.map(opt => ({ ...opt, label: t(`dashboard.planning.icons.${opt.key}`) || opt.label }))} 
-                    />
-                  </div>
-                  <div style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", alignItems: "flex-end" }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.planning.categoryName") || "NAMA KATEGORI"}</label>
-                      <input 
-                        value={newCategory.name} 
-                        onChange={e => setNewCategory({ ...newCategory, name: e.target.value })} 
-                        className="input-brutal" 
-                        placeholder={t("dashboard.planning.exampleCategory") || "Contoh: Belanja Online"} 
-                        style={{ border: "3px solid var(--color-navy)", padding: "0.85rem", width: "100%", boxShadow: "3px 3px 0px var(--color-navy)", outline: "none", fontWeight: 800, fontSize: "1rem" }} 
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>{t("dashboard.planning.allocationRp") || "ALOKASI (RP)"}</label>
-                      <input 
-                        value={newCategory.allocated ? newCategory.allocated.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""} 
-                        onChange={e => {
-                          const unformatted = e.target.value.replace(/\D/g, "");
-                          setNewCategory({ ...newCategory, allocated: unformatted });
-                        }} 
-                        className="input-brutal" 
-                        type="text" 
-                        placeholder="0" 
-                        style={{ border: "3px solid var(--color-navy)", padding: "0.85rem", width: "100%", fontWeight: 900, boxShadow: "3px 3px 0px var(--color-navy)", fontSize: "1rem" }} 
-                      />
-                    </div>
-                    <button onClick={handleAddCategory} className="btn-brutal" style={{
-                      padding: "0.85rem 2rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900, fontSize: "1rem",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-lime)", border: "3px solid var(--color-navy)"
-                    }}>
-                      {t("dashboard.planning.saveBtn") || "Simpan"}
-                    </button>
-                  </div>
+        {/* ── CARD BESAR 1: Risk Profile Card (5 cols) ── */}
+        <div 
+          style={{
+            background: "#FFFFFF",
+            border: "2.5px solid var(--color-navy)",
+            borderRadius: "16px",
+            boxShadow: "4px 4px 0px var(--color-navy)",
+            padding: "1.25rem 1.5rem",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            boxSizing: "border-box",
+            height: "100%",
+            minHeight: "560px",
+          }}
+          className="lg:col-span-5"
+        >
+          <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+            {/* Header Card 1 */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div 
+                  style={{
+                    width: "34px",
+                    height: "34px",
+                    background: "var(--color-purple)",
+                    border: "2px solid var(--color-navy)",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "2px 2px 0px var(--color-navy)",
+                    flexShrink: 0
+                  }}
+                >
+                  <Brain size={17} color="var(--color-white)" strokeWidth={2.5} />
                 </div>
-              </div>
-            )}
-
-            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingRight: "0.5rem" }} className="no-scrollbar">
-              {searchQuery && filteredBudget.length === 0 ? (
-                <div style={{ padding: "3rem", textAlign: "center", color: "var(--color-text-muted)" }}>
-                  <SearchX size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
-                  <p style={{ fontSize: "1.125rem", fontWeight: 700 }}>
-                    {t("dashboard.planning.searchNoResult")} "{searchQuery}" {t("dashboard.planning.searchNoResultSuffix")}
+                <div>
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 900, color: "var(--color-navy)", margin: 0, lineHeight: 1.2 }}>
+                    {t("dashboard.planning.riskProfileTitle")}
+                  </h3>
+                  <p style={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, margin: "2px 0 0 0" }}>
+                    {t("dashboard.planning.riskProfileSubtitle") || "Klasifikasi Kepribadian Finansial"}
                   </p>
                 </div>
-              ) : (
-                <>
-                  {activeFilter === "needs" && (
-                    <div style={{ marginBottom: "3rem" }}>
+              </div>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
-                        {needsBudget.map((item) => renderBudgetRow(item))}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeFilter === "wants" && (
-                    <div style={{ marginBottom: "3rem" }}>
-
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
-                        {wantsBudget.map((item) => renderBudgetRow(item))}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeFilter === "savings" && (
-                    <div style={{ marginBottom: "2rem" }}>
-
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
-                        {savingsBudget.map((item) => renderBudgetRow(item))}
-                      </div>
-                    </div>
-                  )}
-                </>
+              {riskResult && (
+                <button
+                  type="button"
+                  onClick={() => fetchRiskProfile()}
+                  style={{
+                    background: "var(--color-white)",
+                    color: "var(--color-navy)",
+                    border: "1.5px solid var(--color-navy)",
+                    boxShadow: "2px 2px 0px var(--color-navy)",
+                    borderRadius: "6px",
+                    padding: "0.3rem 0.6rem",
+                    fontSize: "0.72rem",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.25rem"
+                  }}
+                  title="Analisis Ulang"
+                >
+                  <Sparkles size={12} />
+                  Analisis Ulang
+                </button>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* ── Main Area (Right) ──────────────────────────────────────── */}
-        <div style={{ flex: "0 0 calc(25% - 0.9375rem)", minWidth: "250px", display: "flex", flexDirection: "column", gap: "1.25rem", order: 1 }}>
-          {/* ── Model 3: Risk Profile Card ──────────────────────────────────────── */}
-          <div className="card-brutal animate-bounce-in" style={{ overflow: "hidden",
-            background: "var(--color-white)",
-            border: "4px solid var(--color-navy)",
-            boxShadow: "8px 8px 0px var(--color-navy)",
-            padding: 0,
-            height: "700px",
-            minHeight: "700px",
-            maxHeight: "700px",
-            display: "flex",
-            flexDirection: "column"
-          }}>
-            {/* Card Header */}
-            {(() => {
-              const profile = riskResult?.risk_profile ?? "";
-              const colors = COLOR_MAP[profile];
-              return (
-                <div style={{ padding: "1.5rem 2rem", background: "var(--color-purple)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", borderBottom: "4px solid var(--color-navy)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                    <div style={{ 
-                      background: colors ? colors.bg : "var(--color-lime)",
-                      width: "48px", height: "48px", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0
-                    }}>
-                      <Brain size={24} color={colors ? colors.icon : "var(--color-navy)"} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <div style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "1.35rem", color: "var(--color-white)" }}>{t("dashboard.planning.riskProfileTitle")}</div>
-                      <div style={{ fontSize: "0.85rem", color: "var(--color-white)", fontWeight: 700, opacity: 0.9 }}>{t("dashboard.planning.riskProfileSubtitle") || "Model 3 · Risk Profile Classifier"}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
 
             {/* Loading */}
             {riskLoading && (
-              <div style={{ padding: "3rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem", background: "var(--color-white)", flex: 1 }}>
-                <Loader size={48} color="var(--color-purple)" style={{ animation: "spin 1s linear infinite" }} />
-                <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "1.1rem" }}>{t("dashboard.planning.aiLoading")}</span>
+              <div style={{ padding: "3rem 1.5rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.75rem", flex: 1 }}>
+                <Loader size={36} color="var(--color-purple)" style={{ animation: "spin 1s linear infinite" }} />
+                <span style={{ fontWeight: 800, color: "var(--color-navy)", fontSize: "0.95rem" }}>{t("dashboard.planning.aiLoading")}</span>
               </div>
             )}
 
@@ -1260,32 +1208,84 @@ export default function PlanningPage() {
               };
 
               return (
-                <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "stretch", background: "var(--color-white)", flex: 1 }}>
-                  {/* Info */}
-                  <div style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%" }}>
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", color: "var(--color-navy)", fontWeight: 900, marginBottom: "0.5rem", textTransform: "capitalize" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem", flex: 1, justifyContent: "space-between" }}>
+                  {/* Banner Profile */}
+                  <div 
+                    style={{
+                      background: info?.color || "var(--color-blue)",
+                      border: "2px solid var(--color-navy)",
+                      borderRadius: "12px",
+                      padding: "1rem",
+                      boxShadow: "2px 2px 0px var(--color-navy)",
+                      color: info?.accentColor || (riskResult.risk_profile === "Konservatif" ? "var(--color-navy)" : "#FFFFFF"),
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
+                      <span style={{ 
+                        fontSize: "0.68rem", 
+                        fontWeight: 900, 
+                        textTransform: "uppercase", 
+                        letterSpacing: "0.5px", 
+                        background: riskResult.risk_profile === "Konservatif" ? "rgba(10,25,47,0.12)" : "rgba(255,255,255,0.2)", 
+                        color: info?.accentColor || (riskResult.risk_profile === "Konservatif" ? "var(--color-navy)" : "#FFFFFF"),
+                        padding: "2px 8px", 
+                        borderRadius: "4px" 
+                      }}>
+                        PROFIL RISIKO FINANSIAL
+                      </span>
+                    </div>
+                    <h4 style={{ 
+                      fontFamily: "var(--font-heading)", 
+                      fontSize: "1.4rem", 
+                      fontWeight: 900, 
+                      margin: "0 0 0.35rem 0", 
+                      textTransform: "capitalize",
+                      color: info?.accentColor || (riskResult.risk_profile === "Konservatif" ? "var(--color-navy)" : "#FFFFFF")
+                    }}>
                       {getTranslatedProfile(riskResult.risk_profile)}
-                    </h3>
-                    <p style={{ fontSize: "1.1rem", lineHeight: 1.6, color: "var(--color-navy)", marginBottom: "1.5rem", fontWeight: 600 }}>
+                    </h4>
+                    <p style={{ 
+                      fontSize: "0.78rem", 
+                      lineHeight: 1.45, 
+                      margin: 0, 
+                      fontWeight: 600, 
+                      opacity: 0.95,
+                      color: info?.accentColor || (riskResult.risk_profile === "Konservatif" ? "var(--color-navy)" : "#FFFFFF")
+                    }}>
                       {getTranslatedDesc(riskResult.risk_profile, riskResult.description)}
                     </p>
-                    {/* Probability bars */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem", marginTop: "auto" }}>
-                      {(["Konservatif","Moderat","Agresif"] as const).map(p => {
-                        const prob = Math.round((riskResult.probabilities[p] || 0) * 100);
-                        const isActive = riskResult.risk_profile === p;
-                        return (
-                          <div key={p} style={{ width: "100%" }}>
-                            <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between" }}>
-                              <span>{getTranslatedProfile(p)}</span><span>{prob}%</span>
-                            </div>
-                            <div style={{ height: "12px", background: "var(--color-bg)", border: "2px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
-                              <div style={{ width: `${prob}%`, height: "100%", background: isActive ? PROFILE_INFO[p].color : "var(--color-text-light)", transition: "width 0.8s ease", borderRight: prob > 0 ? "2px solid var(--color-navy)" : "none" }} />
-                            </div>
+                  </div>
+
+                  {/* Probability bars */}
+                  <div 
+                    style={{
+                      background: "#F8FAFC",
+                      border: "2px solid var(--color-navy)",
+                      borderRadius: "12px",
+                      padding: "0.85rem 1rem",
+                      boxShadow: "2px 2px 0px var(--color-navy)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.6rem",
+                    }}
+                  >
+                    <span style={{ fontSize: "0.72rem", fontWeight: 900, textTransform: "uppercase", color: "var(--color-navy)", letterSpacing: "0.5px" }}>
+                      DISTRIBUSI PROFIL RISIKO
+                    </span>
+                    {(["Konservatif","Moderat","Agresif"] as const).map(p => {
+                      const prob = Math.round((riskResult.probabilities[p] || 0) * 100);
+                      const isActive = riskResult.risk_profile === p;
+                      return (
+                        <div key={p} style={{ width: "100%" }}>
+                          <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--color-navy)", marginBottom: "0.25rem", display: "flex", justifyContent: "space-between" }}>
+                            <span>{getTranslatedProfile(p)}</span><span>{prob}%</span>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <div style={{ height: "10px", background: "var(--color-white)", border: "1.5px solid var(--color-navy)", borderRadius: "100px", overflow: "hidden" }}>
+                            <div style={{ width: `${prob}%`, height: "100%", background: isActive ? PROFILE_INFO[p].color : "var(--color-text-light)", transition: "width 0.8s ease", borderRight: prob > 0 ? "1.5px solid var(--color-navy)" : "none" }} />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -1293,24 +1293,198 @@ export default function PlanningPage() {
 
             {/* Empty state */}
             {!riskResult && !riskLoading && (
-              <div style={{ padding: "4rem 2rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--color-white)", flex: 1 }}>
-                <div style={{ background: "var(--color-bg)", padding: "1.5rem", borderRadius: "50%", border: "3px dashed var(--color-navy)", marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Brain size={48} color="var(--color-navy)" strokeWidth={2} style={{ opacity: 0.6 }} />
+              <div style={{ padding: "3rem 1.5rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, textAlign: "center" }}>
+                <div style={{ background: "var(--color-bg)", width: "56px", height: "56px", borderRadius: "50%", border: "2px dashed var(--color-navy)", marginBottom: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Brain size={28} color="var(--color-navy)" strokeWidth={2} style={{ opacity: 0.6 }} />
                 </div>
-                <p style={{ margin: 0, marginBottom: "1.5rem", fontWeight: 800, fontSize: "1.1rem", color: "var(--color-navy)", opacity: 0.8, textAlign: "center", maxWidth: "80%" }}>
+                <p style={{ margin: "0 0 1rem 0", fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)", opacity: 0.8, maxWidth: "80%" }}>
                   {t("dashboard.planning.clickToStart") || "Klik 'Mulai Analisis' untuk mengetahui profil risiko keuanganmu!"}
                 </p>
                 <button
                   onClick={() => fetchRiskProfile()}
                   className="btn-brutal"
-                  style={{ padding: "0.75rem 1.5rem", background: "var(--color-orange)", color: "var(--color-navy)", fontWeight: 900, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "4px 4px 0px var(--color-navy)", border: "3px solid var(--color-navy)" }}
+                  style={{ padding: "0.6rem 1.25rem", background: "var(--color-orange)", color: "var(--color-navy)", fontWeight: 900, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.4rem", boxShadow: "3px 3px 0px var(--color-navy)", border: "2px solid var(--color-navy)", borderRadius: "8px", cursor: "pointer" }}
                 >
-                  <Sparkles size={20} /> {t("dashboard.planning.analyzeProfile") || "Analisis Profil Saya"}
+                  <Sparkles size={16} /> {t("dashboard.planning.analyzeProfile") || "Analisis Profil Saya"}
                 </button>
               </div>
             )}
           </div>
-          
+
+          {/* Footer Card 1 */}
+          <div style={{ marginTop: "auto", paddingTop: "0.85rem" }}>
+            <div 
+              style={{
+                background: "rgba(184, 255, 0, 0.14)",
+                border: "1.8px solid var(--color-navy)",
+                boxShadow: "2px 2px 0px var(--color-navy)",
+                borderRadius: "10px",
+                padding: "0.6rem 0.75rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.6rem"
+              }}
+            >
+              <div 
+                style={{
+                  background: "var(--color-lime)",
+                  border: "1.2px solid var(--color-navy)",
+                  borderRadius: "6px",
+                  width: "24px",
+                  height: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0
+                }}
+              >
+                <Sparkles size={12} color="var(--color-navy)" strokeWidth={2.5} />
+              </div>
+              <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-navy)", lineHeight: 1.3 }}>
+                Rasio alokasi optimal (Needs / Wants / Savings) disesuaikan berdasarkan kepribadian finansial kamu.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── CARD BESAR 2: Budget Allocation View (7 cols) ── */}
+        <div 
+          style={{
+            background: "#FFFFFF",
+            border: "2.5px solid var(--color-navy)",
+            borderRadius: "16px",
+            boxShadow: "4px 4px 0px var(--color-navy)",
+            padding: "1.25rem 1.5rem",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            boxSizing: "border-box",
+            height: "100%",
+            minHeight: "560px",
+          }}
+          className="lg:col-span-7"
+        >
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+            {/* Header Card 2 */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div 
+                  style={{
+                    width: "34px",
+                    height: "34px",
+                    background: activeFilter === "needs" ? "var(--color-lime)" : activeFilter === "wants" ? "var(--color-orange)" : "var(--color-purple)",
+                    border: "2px solid var(--color-navy)",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "2px 2px 0px var(--color-navy)",
+                    flexShrink: 0
+                  }}
+                >
+                  {activeFilter === "needs" ? (
+                    <AlertTriangle size={17} color="var(--color-navy)" strokeWidth={2.5} />
+                  ) : activeFilter === "wants" ? (
+                    <Sparkles size={17} color="var(--color-white)" strokeWidth={2.5} />
+                  ) : (
+                    <ShieldCheck size={17} color="var(--color-white)" strokeWidth={2.5} />
+                  )}
+                </div>
+                <div>
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 900, color: "var(--color-navy)", margin: 0, lineHeight: 1.2 }}>
+                    {activeFilter === "needs" ? (t("dashboard.planning.needs") || "Kebutuhan") : activeFilter === "wants" ? (t("dashboard.transactions.wants") || "Keinginan") : t("dashboard.transactions.save")}
+                  </h3>
+                  <p style={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, margin: "2px 0 0 0" }}>
+                    Kelola alokasi kategori pengeluaran dan target batas anggaran
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                <button onClick={() => setIsEditingCategory(!isEditingCategory)} className="btn-brutal" style={{
+                  padding: "0.35rem 0.75rem", fontWeight: 800, fontSize: "0.75rem", borderRadius: "8px",
+                  background: isEditingCategory ? "var(--color-lime)" : "#F8FAFC", color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.35rem",
+                  boxShadow: "2px 2px 0px var(--color-navy)", border: "1.8px solid var(--color-navy)", cursor: "pointer"
+                }} title={t("dashboard.planning.editAllocation") || "Edit Alokasi Budget"}>
+                  {isEditingCategory ? <CheckCircle2 size={14} /> : <Edit3 size={14} />} 
+                  {isEditingCategory ? t("dashboard.planning.saveBtn") : t("dashboard.planning.editBtn")}
+                </button>
+                <button onClick={() => setShowAddCategory(!showAddCategory)} className="btn-brutal" style={{
+                  padding: "0.35rem 0.75rem", fontWeight: 800, fontSize: "0.75rem", borderRadius: "8px",
+                  background: showAddCategory ? "var(--color-orange)" : "var(--color-navy)",
+                  color: "var(--color-white)", display: "flex", alignItems: "center", gap: "0.35rem",
+                  boxShadow: "2px 2px 0px var(--color-navy)", border: "1.8px solid var(--color-navy)", cursor: "pointer"
+                }}>
+                  <Plus size={14} style={{ transform: showAddCategory ? "rotate(45deg)" : "none", transition: "transform 0.2s" }} /> 
+                  {showAddCategory ? (t("dashboard.planning.cancelBtn") || "Batal") : t("dashboard.planning.addCategory")}
+                </button>
+              </div>
+            </div>
+
+            {showAddCategory && (
+              <div className="card-brutal animate-bounce-in" style={{ padding: "1rem", marginBottom: "1rem", background: "#F8FAFC", boxShadow: "2px 2px 0px var(--color-navy)", border: "2px dashed var(--color-navy)", borderRadius: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.75rem", alignItems: "flex-end" }}>
+                  <div>
+                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.72rem", display: "block", marginBottom: "0.35rem", color: "var(--color-navy)" }}>ICON</label>
+                    <IconPicker 
+                      value={newCategory.icon} 
+                      onChange={v => setNewCategory({ ...newCategory, icon: v })} 
+                      options={ICON_OPTIONS.map(opt => ({ ...opt, label: t(`dashboard.planning.icons.${opt.key}`) || opt.label }))} 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.72rem", display: "block", marginBottom: "0.35rem", color: "var(--color-navy)" }}>{t("dashboard.planning.categoryName") || "NAMA KATEGORI"}</label>
+                    <input 
+                      value={newCategory.name} 
+                      onChange={e => setNewCategory({ ...newCategory, name: e.target.value })} 
+                      className="input-brutal" 
+                      placeholder={t("dashboard.planning.exampleCategory") || "Contoh: Belanja Online"} 
+                      style={{ border: "1.8px solid var(--color-navy)", padding: "0.5rem 0.75rem", width: "100%", borderRadius: "8px", boxShadow: "2px 2px 0px var(--color-navy)", outline: "none", fontWeight: 800, fontSize: "0.85rem" }} 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.72rem", display: "block", marginBottom: "0.35rem", color: "var(--color-navy)" }}>{t("dashboard.planning.allocationRp") || "ALOKASI (RP)"}</label>
+                    <input 
+                      value={newCategory.allocated ? newCategory.allocated.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""} 
+                      onChange={e => {
+                        const unformatted = e.target.value.replace(/\D/g, "");
+                        setNewCategory({ ...newCategory, allocated: unformatted });
+                      }} 
+                      className="input-brutal" 
+                      type="text" 
+                      placeholder="0" 
+                      style={{ border: "1.8px solid var(--color-navy)", padding: "0.5rem 0.75rem", width: "100%", borderRadius: "8px", fontWeight: 800, boxShadow: "2px 2px 0px var(--color-navy)", fontSize: "0.85rem" }} 
+                    />
+                  </div>
+                  <div>
+                    <button onClick={handleAddCategory} className="btn-brutal" style={{
+                      padding: "0.55rem 1.25rem", background: "var(--color-navy)", color: "var(--color-white)", fontWeight: 900, fontSize: "0.82rem",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", boxShadow: "2px 2px 0px var(--color-lime)", border: "1.8px solid var(--color-navy)", borderRadius: "8px", width: "100%", cursor: "pointer"
+                    }}>
+                      {t("dashboard.planning.saveBtn") || "Simpan"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ flex: 1, minHeight: "360px", maxHeight: "480px", overflowY: "auto", paddingRight: "0.4rem" }} className="no-scrollbar">
+              {searchQuery && filteredBudget.length === 0 ? (
+                <div style={{ padding: "2.5rem 1rem", textAlign: "center", color: "var(--color-text-muted)" }}>
+                  <SearchX size={36} style={{ margin: "0 auto 0.75rem", opacity: 0.3 }} />
+                  <p style={{ fontSize: "0.95rem", fontWeight: 700 }}>
+                    {t("dashboard.planning.searchNoResult")} "{searchQuery}" {t("dashboard.planning.searchNoResultSuffix")}
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "0.75rem" }}>
+                  {activeFilter === "needs" && needsBudget.map((item) => renderBudgetRow(item))}
+                  {activeFilter === "wants" && wantsBudget.map((item) => renderBudgetRow(item))}
+                  {activeFilter === "savings" && savingsBudget.map((item) => renderBudgetRow(item))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1363,8 +1537,8 @@ export default function PlanningPage() {
               boxShadow: "6px 6px 0px var(--color-navy)",
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                  <Sparkles size={14} /> INSIGHT CAMI
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "#1d4ed8", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} color="#1d4ed8" /> INSIGHT CAMI
                 </div>
               </div>
               <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>

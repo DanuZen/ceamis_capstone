@@ -10,6 +10,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/components/ui/Toast";
 import { translateCategoryName, translateClusterLabel } from "@/lib/translateCategory";
 import ReceiptOcrCard from "./components/ReceiptOcrCard";
+import PageBanner from "@/components/layout/PageBanner";
 
 // ── Tipe response Model 2 (Spending Pattern Clustering) ──────────────────────
 interface SpendingClusterResult {
@@ -317,128 +318,26 @@ export default function TransactionsPage() {
     setCategory(cat);
   };
 
-  const trendLabel = cluster.trend === "improving"
-    ? t("dashboard.transactions.trendImproving") : cluster.trend === "declining"
-    ? t("dashboard.transactions.trendDeclining") : t("dashboard.transactions.trendStable");
-  const trendColor = cluster.trend === "improving"
-    ? "var(--color-lime)" : cluster.trend === "declining"
-    ? "var(--color-pink)" : "var(--color-purple)";
-  const clusterAccentColor = CLUSTER_COLORS[cluster.cluster_label] ?? "var(--color-lime)";
-
   return (
     <div style={{ paddingBottom: "1.5rem" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
-        <div style={{
-          width: "72px", height: "72px", background: "var(--color-lime)",
-          borderRadius: "var(--radius-brutal-sm)", border: "3px solid var(--color-navy)",
-          boxShadow: "4px 4px 0px var(--color-navy)", display: "flex",
-          alignItems: "center", justifyContent: "center", flexShrink: 0
-        }}>
-          <Wallet size={40} color="var(--color-navy)" strokeWidth={2.5} />
-        </div>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            {t("dashboard.transactions.title")}
-          </h1>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-            {t("dashboard.transactions.desc")}
-          </p>
-        </div>
-      </div>
+      {/* Header Banner */}
+      <PageBanner
+        badgeText="PENCATATAN KEUANGAN"
+        title="Catat & Pindai Transaksi"
+        description="Catat pengeluaran atau pemasukan secara manual maupun otomatis dengan pindai struk cerdas OCR."
+        rightCard={{
+          icon: <Wallet size={24} className="text-[#1d4ed8]" />,
+          label: "TOTAL TRANSAKSI",
+          value: `${transactions.length} Dicatat`,
+        }}
+        className="mb-4"
+      />
 
-      {/* ── Model 2: Spending Cluster Insight Card ─────────────────────────── */}
-      <div className="card-brutal animate-bounce-in" style={{
-        padding: "1.5rem", marginBottom: "1rem",
-        background: "var(--color-white)", color: "var(--color-navy)",
-        border: "4px solid var(--color-navy)", boxShadow: "8px 8px 0px var(--color-navy)",
-        position: "relative", overflow: "hidden",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "2rem", flexWrap: "wrap" }}>
-          {/* Cluster label + icon — tanpa skor bulat */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
-            <div style={{
-              width: "72px", height: "72px",
-              background: clusterAccentColor,
-              borderRadius: "var(--radius-brutal-sm)",
-              border: "3px solid var(--color-navy)",
-              boxShadow: "4px 4px 0px var(--color-navy)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Brain size={36} color="var(--color-navy)" strokeWidth={2.5} />
-            </div>
-          </div>
 
-          {/* Main info */}
-          <div style={{ flex: 1, minWidth: "200px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
-              <span style={{ fontWeight: 800 }}>
-                {t("dashboard.transactions.spendingPattern")} {translateClusterLabel(cluster.cluster_label, t)}
-              </span>
-              {!loadingCluster && (
-                <div style={{
-                  display: "flex", alignItems: "center", gap: "0.25rem",
-                  padding: "0.2rem 0.5rem", background: trendColor,
-                  color: cluster.trend === "stable" ? "var(--color-white)" : "var(--color-navy)", 
-                  borderRadius: "var(--radius-brutal-sm)",
-                  fontSize: "0.7rem", fontWeight: 800, border: "1.5px solid var(--color-navy)",
-                }}>
-                  <TrendingUp size={10} /> {trendLabel}
-                </div>
-              )}
-            </div>
 
-            <p style={{ fontSize: "0.9rem", opacity: 0.85, margin: "0 0 0.75rem 0", lineHeight: 1.5 }}>
-              {loadingCluster ? t("dashboard.transactions.analyzing") : (cluster.insight === "__mock__" || cluster.insight === MOCK_CLUSTER.insight ? t("dashboard.transactions.mockInsight") : cluster.insight)}
-            </p>
-
-            {/* Needs / Wants / Savings bar */}
-            <div style={{ display: "flex", height: "12px", borderRadius: "100px", border: "1.5px solid var(--color-navy)", overflow: "hidden" }}>
-              <div style={{ width: `${cluster.needs_ratio}%`,   background: "var(--color-lime)"   }} title="Needs"    />
-              <div style={{ width: `${cluster.wants_ratio}%`,   background: "var(--color-orange)" }} title="Wants"    />
-              <div style={{ width: `${cluster.savings_ratio}%`, background: "var(--color-purple)" }} title="Savings"  />
-            </div>
-            <div style={{ display: "flex", gap: "1rem", marginTop: "0.35rem", fontSize: "0.7rem", fontWeight: 700 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><Home size={10} /> {t("dashboard.transactions.needs")} {cluster.needs_ratio}%</span>
-              <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><Gamepad2 size={10} /> {t("dashboard.transactions.wants")} {cluster.wants_ratio}%</span>
-              <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}><Banknote size={10} /> {t("dashboard.transactions.save")} {cluster.savings_ratio}%</span>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", alignItems: "stretch" }}>
-            <Link href="/dashboard/planning" style={{ textDecoration: "none" }}>
-              <button className="btn-brutal" style={{
-                background: "var(--color-lime)", color: "var(--color-navy)",
-                padding: "0.75rem 1.25rem", fontWeight: 800,
-                display: "flex", alignItems: "center", gap: "0.5rem",
-                boxShadow: "3px 3px 0px var(--color-navy)", whiteSpace: "nowrap",
-              }}>
-                {t("dashboard.transactions.manageBudget")} <ArrowRight size={16} />
-              </button>
-            </Link>
-            <button
-              onClick={fetchCluster}
-              disabled={loadingCluster}
-              className="btn-brutal"
-              style={{
-                background: "var(--color-bg)", color: "var(--color-navy)",
-                padding: "0.5rem 1.25rem", fontWeight: 700, fontSize: "0.8rem",
-                display: "flex", alignItems: "center", gap: "0.4rem",
-                border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)",
-                opacity: loadingCluster ? 0.5 : 1, cursor: loadingCluster ? "wait" : "pointer",
-              }}
-            >
-              <RefreshCw size={13} className={loadingCluster ? "animate-spin" : ""} />
-              {loadingCluster ? t("dashboard.transactions.analyzing") : t("dashboard.transactions.refreshInsight")}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 items-stretch">
         {/* Smart OCR Scan Struk Section (Replaces Quick Input) */}
-        <div style={{ flex: "1 1 320px", maxWidth: "100%", display: "flex", flexDirection: "column" }}>
+        <div className="lg:col-span-5 flex flex-col">
           <ReceiptOcrCard
             onApplyData={(parsed) => {
               // 1. Deskripsi / Merchant
@@ -545,15 +444,22 @@ export default function TransactionsPage() {
         </div>
 
         {/* Form Section */}
-        <div className="animate-slide-up" style={{ flex: "1.7 1 450px", maxWidth: "100%", animationDelay: "200ms", display: "flex", flexDirection: "column" }}>
-          <div className="card-brutal" style={{ height: "700px", minHeight: "700px", maxHeight: "700px", background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2.5rem", boxShadow: "10px 10px 0px var(--color-navy)", display: "flex", flexDirection: "column", overflow: "visible" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-              <Plus size={28} color="var(--color-white)" fill="var(--color-purple)" style={{ background: "var(--color-purple)", borderRadius: "var(--radius-brutal-sm)", padding: "4px", border: "2px solid var(--color-navy)" }} />
-              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", color: "var(--color-navy)", margin: 0, fontWeight: 900 }}>{t("dashboard.transactions.formTitle")}</h3>
+        <div className="lg:col-span-7 flex flex-col animate-slide-up" style={{ animationDelay: "200ms" }}>
+          <div className="card-brutal" style={{ height: "100%", minHeight: "560px", background: "var(--color-white)", border: "2.5px solid var(--color-navy)", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "4px 4px 0px var(--color-navy)", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box" }}>
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div style={{ width: "34px", height: "34px", background: "var(--color-purple)", border: "2px solid var(--color-navy)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0px var(--color-navy)", flexShrink: 0 }}>
+                  <Plus size={17} color="var(--color-white)" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 900, color: "var(--color-navy)", margin: 0, lineHeight: 1.2 }}>{t("dashboard.transactions.formTitle")}</h3>
+                  <p style={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, margin: "2px 0 0 0" }}>
+                    {t("dashboard.transactions.formDesc")}
+                  </p>
+                </div>
+              </div>
             </div>
-            <p style={{ fontSize: "1rem", color: "var(--color-text-muted)", marginBottom: "2rem", lineHeight: 1.5, fontWeight: 500 }}>
-              {t("dashboard.transactions.formDesc")}
-            </p>
 
             <form
               onSubmit={(e) => {
@@ -564,10 +470,10 @@ export default function TransactionsPage() {
                 showToast(t("dashboard.transactions.savedSuccess") || "Transaksi aman tersimpan, cuy!", "success");
                 setDesc(""); setAmount(""); setAmountRaw(""); setIsQuickInput(false);
               }}
-              style={{ display: "flex", flexDirection: "column", gap: "1.5rem", flex: 1 }}
+              style={{ display: "flex", flexDirection: "column", gap: "1rem", flex: 1 }}
             >
               <div>
-                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
+                <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.82rem", display: "block", marginBottom: "0.35rem", color: "var(--color-navy)", textTransform: "uppercase", letterSpacing: "0.4px" }}>
                   {type === "pemasukan" ? t("dashboard.transactions.formIncomeLabel") : tag === "save" ? t("dashboard.transactions.formSaveLabel") : t("dashboard.transactions.formExpenseLabel")}
                 </label>
                 <div style={{ position: "relative" }}>
@@ -580,7 +486,7 @@ export default function TransactionsPage() {
                       tag === "save" ? t("dashboard.transactions.formSavePlaceholder") :
                       t("dashboard.transactions.formExpensePlaceholder")
                     }
-                    style={{ border: "3px solid var(--color-navy)", padding: "1rem", paddingRight: isQuickInput ? "3rem" : "1rem", fontSize: "1.125rem", width: "100%", boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
+                    style={{ border: "2px solid var(--color-navy)", padding: "0.6rem 0.75rem", paddingRight: isQuickInput ? "2.5rem" : "0.75rem", fontSize: "0.9rem", width: "100%", borderRadius: "10px", boxShadow: "2px 2px 0px var(--color-navy)", background: "var(--color-bg)", boxSizing: "border-box" }}
                   />
                   {isQuickInput && (
                     <button
@@ -595,13 +501,13 @@ export default function TransactionsPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.5rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "0.75rem" }}>
                 <div>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
+                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.82rem", display: "block", marginBottom: "0.35rem", color: "var(--color-navy)", textTransform: "uppercase", letterSpacing: "0.4px" }}>
                     {t("dashboard.transactions.amountLabel")}
                   </label>
                   <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", fontSize: "1.125rem", fontWeight: 800, color: "var(--color-navy)" }}>Rp</span>
+                    <span style={{ position: "absolute", left: "0.65rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>Rp</span>
                     <input
                       value={amount}
                       onChange={(e) => {
@@ -614,16 +520,16 @@ export default function TransactionsPage() {
                       inputMode="numeric"
                       min="0"
                       placeholder="0"
-                      style={{ border: "3px solid var(--color-navy)", padding: "1rem 1rem 1rem 3rem", fontSize: "1.125rem", width: "100%", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)", background: "var(--color-bg)" }}
+                      style={{ border: "2px solid var(--color-navy)", padding: "0.6rem 0.75rem 0.6rem 2.2rem", fontSize: "0.9rem", width: "100%", fontWeight: 800, borderRadius: "10px", boxShadow: "2px 2px 0px var(--color-navy)", background: "var(--color-bg)", boxSizing: "border-box" }}
                     />
                   </div>
                 </div>
                 <div>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
+                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.82rem", display: "block", marginBottom: "0.35rem", color: "var(--color-navy)", textTransform: "uppercase", letterSpacing: "0.4px" }}>
                     {t("dashboard.transactions.typeLabel")}
                   </label>
                   {isQuickInput ? (
-                    <div className="input-brutal" style={{ border: "3px solid var(--color-navy)", padding: "1rem", fontSize: "1.125rem", width: "100%", fontWeight: 800, boxShadow: "4px 4px 0px var(--color-navy)", background: "#e2e8f0", color: "var(--color-text-muted)" }}>
+                    <div className="input-brutal" style={{ border: "2px solid var(--color-navy)", padding: "0.6rem 0.75rem", fontSize: "0.9rem", width: "100%", fontWeight: 800, borderRadius: "10px", boxShadow: "2px 2px 0px var(--color-navy)", background: "#e2e8f0", color: "var(--color-text-muted)" }}>
                       {type === "pemasukan" ? t("dashboard.transactions.income") : t("dashboard.transactions.expense")}
                     </div>
                   ) : (
@@ -639,9 +545,9 @@ export default function TransactionsPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: type === "pemasukan" ? "1fr" : "1.5fr 1fr", gap: "1.5rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: type === "pemasukan" ? "1fr" : "1.5fr 1fr", gap: "0.75rem" }}>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
+                  <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.82rem", display: "block", marginBottom: "0.35rem", color: "var(--color-navy)", textTransform: "uppercase", letterSpacing: "0.4px" }}>
                     {t("dashboard.transactions.categoryLabel")}
                   </label>
                   <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
@@ -655,8 +561,8 @@ export default function TransactionsPage() {
 
                 {type !== "pemasukan" && (
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1rem", display: "block", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                      <Tag size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />{t("dashboard.transactions.priorityLabel")}
+                    <label style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "0.82rem", display: "block", marginBottom: "0.35rem", color: "var(--color-navy)", textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                      <Tag size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />{t("dashboard.transactions.priorityLabel")}
                     </label>
                     <div style={{ display: "flex", gap: "0.5rem", flex: 1 }}>
                       <button type="button" onClick={() => setTag("needs")} className="btn-brutal" style={{
@@ -693,21 +599,58 @@ export default function TransactionsPage() {
                 )}
               </div>
 
-              <div style={{ marginTop: "auto", paddingTop: "1rem" }}>
+              <div style={{ marginTop: "auto", paddingTop: "0.75rem" }}>
                 <button
                   type="submit"
                   className="btn-brutal btn-brutal--primary"
                   style={{
-                    width: "100%", padding: "1.25rem", fontSize: "1.25rem", fontWeight: 900,
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem",
+                    width: "100%", padding: "0.85rem", fontSize: "1rem", fontWeight: 900,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
                     background: "var(--color-lime)", color: "var(--color-navy)",
-                    boxShadow: "6px 6px 0px var(--color-navy)"
+                    border: "2px solid var(--color-navy)", borderRadius: "10px",
+                    boxShadow: "3px 3px 0px var(--color-navy)", cursor: "pointer"
                   }}
                 >
-                  {t("dashboard.transactions.saveTransaction")} <Sparkles size={20} />
+                  {t("dashboard.transactions.saveTransaction")} <Sparkles size={18} />
                 </button>
               </div>
             </form>
+            </div>
+
+            {/* Footer Info Strip */}
+            <div style={{ marginTop: "auto", paddingTop: "0.85rem" }}>
+              <div 
+                style={{
+                  background: "rgba(184, 255, 0, 0.14)",
+                  border: "1.8px solid var(--color-navy)",
+                  boxShadow: "2px 2px 0px var(--color-navy)",
+                  borderRadius: "10px",
+                  padding: "0.6rem 0.75rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.6rem"
+                }}
+              >
+                <div 
+                  style={{
+                    background: "var(--color-lime)",
+                    border: "1.2px solid var(--color-navy)",
+                    borderRadius: "6px",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0
+                  }}
+                >
+                  <Sparkles size={12} color="var(--color-navy)" strokeWidth={2.5} />
+                </div>
+                <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-navy)", lineHeight: 1.3 }}>
+                  Setiap transaksi otomatis terintegrasi ke Planning, History, dan Reports secara real-time.
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -761,8 +704,8 @@ export default function TransactionsPage() {
               boxShadow: "6px 6px 0px var(--color-navy)",
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                  <Sparkles size={14} /> {t("dashboard.transactions.tipsTitle")}
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "#1d4ed8", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} color="#1d4ed8" /> {t("dashboard.transactions.tipsTitle")}
                 </div>
               </div>
               <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>

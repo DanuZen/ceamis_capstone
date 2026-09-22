@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter, Sparkles } from "lucide-react";
+import { List, ShieldAlert, Wallet, TrendingUp, TrendingDown, Filter, Sparkles, Check, ArrowUpRight, CreditCard } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { translateCategoryName, translateTransactionDesc } from "@/lib/translateCategory";
+import PageBanner from "@/components/layout/PageBanner";
 
 export default function HistoryPage() {
   const searchParams = useSearchParams();
@@ -81,95 +82,187 @@ export default function HistoryPage() {
 
   return (
     <div style={{ paddingBottom: "3rem" }}>
-      {/* Header Area */}
-      <div style={{ marginBottom: "3rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
-        <div style={{
-          width: "72px",
-          height: "72px",
-          background: "var(--color-orange)",
-          borderRadius: "var(--radius-brutal-sm)",
-          border: "3px solid var(--color-navy)",
-          boxShadow: "4px 4px 0px var(--color-navy)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0
-        }}>
-          <List size={40} color="var(--color-navy)" strokeWidth={2.5} />
-        </div>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            {t("dashboard.history.title")}
-          </h1>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-            {t("dashboard.history.desc")}
-          </p>
-        </div>
-      </div>
+      {/* Header Banner */}
+      <PageBanner
+        badgeText="RIWAYAT LENGKAP"
+        title="Riwayat Transaksi"
+        description="Telusuri seluruh rekam jejak arus kas masuk dan keluar dengan filter waktu & kategori terperinci."
+        rightCard={{
+          icon: <List size={24} className="text-[#0A192F]" />,
+          label: "TOTAL CATATAN",
+          value: `${transactions.length} Entri`,
+        }}
+        className="mb-4"
+      />
 
       <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      {/* Top Row: 4 Stats Cards */}
-      <div className="stagger-children" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "1rem" }}>
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div style={{ background: "var(--color-lime)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <TrendingUp size={24} color="var(--color-navy)" strokeWidth={2.5} />
+      {/* Top Row: 4 Stats Cards — same tokens as /dashboard */}
+      <div className="dashboard-bento-grid stagger-children" style={{ marginBottom: "1rem" }}>
+
+        {/* Card 1: PEMASUKAN */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "2.5px solid var(--color-navy)",
+          borderRadius: "16px",
+          boxShadow: "4px 4px 0px var(--color-navy)",
+          padding: "1.15rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {t("dashboard.history.income")}
+            </span>
+            <div style={{ width: "28px", height: "28px", background: "var(--color-lime)", border: "1.5px solid var(--color-navy)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Check size={16} color="var(--color-navy)" strokeWidth={3} />
+            </div>
           </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {totalPemasukan.toLocaleString("id-ID")}</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.income")}</div>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              Rp {totalPemasukan.toLocaleString("id-ID")}
+            </span>
           </div>
-        </div>
-        
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div style={{ background: "var(--color-orange)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <TrendingDown size={24} color="var(--color-navy)" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {totalPengeluaran.toLocaleString("id-ID")}</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.expense")}</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ background: "#F1F5F9", border: "1px solid #CBD5E1", borderRadius: "999px", padding: "2px 8px", fontSize: "0.68rem", fontWeight: 700, color: "var(--color-navy)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+              <TrendingUp size={13} strokeWidth={2.5} /> Pemasukan
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+              {transactions.filter(tx => tx.type === "pemasukan").length} transaksi
+            </span>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div style={{ background: "var(--color-purple)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
+        {/* Card 2: PENGELUARAN */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "2.5px solid var(--color-navy)",
+          borderRadius: "16px",
+          boxShadow: "4px 4px 0px var(--color-navy)",
+          padding: "1.15rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {t("dashboard.history.expense")}
+            </span>
+            <div style={{ width: "28px", height: "28px", background: "#FFE100", border: "1.5px solid var(--color-navy)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ArrowUpRight size={16} color="var(--color-navy)" strokeWidth={3} />
+            </div>
           </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>Rp {sisaSaldo.toLocaleString("id-ID")}</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.balance")}</div>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              Rp {totalPengeluaran.toLocaleString("id-ID")}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", color: "#475569", fontWeight: 700 }}>
+              {totalPemasukan > 0 ? Math.round((totalPengeluaran / totalPemasukan) * 100) : 0}% dari pemasukan
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+              {transactions.filter(tx => tx.type === "pengeluaran").length} pos belanja
+            </span>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div style={{ background: "var(--color-white)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <List size={24} color="var(--color-navy)" strokeWidth={2.5} />
+        {/* Card 3: SISA SALDO */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "2.5px solid var(--color-navy)",
+          borderRadius: "16px",
+          boxShadow: "4px 4px 0px var(--color-navy)",
+          padding: "1.15rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {t("dashboard.history.balance")}
+            </span>
+            <div style={{ width: "28px", height: "28px", background: "#E0F2FE", border: "1.5px solid var(--color-navy)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <CreditCard size={16} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
+          </div>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: sisaSaldo >= 0 ? "var(--color-navy)" : "var(--color-danger)" }}>
+              Rp {sisaSaldo.toLocaleString("id-ID")}
+            </span>
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{transactions.length} Trx</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.history.totalMonth")}</div>
+            <div style={{ width: "100%", height: "7px", background: "#E2E8F0", borderRadius: "999px", border: "1.5px solid var(--color-navy)", overflow: "hidden", marginBottom: "0.35rem" }}>
+              <div style={{ width: `${totalPemasukan > 0 ? Math.min(100, Math.round((sisaSaldo / totalPemasukan) * 100)) : 0}%`, height: "100%", background: sisaSaldo >= 0 ? "var(--color-lime)" : "var(--color-danger)" }} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: "0.72rem", color: "#475569", fontWeight: 700 }}>
+                {totalPemasukan > 0 ? Math.min(100, Math.round((sisaSaldo / totalPemasukan) * 100)) : 0}% Tersedia
+              </span>
+              <span style={{ fontSize: "0.72rem", color: "#475569", fontWeight: 700 }}>
+                {sisaSaldo >= 0 ? "Saldo Aman" : "Melebihi"}
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* Card 4: TOTAL TRANSAKSI */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "2.5px solid var(--color-navy)",
+          borderRadius: "16px",
+          boxShadow: "4px 4px 0px var(--color-navy)",
+          padding: "1.15rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {t("dashboard.history.totalMonth")}
+            </span>
+            <div style={{ width: "28px", height: "28px", background: "#DBEAFE", border: "1.5px solid var(--color-navy)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <List size={16} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
+          </div>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              {transactions.length} Trx
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ background: sisaSaldo >= 0 ? "var(--color-lime)" : "#FEE2E2", border: "1.5px solid var(--color-navy)", borderRadius: "6px", padding: "2px 7px", fontSize: "0.65rem", fontWeight: 900, color: "var(--color-navy)", letterSpacing: "0.3px" }}>
+              {topCategories[0] ? `TOP: ${topCategories[0].name.toUpperCase()}` : "BELUM ADA DATA"}
+            </span>
+            <span style={{ fontSize: "0.72rem", color: sisaSaldo >= 0 ? "#16A34A" : "#DC2626", fontWeight: 800 }}>
+              {sisaSaldo >= 0 ? "Terkendali" : "Perlu Hemat"}
+            </span>
+          </div>
+        </div>
+
       </div>
 
-      <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "1.25rem", alignItems: "stretch" }}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 items-stretch">
         {/* Main List Area (Left) */}
-        <div style={{ flex: "1 1 65%", minWidth: "300px", display: "flex", flexDirection: "column" }}>
-          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", minHeight: "650px", flex: 1, display: "flex", flexDirection: "column" }}>
+        <div className="lg:col-span-8 flex flex-col">
+          <div className="card-brutal" style={{ background: "var(--color-white)", border: "2.5px solid var(--color-navy)", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "4px 4px 0px var(--color-navy)", minHeight: "520px", height: "100%", flex: 1, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
             
             {/* Header List & Filters */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem", paddingBottom: "1.5rem", borderBottom: "3px dashed rgba(10, 25, 47, 0.1)" }}>
-              <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", margin: 0, color: "var(--color-navy)", display: "flex", alignItems: "center", gap: "0.75rem", fontWeight: 900 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.1rem", flexWrap: "wrap", gap: "0.5rem", paddingBottom: "0.85rem", borderBottom: "2px dashed rgba(10, 25, 47, 0.15)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <div style={{
-                  width: "44px", height: "44px", background: "var(--color-white)", border: "2.5px solid var(--color-navy)",
-                  borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)",
+                  width: "34px", height: "34px", background: "var(--color-white)", border: "2px solid var(--color-navy)",
+                  borderRadius: "8px", boxShadow: "2px 2px 0px var(--color-navy)",
                   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
                 }}>
-                  <Filter size={22} color="var(--color-navy)" strokeWidth={2.5} />
+                  <Filter size={16} color="var(--color-navy)" strokeWidth={2.5} />
                 </div>
-                {searchQuery ? `${t("dashboard.history.search")}"${searchQuery}"` : t("dashboard.history.transactionList")}
-              </h2>
+                <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
+                  {searchQuery ? `${t("dashboard.history.search")}"${searchQuery}"` : t("dashboard.history.transactionList")}
+                </h2>
+              </div>
               
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                 {[
                   { id: "semua", icon: Filter },
                   { id: "pemasukan", icon: TrendingUp },
@@ -182,21 +275,21 @@ export default function HistoryPage() {
                     style={{ 
                       display: "flex",
                       alignItems: "center",
-                      gap: "0.5rem",
-                      padding: "0.6rem 1.25rem", 
-                      borderRadius: "var(--radius-brutal-sm)", 
+                      gap: "0.3rem",
+                      padding: "0.35rem 0.75rem", 
+                      borderRadius: "8px", 
                       background: filter === item.id ? "var(--color-navy)" : "var(--color-white)",
                       color: filter === item.id ? "var(--color-white)" : "var(--color-navy)",
                       fontWeight: 800,
-                      fontSize: "0.95rem",
+                      fontSize: "0.78rem",
                       border: "2px solid var(--color-navy)",
-                      boxShadow: filter === item.id ? "4px 4px 0px var(--color-purple)" : "4px 4px 0px var(--color-navy)",
+                      boxShadow: filter === item.id ? "2px 2px 0px var(--color-purple)" : "2px 2px 0px var(--color-navy)",
                       cursor: "pointer",
                       textTransform: "capitalize",
-                      transition: "all 0.2s ease"
+                      transition: "all 0.15s ease"
                     }}
                   >
-                    <item.icon size={18} color={filter === item.id ? "var(--color-white)" : "var(--color-navy)"} strokeWidth={2.5} />
+                    <item.icon size={13} color={filter === item.id ? "var(--color-white)" : "var(--color-navy)"} strokeWidth={2.5} />
                     {t(`dashboard.history.${item.id === "semua" ? "all" : item.id === "pemasukan" ? "income" : "expense"}`)}
                   </button>
                 ))}
@@ -214,34 +307,36 @@ export default function HistoryPage() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      padding: "1rem 1.5rem",
+                      padding: "0.75rem 1rem",
                       background: "var(--color-white)",
-                      border: "3px solid var(--color-navy)",
-                      boxShadow: "4px 4px 0px var(--color-navy)",
-                      transition: "transform 0.2s"
+                      border: "2px solid var(--color-navy)",
+                      borderRadius: "12px",
+                      boxShadow: "2px 2px 0px var(--color-navy)",
+                      transition: "transform 0.15s"
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
                       <div
                         style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: "var(--radius-brutal-sm)",
-                          border: "2px solid var(--color-navy)",
+                          width: 38,
+                          height: 38,
+                          borderRadius: "8px",
+                          border: "1.5px solid var(--color-navy)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           background: tx.type === "pemasukan" ? "var(--color-lime)" : "var(--color-orange)",
-                          boxShadow: "2px 2px 0px var(--color-navy)",
+                          boxShadow: "1.5px 1.5px 0px var(--color-navy)",
+                          flexShrink: 0
                         }}
                       >
-                        {tx.type === "pemasukan" ? <Wallet size={20} color="var(--color-navy)" /> : <ShieldAlert size={20} color="var(--color-navy)" />}
+                        {tx.type === "pemasukan" ? <Wallet size={16} color="var(--color-navy)" /> : <ShieldAlert size={16} color="var(--color-navy)" />}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: "1.0625rem", color: "var(--color-navy)" }}>
+                        <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "var(--color-navy)", lineHeight: 1.2 }}>
                           {translateTransactionDesc(tx.desc || tx.description || "", t)}
                         </div>
-                        <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", display: "flex", gap: "0.5rem", alignItems: "center", fontWeight: 600 }}>
+                        <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", display: "flex", gap: "0.4rem", alignItems: "center", fontWeight: 600, marginTop: "2px" }}>
                           <span>{tx.date}</span>
                           <span style={{ opacity: 0.3 }}>•</span>
                           <span style={{ color: "var(--color-purple)" }}>{translateCategoryName(tx.category, t)}</span>
@@ -252,8 +347,9 @@ export default function HistoryPage() {
                       style={{
                         fontFamily: "var(--font-heading)",
                         fontWeight: 900,
-                        fontSize: "1.25rem",
+                        fontSize: "1rem",
                         color: tx.type === "pemasukan" ? "var(--color-navy)" : "var(--color-danger)",
+                        whiteSpace: "nowrap"
                       }}
                     >
                       {tx.type === "pemasukan" ? "+" : "-"}Rp {Math.abs(tx.amount).toLocaleString("id-ID")}
@@ -270,18 +366,22 @@ export default function HistoryPage() {
         </div>
 
         {/* Sidebar Info (Right) */}
-        <div style={{ flex: "1 1 25%", minWidth: "280px", display: "flex", flexDirection: "column" }}>
-          <div className="card-brutal" style={{ padding: "1.5rem", background: "var(--color-white)", minHeight: "650px", flex: 1, display: "flex", flexDirection: "column", border: "4px solid var(--color-navy)", boxShadow: "8px 8px 0px var(--color-navy)" }}>
-            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem", fontWeight: 900 }}>
-              <div style={{
-                width: "40px", height: "40px", background: "var(--color-purple)", border: "2.5px solid var(--color-navy)",
-                borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)",
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-              }}>
-                <TrendingUp size={20} color="var(--color-white)" strokeWidth={2.5} />
+        <div className="lg:col-span-4 flex flex-col">
+          <div className="card-brutal" style={{ padding: "1.25rem 1.5rem", background: "var(--color-white)", minHeight: "520px", height: "100%", flex: 1, display: "flex", flexDirection: "column", border: "2.5px solid var(--color-navy)", borderRadius: "16px", boxShadow: "4px 4px 0px var(--color-navy)", boxSizing: "border-box" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div style={{
+                  width: "34px", height: "34px", background: "var(--color-purple)", border: "2px solid var(--color-navy)",
+                  borderRadius: "8px", boxShadow: "2px 2px 0px var(--color-navy)",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                }}>
+                  <TrendingUp size={16} color="var(--color-white)" strokeWidth={2.5} />
+                </div>
+                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", margin: 0, color: "var(--color-navy)", fontWeight: 900 }}>
+                  {t("dashboard.history.topCategories")}
+                </h3>
               </div>
-              {t("dashboard.history.topCategories")}
-            </h3>
+            </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               {topCategories.length > 0 ? topCategories.map((cat, i) => (
@@ -356,8 +456,8 @@ export default function HistoryPage() {
               boxShadow: "6px 6px 0px var(--color-navy)",
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "var(--color-orange)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                  <Sparkles size={14} /> {t("dashboard.history.aiInsight")}
+                <div style={{ fontSize: "0.85rem", fontWeight: 900, color: "#1d4ed8", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={14} color="#1d4ed8" /> {t("dashboard.history.aiInsight")}
                 </div>
               </div>
               <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>

@@ -5,6 +5,7 @@ import { Trophy, Flame, Star, Medal, Zap, Target, Shield } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useUser } from "@/context/UserContext";
 import { getBadges } from "@/app/admin/gamification/actions";
+import PageBanner from "@/components/layout/PageBanner";
 
 const renderIcon = (iconName: string, size: number) => {
   switch (iconName) {
@@ -50,35 +51,22 @@ export default function GamificationPage() {
 
   return (
     <div style={{ paddingBottom: "2rem" }}>
-      {/* Header Area */}
-      <div style={{ marginBottom: "3rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
-        <div style={{
-          width: "72px",
-          height: "72px",
-          background: "var(--color-purple)",
-          borderRadius: "var(--radius-brutal-sm)",
-          border: "3px solid var(--color-navy)",
-          boxShadow: "4px 4px 0px var(--color-navy)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0
-        }}>
-          <Trophy size={40} color="var(--color-white)" strokeWidth={2.5} />
-        </div>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            {t("dashboard.gamification.title")}
-          </h1>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-            {t("dashboard.gamification.desc")}
-          </p>
-        </div>
-      </div>
+      {/* Header Banner */}
+      <PageBanner
+        badgeText="PENCAPAIAN & LEVEL"
+        title="Tantangan & Lencana Finansial"
+        description="Raih lencana eksklusif, pertahankan streak pencatatan harian, dan tingkatkan level kedisiplinan keuanganmu."
+        rightCard={{
+          icon: <Trophy size={24} className="text-[#FFE100]" />,
+          label: "STATUS LEVEL",
+          value: `Level ${userData.level || 1} • ${userData.streak || 0} Hari Streak`,
+        }}
+        className="mb-4"
+      />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", marginBottom: "3rem" }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 items-stretch">
         {/* Streak HP Bar */}
-        <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", border: "3px solid var(--color-navy)", padding: "2rem" }}>
+        <div className="card-brutal animate-bounce-in" style={{ background: "var(--color-white)", border: "2.5px solid var(--color-navy)", borderRadius: "16px", boxShadow: "4px 4px 0px var(--color-navy)", padding: "1.25rem 1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
               <Flame size={24} color="var(--color-orange)" strokeWidth={2.5} />
@@ -92,14 +80,14 @@ export default function GamificationPage() {
           </div>
           <p style={{ marginTop: "1rem", fontSize: "0.9375rem", color: "var(--color-navy)", fontWeight: 600, margin: "1rem 0 0 0" }}>
             {userData.streak >= 7
-              ? <span style={{ color: "var(--color-purple)", fontWeight: 800 }}>🎉 Kamu sudah aktif 7 hari berturut-turut!</span>
+              ? <span style={{ color: "var(--color-purple)", fontWeight: 800 }}>Kamu sudah aktif 7 hari berturut-turut!</span>
               : <>{7 - userData.streak} {t("dashboard.gamification.daysLeftToBadge")} <span style={{ color: "var(--color-purple)", fontWeight: 800 }}>"{t("dashboard.gamification.badges.consistent.name")}"</span>{t("dashboard.gamification.keepItUp")}</>
             }
           </p>
         </div>
 
         {/* XP Progress */}
-        <div className="card-brutal animate-bounce-in" style={{ animationDelay: "100ms", background: "var(--color-white)", border: "3px solid var(--color-navy)", padding: "2rem" }}>
+        <div className="card-brutal animate-bounce-in" style={{ animationDelay: "100ms", background: "var(--color-white)", border: "2.5px solid var(--color-navy)", borderRadius: "16px", boxShadow: "4px 4px 0px var(--color-navy)", padding: "1.25rem 1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.375rem", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
               <Zap size={24} color="var(--color-purple)" strokeWidth={2.5} />

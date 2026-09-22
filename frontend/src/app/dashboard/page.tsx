@@ -1,539 +1,649 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
-  Wallet, 
-  Sparkles, 
+  Calendar, 
+  Bell, 
   User, 
-  Flame, 
-  HandCoins,
-  FileText,
-  ArrowRight,
-  ShieldAlert,
-  TrendingUp,
-  Target,
-  BarChart3,
-  Lock,
+  LogOut, 
+  Users, 
+  ArrowDownLeft, 
+  ArrowUpRight, 
+  CreditCard, 
+  PiggyBank, 
+  Wallet, 
+  Headphones, 
+  Coffee, 
+  ShoppingCart, 
+  Lightbulb, 
+  Camera, 
+  Check,
   CheckCircle2,
-  Compass
+  X,
+  ShieldCheck
 } from "lucide-react";
+import PageBanner from "@/components/layout/PageBanner";
 import { useTransactions } from "@/context/TransactionContext";
 import { useUser } from "@/context/UserContext";
-import { useLanguage } from "@/context/LanguageContext";
-import { aiApi } from "@/lib/api";
-import { translateCategoryName, translateTransactionDesc, translateClusterLabel } from "@/lib/translateCategory";
-
-interface FeatureCard {
-  href: string;
-  title: string;
-  desc: string;
-  color: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>;
-  warningOnly?: boolean; // hanya muncul/aktif jika warningTriggered
-}
+import { createClient } from "@/lib/supabase/client";
+import CashFlowTrendCard from "./components/CashFlowTrendCard";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { transactions } = useTransactions();
   const { userData } = useUser();
-  const { t } = useLanguage();
+  const supabase = createClient();
 
-  const [insight, setInsight] = useState<string | null>(null);
-  const [loadingInsight, setLoadingInsight] = useState(false);
-
-
-
-  useEffect(() => {
-    const fetchInsight = async () => {
-      setLoadingInsight(true);
-      try {
-        const res = await aiApi.getSpendingCluster({ user_id: userData.id || "guest" });
-        if (res && !res.is_mock && res.insight) {
-          setInsight(res.insight);
-        } else {
-          setInsight(t("dashboard.insightDesc"));
-        }
-      } catch {
-        setInsight(t("dashboard.insightDesc"));
-      } finally {
-        setLoadingInsight(false);
-      }
-    };
-    
-    // Only fetch if we have transactions to analyze
-    if (userData.id && transactions.length > 0) {
-      fetchInsight();
-    } else {
-      setInsight(t("dashboard.insightDesc"));
-    }
-  }, [userData.id, transactions.length, t]);
-
-  const featureCards: FeatureCard[] = [
-    {
-      href: "/dashboard/pre-purchase",
-      title: "Cek Pra-Beli (AI)",
-      desc: "Evaluasi risiko rencana belanja 7 fitur kontekstual ML sebelum checkout.",
-      color: "pink",
-      icon: ShieldAlert,
-    },
-    {
-      href: "/dashboard/transactions",
-      title: t("dashboard.transactions.title"),
-      desc: t("dashboard.transactions.desc"),
-      color: "purple",
-      icon: Wallet,
-    },
-    {
-      href: "/dashboard/planning",
-      title: "Perencanaan & Pagu",
-      desc: "Atur limit anggaran kategori bulanan dan target tabungan impian.",
-      color: "lime",
-      icon: Target,
-    },
-    {
-      href: "/dashboard/warnings",
-      title: t("dashboard.warnings.title"),
-      desc: t("dashboard.warnings.desc"),
-      color: "orange",
-      icon: Flame,
-      warningOnly: true,
-    },
-    {
-      href: "/dashboard/debt",
-      title: "Utang & Piutang",
-      desc: "Kelola catatan piutang dan kewajiban utang dengan pengingat jatuh tempo.",
-      color: "orange",
-      icon: HandCoins,
-    },
-    {
-      href: "/dashboard/reports",
-      title: "Laporan Finansial",
-      desc: "Visualisasi tren pengeluaran, rasio kebutuhan, dan ekspor laporan berkala.",
-      color: "purple",
-      icon: FileText,
-    },
-  ];
-
+  // Dynamic calculations with fallback to mockup values
   const totalPemasukan = transactions
     .filter(tx => tx.type === "pemasukan")
-    .reduce((sum, tx) => sum + tx.amount, 0);
+    .reduce((sum, tx) => sum + tx.amount, 0) || 5200000;
 
   const totalPengeluaran = transactions
     .filter(tx => tx.type === "pengeluaran")
-    .reduce((sum, tx) => sum + tx.amount, 0);
+    .reduce((sum, tx) => sum + tx.amount, 0) || 1450000;
 
-  const sisaSaldo = totalPemasukan - totalPengeluaran;
-  
-  // Get recent 4 transactions
-  const recentTransactions = transactions.slice(0, 4);
+  const sisaSaldo = totalPemasukan - totalPengeluaran; // Rp 3.750.000 default
 
   return (
-    <div style={{ paddingBottom: "2rem" }}>
-      {/* Welcome Section — simplified, no duplicate level/streak badges */}
-      <div style={{ marginBottom: "2rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <h1
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "2.5rem",
-            fontWeight: 800,
-            marginTop: "0.5rem",
-            marginBottom: "0.25rem",
-            color: "var(--color-navy)"
-          }}
-        >
-          {t("dashboard.greeting")}, <span style={{ color: "var(--color-purple)" }}>{userData.name.split(" ")[0]}!</span>
-        </h1>
-        <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", maxWidth: "600px", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          {t("dashboard.ready")}
-          <span className="badge-brutal badge-brutal--lime" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.2rem 0.6rem", fontSize: "0.75rem", textTransform: "uppercase" }}>
-            {translateClusterLabel(userData.label, t)}
-          </span>
-        </p>
-      </div>
-
-      {/* Quick Stats Grid */}
-      <div className="quick-stats-grid stagger-children">
-        <div className="card-brutal quick-stat-card">
-          <div className="landing-feature-card__icon-box" style={{ background: "var(--color-lime)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Flame size={24} color="var(--color-navy)" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>{userData.streak} {t("dashboard.streakDays")}</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.streakActive")}</div>
-          </div>
-        </div>
-        
-        <div className="card-brutal quick-stat-card">
-          <div className="landing-feature-card__icon-box" style={{ background: "var(--color-purple)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Wallet size={24} color="var(--color-white)" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>Rp {sisaSaldo.toLocaleString("id-ID")}</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.balance")}</div>
-          </div>
-        </div>
-
-        <div 
-          className="card-brutal quick-stat-card" 
-          style={{ 
-            border: userData.warningTriggered ? "3px solid var(--color-pink)" : undefined,
-            boxShadow: userData.warningTriggered ? "4px 4px 0px var(--color-pink)" : undefined,
-            animation: userData.warningTriggered ? "pulse-border 1.5s ease-in-out infinite" : undefined,
-          }}
-        >
-          <div className="landing-feature-card__icon-box" style={{ 
-            background: userData.warningTriggered 
-              ? "var(--color-pink)" 
-              : userData.healthScore < 65 
-                ? "var(--color-orange)" 
-                : "var(--color-lime)",
-            width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", 
-            justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", 
-            border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" 
-          }}>
-            <Target size={24} color="var(--color-navy)" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ 
-              fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem",
-              color: userData.warningTriggered ? "var(--color-danger)" : "var(--color-navy)"
-            }}>
-              {userData.healthScore.toFixed(0)}/100
-            </div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>
-              {t("dashboard.healthScore")} {userData.warningTriggered 
-                ? <span style={{ color: "var(--color-danger)", fontWeight: 700 }}>{t("dashboard.healthCritical")}</span>
-                : userData.healthScore < 65
-                  ? <span style={{ color: "var(--color-orange)", fontWeight: 700 }}>{t("dashboard.healthWarning")}</span>
-                  : <span style={{ color: "green", fontWeight: 700 }}>{t("dashboard.healthSafe")}</span>
-              }
-            </div>
-          </div>
-        </div>
-
-        <div className="card-brutal quick-stat-card">
-          <div className="landing-feature-card__icon-box" style={{ background: "var(--color-white)", width: "48px", height: "48px", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <BarChart3 size={24} color="var(--color-navy)" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.5rem" }}>{transactions.length}</div>
-            <div style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>{t("dashboard.transactionsMonth")}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Pre-Purchase Check Highlight Banner (Core Feature) ── */}
-      <div 
-        className="card-brutal"
-        style={{
-          background: "var(--color-lime)",
-          border: "3px solid var(--color-navy)",
-          padding: "1.5rem 2rem",
-          borderRadius: "var(--radius-brutal)",
-          boxShadow: "5px 5px 0px var(--color-navy)",
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "1.5rem",
-          marginBottom: "2rem"
+    <div style={{ paddingBottom: "2.5rem", width: "100%" }} className="space-y-4">
+      <PageBanner
+        badgeText="PUSAT KENDALI"
+        title="Dasbor Keuangan Pintar"
+        description="Pantau arus kas, alokasi pos 50/30/20, dan status kesehatan finansialmu secara real-time."
+        rightCard={{
+          icon: <ShieldCheck size={24} className="text-[#16A34A]" />,
+          label: "STATUS FINANSIAL",
+          value: "Surplus Kas (Sehat)",
         }}
-      >
-        <div style={{ flex: "1 1 320px" }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            background: "var(--color-navy)",
-            color: "var(--color-lime)",
-            padding: "0.2rem 0.75rem",
-            borderRadius: "100px",
-            fontSize: "0.75rem",
-            fontWeight: 900,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            marginBottom: "0.5rem"
-          }}>
-            <Sparkles size={13} />
-            Fitur Inti CEAMIS 2.0 • AI Engine
-          </div>
-          <h3 style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "1.5rem",
-            fontWeight: 900,
-            margin: 0,
-            color: "var(--color-navy)"
-          }}>
-            Mau Beli Sesuatu? Cek Risikonya Dulu!
-          </h3>
-          <p style={{
-            color: "var(--color-navy)",
-            fontSize: "0.9375rem",
-            margin: "0.35rem 0 0 0",
-            fontWeight: 600,
-            maxWidth: "540px"
-          }}>
-            Evaluasi dampak belanja terhadap sisa pagu anggaran & target tabungan Anda dengan 7 parameter kontekstual sebelum checkout.
-          </p>
-        </div>
+      />
 
-        <Link
-          href="/dashboard/pre-purchase"
-          className="btn-brutal"
+      {/* ── 4 Bento KPI Metric Cards ── */}
+      <div className="dashboard-bento-grid">
+        {/* Card 1: PEMASUKAN (BULAN INI) */}
+        <div 
           style={{
-            background: "var(--color-purple)",
-            color: "var(--color-white)",
-            padding: "0.85rem 1.5rem",
-            fontWeight: 900,
-            fontSize: "0.95rem",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            textDecoration: "none",
-            flexShrink: 0
+            background: "#FFFFFF",
+            border: "2.5px solid var(--color-navy)",
+            borderRadius: "16px",
+            boxShadow: "4px 4px 0px var(--color-navy)",
+            padding: "1.15rem 1.25rem",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between"
           }}
         >
-          Cek Rencana Belanja
-          <ArrowRight size={18} />
-        </Link>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "2rem", marginBottom: "3rem" }}>
-        {/* Main Content Area */}
-        <div style={{ flex: "1 1 60%", minWidth: "300px" }}>
-          {/* Feature Cards Grid */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-            <h2
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              PEMASUKAN (BULAN INI)
+            </span>
+            <div 
               style={{
-                fontFamily: "var(--font-heading)",
-                fontSize: "1.5rem",
-                margin: 0,
+                width: "28px",
+                height: "28px",
+                background: "var(--color-lime)",
+                border: "1.5px solid var(--color-navy)",
+                borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
-                gap: "0.75rem"
+                justifyContent: "center"
               }}
             >
-              <div style={{ background: "var(--color-purple)", width: "36px", height: "36px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-                <Compass size={20} color="var(--color-white)" strokeWidth={2.5} />
-              </div>
-              {t("dashboard.exploreFeatures")}
-            </h2>
+              <Check size={16} color="var(--color-navy)" strokeWidth={3} />
+            </div>
           </div>
-          
-          <div
-            className="stagger-children"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(max(280px, calc((100% - 2.5rem) / 3)), 1fr))",
-              gap: "1.25rem",
-            }}
-          >
-            {featureCards.map((card) => {
-              const isWarning   = card.warningOnly;
-              const isTriggered = userData.warningTriggered;
-              const isLocked    = isWarning && !isTriggered;
 
-              // Warning card — locked state (score >= 40)
-              if (isLocked) {
-                return (
-                  <div
-                    key={card.href}
-                    title={`${t("dashboard.warnings.lockedPrefix")} ${userData.healthScore.toFixed(0)}/100)`}
-                    style={{
-                      textDecoration: "none",
-                      cursor: "not-allowed",
-                      opacity: 0.45,
-                      userSelect: "none",
-                    }}
-                  >
-                    <div
-                      className="card-brutal"
-                      style={{
-                        height: "100%", padding: "1.5rem", display: "flex",
-                        flexDirection: "column", gap: "1.25rem",
-                        border: "3px dashed rgba(10,25,47,0.3)",
-                        boxShadow: "none",
-                        background: "rgba(10,25,47,0.04)",
-                      }}
-                    >
-                      <div style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px dashed rgba(10,25,47,0.3)", background: "rgba(10,25,47,0.06)" }}>
-                        <Lock size={28} strokeWidth={2.5} color="rgba(10,25,47,0.4)" />
-                      </div>
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, color: "rgba(10,25,47,0.5)" }}>
-                            {card.title}
-                          </h3>
-                          <span style={{ fontSize: "0.65rem", fontWeight: 800, background: "rgba(10,25,47,0.08)", border: "1px solid rgba(10,25,47,0.2)", borderRadius: "100px", padding: "0.1rem 0.5rem", color: "rgba(10,25,47,0.4)" }}>
-                            {t("dashboard.locked")}
-                          </span>
-                        </div>
-                        <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "rgba(10,25,47,0.4)", margin: 0, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                          {t("dashboard.lockedDesc")}{userData.healthScore.toFixed(0)}/100 <CheckCircle2 size={14} />
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              Rp {totalPemasukan.toLocaleString("id-ID")}
+            </span>
+          </div>
 
-              // Warning card — active state (score < 40, warning triggered)
-              if (isWarning && isTriggered) {
-                return (
-                  <Link key={card.href} href={card.href} style={{ textDecoration: "none" }}>
-                    <div
-                      className="card-brutal animate-shake"
-                      style={{
-                        height: "100%", padding: "1.5rem", display: "flex",
-                        flexDirection: "column", gap: "1.25rem",
-                        background: "var(--color-pink)",
-                        border: "4px solid var(--color-navy)",
-                        boxShadow: "6px 6px 0px var(--color-navy)",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <div style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", background: "var(--color-white)" }}>
-                          <card.icon size={28} strokeWidth={2.5} color="var(--color-pink)" />
-                        </div>
-                        <span className="animate-pulse" style={{ width: "12px", height: "12px", borderRadius: "50%", background: "var(--color-navy)" }} />
-                      </div>
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                          <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", margin: 0, color: "var(--color-navy)" }}>
-                            {card.title}
-                          </h3>
-                          <span style={{ fontSize: "0.65rem", fontWeight: 900, background: "var(--color-navy)", borderRadius: "100px", padding: "0.1rem 0.5rem", color: "var(--color-pink)" }}>
-                            {t("dashboard.active")}
-                          </span>
-                        </div>
-                        <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-navy)", margin: 0, fontWeight: 600 }}>
-                          {t("dashboard.activeDesc")}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              }
-
-              // Normal cards
-              return (
-                <Link key={card.href} href={card.href} style={{ textDecoration: "none" }}>
-                  <div className={`landing-feature-card card-brutal landing-feature-card--${card.color}`} style={{ height: "100%", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                    <div className="landing-feature-card__icon-box" style={{ width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", background: `var(--color-${card.color})` }}>
-                      <card.icon size={28} strokeWidth={2.5} color="var(--color-navy)" />
-                    </div>
-                    <div>
-                      <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "0.5rem", color: "var(--color-navy)" }}>
-                        {card.title}
-                      </h3>
-                      <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--color-text-muted)", margin: 0 }}>{card.desc}</p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span 
+              style={{
+                background: "#F1F5F9",
+                border: "1px solid #CBD5E1",
+                borderRadius: "999px",
+                padding: "2px 8px",
+                fontSize: "0.68rem",
+                fontWeight: 700,
+                color: "var(--color-navy)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px"
+              }}
+            >
+              <ArrowUpRight size={13} strokeWidth={2.5} /> +12% vs bln lalu
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+              3 transaksi
+            </span>
           </div>
         </div>
 
-        {/* Sidebar Area (Recent Activity) */}
-        <div style={{ flex: "1 1 30%", minWidth: "280px" }}>
-          <div className="card-brutal" style={{ padding: "1.5rem", height: "100%", display: "flex", flexDirection: "column", background: "var(--color-white)" }}>
-            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.75rem", fontWeight: 900 }}>
-              <div style={{
-                width: "40px", height: "40px", background: "var(--color-purple)", border: "2.5px solid var(--color-navy)",
-                borderRadius: "var(--radius-brutal-sm)", boxShadow: "3px 3px 0px var(--color-navy)",
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-              }}>
-                <TrendingUp size={20} color="var(--color-white)" strokeWidth={2.5} />
-              </div>
-              {t("dashboard.recentActivity")}
-            </h3>
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1 }}>
-              {recentTransactions.length > 0 ? recentTransactions.map((trx, i) => (
-                <div key={trx.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "1.25rem", borderBottom: i !== recentTransactions.length - 1 ? "2px solid rgba(10, 25, 47, 0.1)" : "none" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ 
-                      width: "44px", 
-                      height: "44px", 
-                      borderRadius: "var(--radius-brutal-sm)", 
-                      background: trx.type === 'pemasukan' ? 'var(--color-lime)' : 'var(--color-orange)',
-                      border: "2px solid var(--color-navy)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "2px 2px 0px var(--color-navy)"
-                    }}>
-                      {trx.type === 'pemasukan' ? <Wallet size={20} color="var(--color-navy)" /> : <ShieldAlert size={20} color="var(--color-navy)" />}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--color-navy)" }}>{translateTransactionDesc(trx.desc || trx.description || "", t)}</div>
-                      <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", marginTop: "0.1rem" }}>{trx.date} • {translateCategoryName(trx.category, t)}</div>
-                    </div>
-                  </div>
-                  <div style={{ 
-                    fontWeight: 800, 
-                    fontFamily: "var(--font-heading)",
-                    color: trx.type === 'pemasukan' ? 'var(--color-navy)' : 'var(--color-danger)',
-                    fontSize: "1rem"
-                  }}>
-                    {trx.type === 'pemasukan' ? '+' : '-'}Rp {Math.abs(trx.amount).toLocaleString('id-ID')}
-                  </div>
-                </div>
-              )) : (
-                <div style={{ textAlign: "center", color: "var(--color-text-muted)", fontSize: "0.875rem", padding: "1rem" }}>{t("dashboard.noActivity")}</div>
-              )}
+        {/* Card 2: PENGELUARAN (BULAN INI) */}
+        <div 
+          style={{
+            background: "#FFFFFF",
+            border: "2.5px solid var(--color-navy)",
+            borderRadius: "16px",
+            boxShadow: "4px 4px 0px var(--color-navy)",
+            padding: "1.15rem 1.25rem",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between"
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              PENGELUARAN (BULAN INI)
+            </span>
+            <div 
+              style={{
+                width: "28px",
+                height: "28px",
+                background: "#FFE100",
+                border: "1.5px solid var(--color-navy)",
+                borderRadius: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <ArrowUpRight size={16} color="var(--color-navy)" strokeWidth={3} />
             </div>
+          </div>
 
-            <Link href="/dashboard/transactions" className="btn-brutal btn-brutal--secondary" style={{ marginTop: "1.5rem", textAlign: "center", display: "block", width: "100%" }}>
-              {t("dashboard.viewAllTrx")}
-            </Link>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              Rp {totalPengeluaran.toLocaleString("id-ID")}
+            </span>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", color: "#475569", fontWeight: 700 }}>
+              28% dari pagu Rp 5jt
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+              14 pos belanja
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: SISA PAGU AMAN */}
+        <div 
+          style={{
+            background: "#FFFFFF",
+            border: "2.5px solid var(--color-navy)",
+            borderRadius: "16px",
+            boxShadow: "4px 4px 0px var(--color-navy)",
+            padding: "1.15rem 1.25rem",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between"
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              SISA PAGU AMAN
+            </span>
+            <div 
+              style={{
+                width: "28px",
+                height: "28px",
+                background: "#E0F2FE",
+                border: "1.5px solid var(--color-navy)",
+                borderRadius: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <CreditCard size={16} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
+          </div>
+
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              Rp {sisaSaldo.toLocaleString("id-ID")}
+            </span>
+          </div>
+
+          <div>
+            {/* Dual Progress Bar */}
+            <div 
+              style={{
+                width: "100%",
+                height: "7px",
+                background: "#E2E8F0",
+                borderRadius: "999px",
+                border: "1.5px solid var(--color-navy)",
+                overflow: "hidden",
+                marginBottom: "0.35rem"
+              }}
+            >
+              <div style={{ width: "72%", height: "100%", background: "var(--color-lime)" }} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: "0.72rem", color: "#475569", fontWeight: 700 }}>
+                72% Tersedia
+              </span>
+              <span style={{ fontSize: "0.72rem", color: "#475569", fontWeight: 700 }}>
+                19 Hari Tersisa
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: TOTAL TABUNGAN & KAS */}
+        <div 
+          style={{
+            background: "#FFFFFF",
+            border: "2.5px solid var(--color-navy)",
+            borderRadius: "16px",
+            boxShadow: "4px 4px 0px var(--color-navy)",
+            padding: "1.15rem 1.25rem",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between"
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              TOTAL TABUNGAN & KAS
+            </span>
+            <div 
+              style={{
+                width: "28px",
+                height: "28px",
+                background: "#DBEAFE",
+                border: "1.5px solid var(--color-navy)",
+                borderRadius: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <PiggyBank size={16} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
+          </div>
+
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              Rp 62.358.000
+            </span>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span 
+              style={{
+                background: "var(--color-lime)",
+                border: "1.5px solid var(--color-navy)",
+                borderRadius: "6px",
+                padding: "2px 7px",
+                fontSize: "0.65rem",
+                fontWeight: 900,
+                color: "var(--color-navy)",
+                letterSpacing: "0.3px"
+              }}
+            >
+              DANA DARURAT: 6 BULAN
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#16A34A", fontWeight: 800 }}>
+              Sangat Aman
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Inline AI Insight Card */}
-      {insight && !loadingInsight && (
-        <div 
-          className="card-brutal"
-          style={{
-            background: "#FFF7ED",
-            border: "3px solid var(--color-navy)",
-            borderRadius: "var(--radius-brutal)",
-            padding: "1.5rem 2rem",
-            boxShadow: "5px 5px 0px var(--color-navy)",
-            marginTop: "1.5rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "1.25rem",
-          }}
-        >
+      {/* ── Main 2-Column Section ── */}
+      <div className="dashboard-main-grid">
+        {/* ── Left Column: Tren Arus Kas Interaktif ── */}
+        <CashFlowTrendCard />
+
+        {/* ── Right Column: Aktivitas Terakhir & Aturan Anti-FOMO ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", flex: "1 1 38%", minWidth: "300px", height: "100%" }}>
+          {/* Card 1: Aktivitas Terakhir */}
           <div 
             style={{
-              width: "48px",
-              height: "48px",
-              background: "var(--color-orange)",
-              borderRadius: "var(--radius-brutal-sm)",
-              border: "2px solid var(--color-navy)",
-              boxShadow: "2px 2px 0px var(--color-navy)",
+              background: "#FFFFFF",
+              border: "2.5px solid var(--color-navy)",
+              borderRadius: "16px",
+              boxShadow: "4px 4px 0px var(--color-navy)",
+              padding: "1.25rem 1.5rem",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              flex: 1,
+            }}
+          >
+            <div>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.1rem" }}>
+                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 900, color: "var(--color-navy)", margin: 0 }}>
+                  Aktivitas Terakhir
+                </h3>
+                <Link 
+                  href="/dashboard/history" 
+                  style={{ 
+                    fontSize: "0.75rem", 
+                    fontWeight: 800, 
+                    color: "#0284C7", 
+                    textDecoration: "none" 
+                  }}
+                >
+                  Lihat Semua →
+                </Link>
+              </div>
+
+              {/* 4 Activity Items */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {/* 1. Gaji Pokok PT Teknologi */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div 
+                      style={{
+                        width: "38px",
+                        height: "38px",
+                        background: "var(--color-lime)",
+                        border: "2px solid var(--color-navy)",
+                        borderRadius: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0
+                      }}
+                    >
+                      <Wallet size={18} color="var(--color-navy)" strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>
+                        Gaji Pokok PT Teknologi
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, marginTop: "2px" }}>
+                        01 Sep 2026 • Salary / Primary
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: "0.95rem", fontWeight: 900, color: "var(--color-navy)" }}>
+                      +Rp 5.200.000
+                    </div>
+                    <span 
+                      style={{
+                        background: "var(--color-lime)",
+                        border: "1.5px solid var(--color-navy)",
+                        borderRadius: "4px",
+                        padding: "1px 6px",
+                        fontSize: "0.62rem",
+                        fontWeight: 900,
+                        color: "var(--color-navy)",
+                        display: "inline-block",
+                        marginTop: "2px"
+                      }}
+                    >
+                      INCOME
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Apple Music & iCloud */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div 
+                      style={{
+                        width: "38px",
+                        height: "38px",
+                        background: "#FFE100",
+                        border: "2px solid var(--color-navy)",
+                        borderRadius: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0
+                      }}
+                    >
+                      <Headphones size={18} color="var(--color-navy)" strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>
+                        Apple Music & iCloud
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, marginTop: "2px" }}>
+                        Kemarin 14:20 • Langganan
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: "0.95rem", fontWeight: 900, color: "#E11D48" }}>
+                      -Rp 169.000
+                    </div>
+                    <span 
+                      style={{
+                        background: "#F8FAFC",
+                        border: "1.5px solid var(--color-navy)",
+                        borderRadius: "4px",
+                        padding: "1px 6px",
+                        fontSize: "0.62rem",
+                        fontWeight: 900,
+                        color: "#475569",
+                        display: "inline-block",
+                        marginTop: "2px"
+                      }}
+                    >
+                      WANTS
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. Starbucks Reserve */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div 
+                      style={{
+                        width: "38px",
+                        height: "38px",
+                        background: "#FFE4E6",
+                        border: "2px solid var(--color-navy)",
+                        borderRadius: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0
+                      }}
+                    >
+                      <Coffee size={18} color="#E11D48" strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>
+                          Starbucks Reserve
+                        </span>
+                        <span 
+                          style={{
+                            background: "#B91C1C",
+                            color: "#FFFFFF",
+                            fontSize: "0.58rem",
+                            fontWeight: 900,
+                            padding: "1px 5px",
+                            borderRadius: "4px",
+                            lineHeight: 1.1
+                          }}
+                        >
+                          Impulsif
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, marginTop: "2px" }}>
+                        04 Sep 10:15 • F&B Cafe
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: "0.95rem", fontWeight: 900, color: "#E11D48" }}>
+                      -Rp 72.000
+                    </div>
+                    <span 
+                      style={{
+                        background: "#FFE100",
+                        border: "1.5px solid var(--color-navy)",
+                        borderRadius: "4px",
+                        padding: "1px 6px",
+                        fontSize: "0.62rem",
+                        fontWeight: 900,
+                        color: "var(--color-navy)",
+                        display: "inline-block",
+                        marginTop: "2px"
+                      }}
+                    >
+                      F&B
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Superindo Bahan Masak */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div 
+                      style={{
+                        width: "38px",
+                        height: "38px",
+                        background: "#E0F2FE",
+                        border: "2px solid var(--color-navy)",
+                        borderRadius: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0
+                      }}
+                    >
+                      <ShoppingCart size={18} color="#0284C7" strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--color-navy)" }}>
+                        Superindo Bahan Masak
+                      </div>
+                      <div style={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, marginTop: "2px" }}>
+                        03 Sep 19:40 • Needs Pokok
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: "0.95rem", fontWeight: 900, color: "#E11D48" }}>
+                      -Rp 420.000
+                    </div>
+                    <span 
+                      style={{
+                        background: "var(--color-lime)",
+                        border: "1.5px solid var(--color-navy)",
+                        borderRadius: "4px",
+                        padding: "1px 6px",
+                        fontSize: "0.62rem",
+                        fontWeight: 900,
+                        color: "var(--color-navy)",
+                        display: "inline-block",
+                        marginTop: "2px"
+                      }}
+                    >
+                      NEEDS
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Button: Scan Struk Baru Sekarang */}
+            <Link 
+              href="/dashboard/transactions"
+              style={{
+                textDecoration: "none",
+                marginTop: "1.25rem",
+                display: "block"
+              }}
+            >
+              <div 
+                className="btn-brutal"
+                style={{
+                  background: "#FFFFFF",
+                  border: "2.5px solid var(--color-navy)",
+                  borderRadius: "10px",
+                  boxShadow: "3px 3px 0px var(--color-navy)",
+                  padding: "0.65rem 1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                  color: "var(--color-navy)",
+                  fontWeight: 800,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <Camera size={16} strokeWidth={2.5} />
+                <span>Scan Struk Baru Sekarang</span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Card 2: ATURAN 24 JAM ANTI-FOMO */}
+          <div 
+            style={{
+              background: "var(--color-lime)",
+              border: "2.5px solid var(--color-navy)",
+              borderRadius: "14px",
+              boxShadow: "3px 3px 0px var(--color-navy)",
+              padding: "1rem 1.25rem",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
+              gap: "1rem",
               flexShrink: 0,
             }}
           >
-            <Sparkles size={24} color="var(--color-navy)" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "0.8rem", fontWeight: 900, textTransform: "uppercase", color: "var(--color-orange)", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>
-              Insight Keuangan Cerdas • XAI Analysis
+            <div 
+              style={{
+                width: "44px",
+                height: "44px",
+                background: "#FFFFFF",
+                border: "2px solid var(--color-navy)",
+                borderRadius: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}
+            >
+              <Lightbulb size={24} color="var(--color-navy)" strokeWidth={2.5} />
             </div>
-            <p style={{ fontSize: "0.95rem", color: "var(--color-navy)", margin: 0, lineHeight: 1.5, fontWeight: 700 }}>
-              &quot;{insight.replace(/^"|"$/g, "")}&quot;
-            </p>
+            <div>
+              <div 
+                style={{ 
+                  fontSize: "0.82rem", 
+                  fontWeight: 900, 
+                  color: "var(--color-navy)", 
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px"
+                }}
+              >
+                ATURAN 24 JAM ANTI-FOMO
+              </div>
+              <p 
+                style={{ 
+                  fontSize: "0.78rem", 
+                  fontWeight: 600, 
+                  color: "var(--color-navy)", 
+                  margin: "4px 0 0 0",
+                  lineHeight: 1.35
+                }}
+              >
+                Setiap ada promo flash sale, simpan di keranjang dan tunggu 24 jam. 70% rasa ingin beli biasanya hilang keesokan harinya!
+              </p>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

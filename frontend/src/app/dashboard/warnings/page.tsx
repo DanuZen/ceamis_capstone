@@ -6,6 +6,7 @@ import { useUser } from "@/context/UserContext";
 import { useGuest } from "@/context/GuestContext";
 import { useLanguage } from "@/context/LanguageContext";
 import GuestLockOverlay from "@/components/ui/GuestLockOverlay";
+import PageBanner from "@/components/layout/PageBanner";
 
 export default function WarningsPage() {
   const { userData } = useUser();
@@ -28,9 +29,9 @@ export default function WarningsPage() {
         <div style={{
           width: "100px", height: "100px",
           background: "var(--color-lime)",
-          borderRadius: "var(--radius-brutal)",
-          border: "4px solid var(--color-navy)",
-          boxShadow: "8px 8px 0px var(--color-navy)",
+          borderRadius: "16px",
+          border: "2.5px solid var(--color-navy)",
+          boxShadow: "4px 4px 0px var(--color-navy)",
           display: "flex", alignItems: "center", justifyContent: "center",
           marginBottom: "2rem"
         }}>
@@ -121,74 +122,151 @@ export default function WarningsPage() {
 
   return (
     <div style={{ paddingBottom: "3rem" }}>
-      {/* Header Area */}
-      <div style={{ marginBottom: "3rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
-        <div style={{
-          width: "72px",
-          height: "72px",
-          background: "var(--color-pink)",
-          borderRadius: "var(--radius-brutal-sm)",
-          border: "3px solid var(--color-navy)",
-          boxShadow: "4px 4px 0px var(--color-navy)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0
-        }}>
-          <AlertTriangle size={40} color="var(--color-navy)" strokeWidth={2.5} />
-        </div>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2.25rem", marginBottom: "0.25rem", color: "var(--color-navy)", fontWeight: 800 }}>
-            {t("dashboard.warnings.title")}
-          </h1>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "1.0625rem", margin: 0, fontWeight: 500 }}>
-            {t("dashboard.warnings.desc")}
-          </p>
-        </div>
-      </div>
+      {/* Header Banner */}
+      <PageBanner
+        badgeText="SISTEM PERINGATAN DINI"
+        title={t("dashboard.warnings.title")}
+        description={t("dashboard.warnings.desc")}
+        rightCard={{
+          icon: <HeartPulse size={20} className="text-[#FF5233]" />,
+          label: "SKOR KESEHATAN",
+          value: `${userData.healthScore.toFixed(0)}/100`
+        }}
+        className="mb-6"
+      />
 
       {/* Top Row: 4 Stats Cards */}
-      <div className="stagger-children" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2.5rem" }}>
+      <div className="dashboard-bento-grid stagger-children" style={{ marginBottom: "1.5rem" }}>
         {/* Health Score — dinamis dari Model 1 */}
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem", border: "3px solid var(--color-pink)", boxShadow: "4px 4px 0px var(--color-pink)" }}>
-          <div style={{ background: "var(--color-pink)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <HeartPulse size={24} color="var(--color-navy)" strokeWidth={2.5} className="animate-pulse" />
-          </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem", color: "var(--color-danger)" }}>
-              {userData.healthScore.toFixed(0)}/100
+        <div style={{
+          background: "#FFFFFF",
+          border: "2.5px solid var(--color-navy)",
+          borderRadius: "16px",
+          boxShadow: "4px 4px 0px var(--color-navy)",
+          padding: "1.15rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {t("dashboard.warnings.healthScore")}
+            </span>
+            <div style={{ width: "28px", height: "28px", background: "var(--color-pink)", border: "1.5px solid var(--color-navy)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <HeartPulse size={16} color="var(--color-navy)" strokeWidth={2.5} className="animate-pulse" />
             </div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.warnings.healthScore")}</div>
+          </div>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-danger)" }}>
+              {userData.healthScore.toFixed(0)}/100
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ background: "#FEE2E2", border: "1px solid #FCA5A5", borderRadius: "999px", padding: "2px 8px", fontSize: "0.68rem", fontWeight: 700, color: "#DC2626", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+              Status Kritis
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+              Model 1 AI
+            </span>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div style={{ background: "var(--color-orange)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <AlertTriangle size={24} color="var(--color-navy)" strokeWidth={2.5} />
+        <div style={{
+          background: "#FFFFFF",
+          border: "2.5px solid var(--color-navy)",
+          borderRadius: "16px",
+          boxShadow: "4px 4px 0px var(--color-navy)",
+          padding: "1.15rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {t("dashboard.warnings.totalWarnings")}
+            </span>
+            <div style={{ width: "28px", height: "28px", background: "#FFE100", border: "1.5px solid var(--color-navy)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <AlertTriangle size={16} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
           </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{warnings.length} {t("dashboard.warnings.activeWarnings")}</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.warnings.totalWarnings")}</div>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              {warnings.length} {t("dashboard.warnings.activeWarnings")}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", color: "#DC2626", fontWeight: 700 }}>
+              Perhatian Segera
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+              Prioritas Tinggi
+            </span>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div style={{ background: "var(--color-lime)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Shield size={24} color="var(--color-navy)" strokeWidth={2.5} />
+        <div style={{
+          background: "#FFFFFF",
+          border: "2.5px solid var(--color-navy)",
+          borderRadius: "16px",
+          boxShadow: "4px 4px 0px var(--color-navy)",
+          padding: "1.15rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {t("dashboard.warnings.tipsAvailable")}
+            </span>
+            <div style={{ width: "28px", height: "28px", background: "var(--color-lime)", border: "1.5px solid var(--color-navy)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Shield size={16} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
           </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>{warnings.length} {t("dashboard.warnings.solutions")}</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.warnings.tipsAvailable")}</div>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              {warnings.length} {t("dashboard.warnings.solutions")}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ background: "#DCFCE7", border: "1px solid #86EFAC", borderRadius: "999px", padding: "2px 8px", fontSize: "0.68rem", fontWeight: 700, color: "#16A34A" }}>
+              Tersedia Solusi
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+              Panduan Cami
+            </span>
           </div>
         </div>
 
-        <div className="card-brutal" style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1.25rem" }}>
-          <div style={{ background: "var(--color-purple)", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--radius-brutal-sm)", border: "2px solid var(--color-navy)", boxShadow: "2px 2px 0px var(--color-navy)" }}>
-            <Zap size={24} color="var(--color-white)" strokeWidth={2.5} />
+        <div style={{
+          background: "#FFFFFF",
+          border: "2.5px solid var(--color-navy)",
+          borderRadius: "16px",
+          boxShadow: "4px 4px 0px var(--color-navy)",
+          padding: "1.15rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#475569", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {t("dashboard.warnings.accountStatus")}
+            </span>
+            <div style={{ width: "28px", height: "28px", background: "#DBEAFE", border: "1.5px solid var(--color-navy)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Zap size={16} color="var(--color-navy)" strokeWidth={2.5} />
+            </div>
           </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.25rem" }}>LVL {userData.level}</div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>{t("dashboard.warnings.accountStatus")}</div>
+          <div style={{ margin: "0.65rem 0" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 900, color: "var(--color-navy)" }}>
+              LVL {userData.level}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ background: "var(--color-lime)", border: "1.5px solid var(--color-navy)", borderRadius: "6px", padding: "2px 7px", fontSize: "0.65rem", fontWeight: 900, color: "var(--color-navy)", letterSpacing: "0.3px" }}>
+              STREAK: {userData.streak} HARI
+            </span>
+            <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+              XP: {userData.xp}
+            </span>
           </div>
         </div>
       </div>
@@ -199,7 +277,7 @@ export default function WarningsPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
             {/* Impulsive Health Bar */}
             <div className="animate-slide-up" style={{ animationDelay: "100ms" }}>
-              <div className="card-brutal" style={{ background: "var(--color-navy)", border: "4px solid var(--color-navy)", padding: "2.5rem", color: "var(--color-white)", boxShadow: `10px 10px 0px var(--color-pink)`, position: "relative", overflow: "hidden" }}>
+              <div className="card-brutal" style={{ background: "var(--color-navy)", border: "2.5px solid var(--color-navy)", borderRadius: "16px", padding: "1.25rem 1.5rem", color: "var(--color-white)", boxShadow: "4px 4px 0px var(--color-navy)", position: "relative", overflow: "hidden" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", position: "relative", zIndex: 2 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                     <HeartPulse size={40} color="var(--color-pink)" className="animate-pulse" />
@@ -243,7 +321,9 @@ export default function WarningsPage() {
                       className={`card-brutal ${w.severity === "high" ? "animate-shake" : ""}`} 
                       style={{ 
                         background: "var(--color-white)", 
-                        border: `4px solid var(--color-navy)`, 
+                        border: `2.5px solid var(--color-navy)`, 
+                        borderRadius: "16px",
+                        boxShadow: "4px 4px 0px var(--color-navy)",
                         padding: 0,
                         display: "flex",
                         flexDirection: "column",
@@ -251,14 +331,14 @@ export default function WarningsPage() {
                         ["--card-shadow-color" as any]: style.bg
                       }}
                     >
-                      <div style={{ background: style.bg, padding: "1rem 1.5rem", borderBottom: "3px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ background: style.bg, padding: "1rem 1.5rem", borderBottom: "2.5px solid var(--color-navy)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <span className={`badge-brutal ${badge.cls}`} style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.75rem", padding: "0.3rem 0.6rem", border: "2px solid var(--color-navy)", background: "var(--color-white)", color: "var(--color-navy)" }}>
                           <style.icon size={14} strokeWidth={3} /> {badge.text}
                         </span>
                         <span style={{ fontSize: "0.75rem", color: "var(--color-navy)", fontWeight: 800 }}>{w.time}</span>
                       </div>
                       
-                      <div style={{ padding: "1.5rem" }}>
+                      <div style={{ padding: "1.25rem 1.5rem" }}>
                         <p style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.0625rem", lineHeight: 1.4, marginBottom: "1.5rem", color: "var(--color-navy)", flex: 1 }}>
                           "{w.message}"
                         </p>
@@ -291,7 +371,7 @@ export default function WarningsPage() {
 
         {/* Sidebar Summary (Right) */}
         <div style={{ flex: "1 1 25%", minWidth: "280px" }}>
-          <div className="card-brutal" style={{ background: "var(--color-white)", border: "4px solid var(--color-navy)", padding: "2rem", boxShadow: "8px 8px 0px var(--color-navy)", height: "100%" }}>
+          <div className="card-brutal" style={{ background: "var(--color-white)", border: "2.5px solid var(--color-navy)", borderRadius: "16px", padding: "1.25rem 1.5rem", boxShadow: "4px 4px 0px var(--color-navy)", height: "100%" }}>
             <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", marginBottom: "2rem", fontWeight: 900, color: "var(--color-navy)" }}>{t("dashboard.warnings.statusSummary")}</h3>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
