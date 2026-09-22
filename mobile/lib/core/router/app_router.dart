@@ -13,11 +13,27 @@ import '../../features/pre_purchase/screens/pre_purchase_result_screen.dart';
 import '../../features/history_report/screens/history_report_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../widgets/main_shell.dart';
+import '../../features/splash/screens/splash_screen.dart';
+import '../../features/onboarding/screens/mobile_onboarding_screen.dart';
 
 /// CEAMIS GoRouter configuration
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/splash',
   routes: [
+    // Splash screen
+    GoRoute(
+      path: '/splash',
+      name: 'splash',
+      builder: (context, state) => const SplashScreen(),
+    ),
+
+    // Onboarding screen
+    GoRoute(
+      path: '/onboarding',
+      name: 'onboarding',
+      builder: (context, state) => const MobileOnboardingScreen(),
+    ),
+
     // Profile screen
     GoRoute(
       path: '/profile',

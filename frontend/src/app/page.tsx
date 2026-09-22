@@ -4,153 +4,28 @@ import Link from "next/link";
 import { 
   Wallet, 
   Sparkles, 
-  Trophy, 
-  Flame, 
-  Bot, 
-  BookOpen,
+  ShieldAlert, 
+  BrainCircuit, 
   ArrowRight,
-  CheckCircle2,
-  ChevronRight,
   TrendingUp,
   Target,
   Zap,
-  Eye,
-  PiggyBank,
-  ShieldAlert,
-  GraduationCap,
-  UserPlus,
-  PenLine,
-  BrainCircuit,
-  Rocket,
-  ArrowUp
+  ArrowUp,
+  ScanLine,
+  Clock,
+  Check,
+  X,
+  Smartphone,
+  QrCode,
+  Download,
+  Layers,
+  ShoppingBag,
+  ExternalLink,
+  ChevronDown
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-
-const getFeatures = (t: any) => [
-  {
-    title: t("landing.feature1Title"),
-    desc: t("landing.feature1Desc"),
-    icon: Wallet,
-    color: "purple"
-  },
-  {
-    title: t("landing.feature2Title"),
-    desc: t("landing.feature2Desc"),
-    icon: Sparkles,
-    color: "lime"
-  },
-  {
-    title: t("landing.feature3Title"),
-    desc: t("landing.feature3Desc"),
-    icon: Trophy,
-    color: "orange"
-  },
-  {
-    title: t("landing.feature4Title"),
-    desc: t("landing.feature4Desc"),
-    icon: Flame,
-    color: "purple"
-  },
-  {
-    title: t("landing.feature5Title"),
-    desc: t("landing.feature5Desc"),
-    icon: Bot,
-    color: "lime"
-  },
-  {
-    title: t("landing.feature6Title"),
-    desc: t("landing.feature6Desc"),
-    icon: BookOpen,
-    color: "orange"
-  },
-];
-
-const getSteps = (t: any) => [
-  { num: "01", title: t("landing.step1Title"), desc: t("landing.step1Desc"), icon: UserPlus, color: "purple" },
-  { num: "02", title: t("landing.step2Title"), desc: t("landing.step2Desc"), icon: PenLine, color: "lime" },
-  { num: "03", title: t("landing.step3Title"), desc: t("landing.step3Desc"), icon: BrainCircuit, color: "orange" },
-  { num: "04", title: t("landing.step4Title"), desc: t("landing.step4Desc"), icon: Rocket, color: "purple" },
-];
-
-const getLeaderboardData = () => [
-  { rank: 1, name: "Rina S.", streak: 45, badge: 12, score: 9800, medal: "gold" },
-  { rank: 2, name: "Budi P.", streak: 38, badge: 10, score: 8650, medal: "silver" },
-  { rank: 3, name: "Sari M.", streak: 32, badge: 9, score: 7920, medal: "bronze" },
-  { rank: 4, name: "Andi K.", streak: 28, badge: 7, score: 6540, medal: "" },
-  { rank: 5, name: "Dina W.", streak: 25, badge: 6, score: 5890, medal: "" },
-];
-
-const getEdukasiPoints = (t: any) => [
-  {
-    title: t("landing.eduPoint1Title"),
-    desc: t("landing.eduPoint1Desc"),
-    icon: Eye,
-    color: "purple",
-    stat: "68%",
-    statLabel: t("landing.eduPoint1Stat"),
-  },
-  {
-    title: t("landing.eduPoint2Title"),
-    desc: t("landing.eduPoint2Desc"),
-    icon: PiggyBank,
-    color: "lime",
-    stat: "10-20%",
-    statLabel: t("landing.eduPoint2Stat"),
-  },
-  {
-    title: t("landing.eduPoint3Title"),
-    desc: t("landing.eduPoint3Desc"),
-    icon: ShieldAlert,
-    color: "orange",
-    stat: "73%",
-    statLabel: t("landing.eduPoint3Stat"),
-  },
-  {
-    title: t("landing.eduPoint4Title"),
-    desc: t("landing.eduPoint4Desc"),
-    icon: GraduationCap,
-    color: "purple",
-    stat: "<50%",
-    statLabel: t("landing.eduPoint4Stat"),
-  },
-];
-
-const getTestimonials = (t: any) => [
-  { 
-    text: t("landing.testi1"), 
-    name: "Jessica A.", 
-    handle: "@jess_finance", 
-    color: "purple" 
-  },
-  { 
-    text: t("landing.testi2"), 
-    name: "Kevin R.", 
-    handle: "@kvn_mulyono", 
-    color: "lime" 
-  },
-  { 
-    text: t("landing.testi3"), 
-    name: "Sari K.", 
-    handle: "@sari_kurnia", 
-    color: "navy" 
-  },
-];
-
-const getFaqData = (t: any) => [
-  { 
-    q: t("landing.faq1Q"), 
-    a: t("landing.faq1A") 
-  },
-  { 
-    q: t("landing.faq2Q"), 
-    a: t("landing.faq2A") 
-  },
-  { 
-    q: t("landing.faq3Q"), 
-    a: t("landing.faq3A") 
-  },
-];
+import SplashScreen from "@/components/ui/SplashScreen";
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -167,14 +42,12 @@ function useInView(threshold = 0.15) {
 
 export default function LandingPage() {
   const hero = useInView();
-  const stats = useInView();
+  const comparison = useInView();
   const features = useInView();
-  const edukasi = useInView();
-  const leaderboard = useInView();
-  const testimonials = useInView();
   const steps = useInView();
+  const testimonials = useInView();
   const faq = useInView();
-  const cta = useInView();
+  const downloadHub = useInView();
 
   const { t, language, setLanguage } = useLanguage();
 
@@ -195,29 +68,78 @@ export default function LandingPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const getSteps = () => [
+    { num: "01", title: t("landing.step1Title"), desc: t("landing.step1Desc"), icon: ShoppingBag, color: "purple" },
+    { num: "02", title: t("landing.step2Title"), desc: t("landing.step2Desc"), icon: BrainCircuit, color: "lime" },
+    { num: "03", title: t("landing.step3Title"), desc: t("landing.step3Desc"), icon: ShieldAlert, color: "orange" },
+    { num: "04", title: t("landing.step4Title"), desc: t("landing.step4Desc"), icon: ScanLine, color: "purple" },
+  ];
+
+  const getTestimonials = () => [
+    { 
+      text: t("landing.testi1"), 
+      name: "Ziva A.", 
+      handle: "@ziva_creative", 
+      color: "purple",
+      role: "Gen-Z Freelancer"
+    },
+    { 
+      text: t("landing.testi2"), 
+      name: "Kevin R.", 
+      handle: "@kvn_tech", 
+      color: "lime",
+      role: "Tech Enthusiast"
+    },
+    { 
+      text: t("landing.testi3"), 
+      name: "Sari M.", 
+      handle: "@sari_finance", 
+      color: "navy",
+      role: "Mahasiswi & Budgeter"
+    },
+  ];
+
+  const getFaqData = () => [
+    { q: t("landing.faq1Q"), a: t("landing.faq1A") },
+    { q: t("landing.faq2Q"), a: t("landing.faq2A") },
+    { q: t("landing.faq3Q"), a: t("landing.faq3A") },
+    { q: t("landing.faq4Q"), a: t("landing.faq4A") },
+  ];
+
   return (
     <div className="landing-page">
-      {/* ── Top Banner ── */}
-      <div className="landing-banner">
+      {/* ── Web Splash Screen ── */}
+      <SplashScreen />
+
+      {/* ── Top Kinetic Marquee with Starbursts (Mentorix Style) ── */}
+      <div className="landing-banner" role="marquee" aria-label="CEAMIS Announcement">
         <div className="landing-banner__track">
-          {[...Array(10)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <div key={i} className="landing-banner__item">
-              <span className="landing-banner__dot" />
+              <span className="landing-banner__star">★</span>
               {t("landing.banner")}
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── Navbar ── */}
-      <nav className="landing-nav">
+      {/* ── Neo-Brutalist Navbar ── */}
+      <nav className="landing-nav" aria-label="Main Navigation">
         <div className="landing-nav__brand">
-          <div className="landing-nav__logo" style={{ width: "64px", height: "64px", background: "transparent", border: "none", boxShadow: "none" }}>
-            <img src="/images/logo_stroke_black.webp" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <div className="landing-nav__logo" style={{ width: "48px", height: "48px", background: "transparent", border: "none", boxShadow: "none" }}>
+            <img src="/images/logo_new.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           </div>
           <span className="landing-nav__name">CEAMIS</span>
         </div>
-        <div className="landing-nav__links">
+
+        <div className="landing-nav__links" style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
+          <div className="hidden-mobile-nav" style={{ display: "flex", gap: "1rem", marginRight: "1rem" }}>
+            <a href="#fitur" style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "0.875rem", color: "var(--color-navy)" }}>Fitur</a>
+            <a href="#komparasi" style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "0.875rem", color: "var(--color-navy)" }}>Mengapa CEAMIS?</a>
+            <a href="#faq" style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "0.875rem", color: "var(--color-navy)" }}>FAQ</a>
+          </div>
+
+          {/* Language Switcher */}
           <button 
             onClick={() => setLanguage(language === "id" ? "en" : "id")} 
             className="btn-brutal btn-brutal--sm"
@@ -225,216 +147,412 @@ export default function LandingPage() {
               padding: "0.4rem 0.75rem", fontSize: "0.85rem", fontWeight: 800,
               background: "var(--color-white)", border: "2px solid var(--color-navy)",
               boxShadow: "2px 2px 0px var(--color-navy)", display: "flex", alignItems: "center", gap: "0.4rem",
-              minWidth: "72px", justifyContent: "center"
+              minWidth: "70px", justifyContent: "center"
             }}
+            aria-label="Toggle language"
           >
             <img 
               src={language === "id" ? "https://flagcdn.com/w20/id.png" : "https://flagcdn.com/w20/gb.png"} 
               alt={language === "id" ? "Indonesian Flag" : "English Flag"} 
-              style={{ width: "20px", height: "auto", borderRadius: "2px", border: "1px solid rgba(0,0,0,0.1)" }} 
+              style={{ width: "18px", height: "auto", borderRadius: "2px" }} 
             />
             <span>{language === "id" ? "ID" : "EN"}</span>
           </button>
-          <Link href="/auth" className="btn-brutal btn-brutal--secondary btn-brutal--sm">
-            {t("navbar.login")}
+
+          {/* Admin Portal Link */}
+          <Link 
+            href="/admin/dashboard" 
+            className="btn-brutal btn-brutal--sm"
+            style={{ 
+              background: "#FFFFFF", 
+              color: "#0A192F",
+              border: "2px solid #0A192F",
+              boxShadow: "2px 2px 0px #0A192F",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.35rem"
+            }}
+          >
+            <ExternalLink size={14} />
+            <span>{t("landing.ctaAdmin")}</span>
           </Link>
-          <Link href="/auth/register" className="btn-brutal btn-brutal--primary btn-brutal--sm">
-            {t("navbar.register")}
-          </Link>
+
+          {/* Get App Mobile CTA */}
+          <a href="#download-app" className="btn-brutal btn-brutal--lime btn-brutal--sm" style={{ padding: "0.5rem 1rem" }}>
+            <Smartphone size={16} />
+            <span>{t("landing.ctaDownload")}</span>
+          </a>
         </div>
       </nav>
 
+      {/* ── Hero Section (Neobrutalism Mentorix Style) ── */}
       <section
         ref={hero.ref}
         className={`landing-hero ${hero.visible ? "landing-hero--visible" : ""}`}
       >
         <div className="landing-container landing-hero__wrapper">
           <div className="landing-hero__content">
-            <div className="badge-brutal badge-brutal--purple" style={{ marginBottom: '1.5rem', display: 'inline-flex' }}>
-              {t("landing.heroBadge")}
+            {/* Pill Badge */}
+            <div 
+              style={{ 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: "0.5rem",
+                padding: "0.45rem 1rem", 
+                background: "#D2FF28", 
+                border: "3px solid #0A192F", 
+                borderRadius: "100px",
+                boxShadow: "3px 3px 0px #0A192F",
+                fontFamily: "var(--font-heading)",
+                fontWeight: 900,
+                fontSize: "0.8rem",
+                letterSpacing: "0.05em",
+                color: "#0A192F",
+                marginBottom: "1.5rem"
+              }}
+            >
+              <Zap size={16} strokeWidth={3} />
+              <span>{t("landing.heroBadge")}</span>
             </div>
+
             <h1 className="landing-hero__title">
               {t("landing.heroTitle1")}<br />
               {t("landing.heroTitle2")}{" "}
               <span className="landing-hero__highlight">{t("landing.heroHighlight")}</span>{" "}
               {t("landing.heroTitle3")}
             </h1>
+
             <p className="landing-hero__subtitle">
               {t("landing.heroSubtitle")}
             </p>
+
             <div className="landing-hero__actions">
-              <Link href="/auth/register" className="btn-brutal btn-brutal--primary btn-brutal--lg">
-                {t("landing.ctaStart")}
-              </Link>
-              <Link href="#fitur" className="btn-brutal btn-brutal--secondary btn-brutal--lg">
-                {t("landing.ctaFeatures")}
-              </Link>
+              <a href="#download-app" className="btn-brutal btn-brutal--lime btn-brutal--lg" style={{ fontSize: "1rem" }}>
+                <Smartphone size={20} strokeWidth={2.5} />
+                <span>{t("landing.ctaDownload")} →</span>
+              </a>
+              <a href="#fitur" className="btn-brutal btn-brutal--yellow btn-brutal--lg" style={{ fontSize: "1rem" }}>
+                <Sparkles size={20} strokeWidth={2.5} />
+                <span>{language === "id" ? "Pelajari Fitur ↓" : "Explore Features ↓"}</span>
+              </a>
+            </div>
+
+            {/* Social Proof / Academic Badge */}
+            <div style={{ marginTop: "2rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <div 
+                style={{ 
+                  background: "#FFFFFF", 
+                  border: "2px solid #0A192F", 
+                  borderRadius: "12px", 
+                  padding: "0.5rem 0.85rem",
+                  boxShadow: "3px 3px 0px #0A192F",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.85rem",
+                  fontWeight: 700,
+                  color: "#0A192F"
+                }}
+              >
+                <span>⭐⭐⭐⭐⭐</span>
+                <span>{t("landing.socialProof")}</span>
+              </div>
             </div>
           </div>
 
+          {/* ── Hero Neo-Brutalism Phone Mockup (Live Intervention Preview) ── */}
           <div className="landing-hero__visual">
             <div className="landing-hero__blob" />
-            <img 
-              src="/images/hero.webp" 
-              alt="CEAMIS Illustration" 
-              className="landing-hero__main-img"
-            />
+
+            <div className="hero-phone">
+              <div className="hero-phone__screen">
+                <div className="hero-phone__notch" />
+                
+                <div className="hero-phone__header">
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF5252", border: "1.5px solid #0A192F" }} />
+                    <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "0.85rem", color: "#0A192F" }}>CEAMIS</span>
+                  </div>
+                  <div className="hero-phone__badge-live">
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#0A192F", display: "inline-block", animation: "pulse-dot 1.5s infinite" }} />
+                    <span>PERINGATAN INSTAN</span>
+                  </div>
+                </div>
+
+                <div className="hero-phone__body">
+                  <div style={{ fontSize: "0.75rem", color: "#718096", fontWeight: 700, textTransform: "uppercase" }}>
+                    Pengecekan Pra-Pembelian
+                  </div>
+
+                  {/* Planned Shopping Item */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#FFFFFF", border: "2px solid #0A192F", borderRadius: "10px", padding: "8px 10px" }}>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: "0.85rem", color: "#0A192F" }}>Sneakers Limited Edition</div>
+                      <div style={{ fontSize: "0.7rem", color: "#4A5568" }}>Kategori: Fashion & Lifestyle</div>
+                    </div>
+                    <div style={{ fontWeight: 900, fontSize: "0.95rem", color: "#E02424" }}>
+                      Rp 850.000
+                    </div>
+                  </div>
+
+                  {/* High Risk Alert Banner */}
+                  <div className="hero-phone__alert-box">
+                    <div className="hero-phone__alert-title">
+                      <ShieldAlert size={16} strokeWidth={3} />
+                      <span>Risiko Impulsif Tinggi!</span>
+                    </div>
+                    <div className="hero-phone__alert-desc">
+                      Nominal ini memakan <strong>85% sisa pagu jajan</strong> bulan ini. Jauh melebihi batas belanja harianmu.
+                    </div>
+                    <div className="hero-phone__impact-tag">
+                      ⚠️ Target Tabungan Laptop Anda <strong>Mundur 9 Hari!</strong>
+                    </div>
+                  </div>
+
+                  {/* Conscious Decision Buttons */}
+                  <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "#0A192F", marginTop: "2px" }}>
+                    PILIHAN TINDAKAN ANDA:
+                  </div>
+                  <div className="hero-phone__actions">
+                    <div className="hero-phone__btn-act hero-phone__btn-act--warn">
+                      Tunda Beli
+                    </div>
+                    <div className="hero-phone__btn-act">
+                      Ubah Nominal
+                    </div>
+                    <div className="hero-phone__btn-act hero-phone__btn-act--primary">
+                      Lanjut
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Floating Badges */}
-            <div className="landing-hero__float landing-hero__float--1">
-              <Zap size={18} strokeWidth={3} /> Level 12 Unlocked
+            <div className="landing-hero__float landing-hero__float--1" style={{ background: "#D2FF28", color: "#0A192F" }}>
+              <Clock size={16} strokeWidth={3} /> Pemeriksaan Seketika
             </div>
-            <div className="landing-hero__float landing-hero__float--2">
-              <TrendingUp size={18} strokeWidth={3} /> 15-Day Streak
+            <div className="landing-hero__float landing-hero__float--2" style={{ background: "#00F0FF", color: "#0A192F" }}>
+              <Target size={16} strokeWidth={3} /> Peringatan Akurat
             </div>
-            <div className="landing-hero__float landing-hero__float--3">
-              <Target size={18} strokeWidth={3} /> Rp 500k Saved
+            <div className="landing-hero__float landing-hero__float--3" style={{ background: "#FFE600", color: "#0A192F" }}>
+              <ScanLine size={16} strokeWidth={3} /> Pindai Struk Otomatis
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Stats Section ── */}
+
+
+      {/* ── Problem vs Solution (Why Pre-Purchase?) ── */}
       <section
-        ref={stats.ref}
-        className={`landing-stats ${stats.visible ? "landing-stats--visible" : ""}`}
+        id="komparasi"
+        ref={comparison.ref}
+        className={`landing-comparison ${comparison.visible ? "landing-comparison--visible" : ""}`}
       >
-        <div className="landing-stats__item card-brutal">
-          <div className="landing-stats__value">10K+</div>
-          <div className="landing-stats__label">{t("landing.statsImpulse")}</div>
+        <div className="landing-section-label">
+          <span className="badge-brutal badge-brutal--purple">{t("landing.comparisonBadge")}</span>
         </div>
-        <div className="landing-stats__item card-brutal">
-          <div className="landing-stats__value">Rp 1M+</div>
-          <div className="landing-stats__label">{t("landing.statsSaved")}</div>
-        </div>
-        <div className="landing-stats__item card-brutal">
-          <div className="landing-stats__value">4.9/5</div>
-          <div className="landing-stats__label">{t("landing.statsRating")}</div>
+        <h2 className="landing-section-title" style={{ color: "#0A192F" }}>
+          {t("landing.comparisonTitle")}
+        </h2>
+        <p className="landing-section-subtitle" style={{ color: "#4A5568" }}>
+          {t("landing.comparisonSubtitle")}
+        </p>
+
+        <div className="comparison-grid">
+          {/* Old Way */}
+          <div className="comparison-card comparison-card--old">
+            <div className="comparison-card__header">
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#FF7675", border: "2px solid #0A192F", display: "flex", alignItems: "center", justifyContent: "center", color: "#FFF", fontWeight: 900 }}>
+                ✕
+              </div>
+              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.35rem", fontWeight: 800, color: "#0A192F", margin: 0 }}>
+                {t("landing.compOldTitle")}
+              </h3>
+            </div>
+            <ul className="comparison-list">
+              <li className="comparison-item">
+                <span className="comparison-item__icon comparison-item__icon--cross"><X size={16} strokeWidth={3} /></span>
+                <span>{t("landing.compOld1")}</span>
+              </li>
+              <li className="comparison-item">
+                <span className="comparison-item__icon comparison-item__icon--cross"><X size={16} strokeWidth={3} /></span>
+                <span>{t("landing.compOld2")}</span>
+              </li>
+              <li className="comparison-item">
+                <span className="comparison-item__icon comparison-item__icon--cross"><X size={16} strokeWidth={3} /></span>
+                <span>{t("landing.compOld3")}</span>
+              </li>
+              <li className="comparison-item">
+                <span className="comparison-item__icon comparison-item__icon--cross"><X size={16} strokeWidth={3} /></span>
+                <span>{t("landing.compOld4")}</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* CEAMIS 2.0 Active Intervention */}
+          <div className="comparison-card comparison-card--new">
+            <div className="comparison-card__header">
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#D2FF28", border: "2px solid #0A192F", display: "flex", alignItems: "center", justifyContent: "center", color: "#0A192F", fontWeight: 900 }}>
+                ✓
+              </div>
+              <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.35rem", fontWeight: 800, color: "#0A192F", margin: 0 }}>
+                {t("landing.compNewTitle")}
+              </h3>
+            </div>
+            <ul className="comparison-list">
+              <li className="comparison-item">
+                <span className="comparison-item__icon comparison-item__icon--check"><Check size={16} strokeWidth={3} /></span>
+                <span>{t("landing.compNew1")}</span>
+              </li>
+              <li className="comparison-item">
+                <span className="comparison-item__icon comparison-item__icon--check"><Check size={16} strokeWidth={3} /></span>
+                <span>{t("landing.compNew2")}</span>
+              </li>
+              <li className="comparison-item">
+                <span className="comparison-item__icon comparison-item__icon--check"><Check size={16} strokeWidth={3} /></span>
+                <span>{t("landing.compNew3")}</span>
+              </li>
+              <li className="comparison-item">
+                <span className="comparison-item__icon comparison-item__icon--check"><Check size={16} strokeWidth={3} /></span>
+                <span>{t("landing.compNew4")}</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </section>
 
-      {/* ── Features Grid ── */}
+      {/* ── Core 2.0 Features Bento Grid ── */}
       <section
         id="fitur"
         ref={features.ref}
         className={`landing-features ${features.visible ? "landing-features--visible" : ""}`}
       >
         <div className="landing-section-label">
-          <span className="badge-brutal badge-brutal--purple">{t("landing.featuresTitle")}</span>
+          <span className="badge-brutal badge-brutal--lime">{t("landing.featuresTitle")}</span>
         </div>
-        <h2 className="landing-section-title">
+        <h2 className="landing-section-title" style={{ color: "#0A192F" }}>
           {t("landing.featuresSubtitle")}
         </h2>
 
-        <div className="landing-features__grid">
-          {getFeatures(t).map((f, i) => (
-            <div
-              key={i}
-              className={`landing-feature-card card-brutal landing-feature-card--${f.color}`}
-            >
-              <div className="landing-feature-card__icon-box">
-                <f.icon size={32} strokeWidth={2.5} />
+        <div className="bento-grid">
+          {/* Card 1: Pre-Purchase ML Intervention (Large 8 cols) */}
+          <div className="bento-card bento-card--8">
+            <span className="bento-card__badge" style={{ background: "#D2FF28", color: "#0A192F" }}>
+              {t("landing.feat1Badge")}
+            </span>
+            <h3 className="bento-card__title">{t("landing.feat1Title")}</h3>
+            <p className="bento-card__desc">{t("landing.feat1Desc")}</p>
+            
+            <div style={{ marginTop: "1.75rem", display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+              <span style={{ background: "#F1F5F9", border: "2px solid #0A192F", borderRadius: "8px", padding: "6px 12px", fontSize: "0.8rem", fontWeight: 800, color: "#0A192F" }}>
+                ⚡ Cek Otomatis Sebelum Bayar
+              </span>
+              <span style={{ background: "#F1F5F9", border: "2px solid #0A192F", borderRadius: "8px", padding: "6px 12px", fontSize: "0.8rem", fontWeight: 800, color: "#0A192F" }}>
+                🛡️ Melindungi Saldo Tabungan
+              </span>
+              <span style={{ background: "#F1F5F9", border: "2px solid #0A192F", borderRadius: "8px", padding: "6px 12px", fontSize: "0.8rem", fontWeight: 800, color: "#0A192F" }}>
+                💡 Saran Pengeluaran yang Bijak
+              </span>
+            </div>
+          </div>
+
+          {/* Card 2: Smart OCR Gemini Flash (4 cols) */}
+          <div className="bento-card bento-card--4">
+            <span className="bento-card__badge" style={{ background: "#00F0FF", color: "#0A192F" }}>
+              {t("landing.feat2Badge")}
+            </span>
+            <h3 className="bento-card__title">{t("landing.feat2Title")}</h3>
+            <p className="bento-card__desc">{t("landing.feat2Desc")}</p>
+            
+            <div style={{ marginTop: "1.5rem", background: "#F8FAFC", border: "2px solid #0A192F", borderRadius: "12px", padding: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", fontWeight: 800, color: "#0A192F" }}>
+                <ScanLine size={18} />
+                <span>Pindai Cerdas Sekali Klik</span>
               </div>
-              <div className="landing-feature-card__content">
-                <h3 className="landing-feature-card__title" style={{ color: "#0A192F", display: "block" }}>
-                  {f.title}
-                </h3>
-                <p className="landing-feature-card__desc">
-                  {f.desc}
-                </p>
+              <div style={{ fontSize: "0.75rem", color: "#64748B", marginTop: "4px" }}>
+                Otomatis mengenali total belanja, nama toko, dan pos pengeluaran.
               </div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Edukasi Keuangan ── */}
-      <section
-        ref={edukasi.ref}
-        className={`landing-edukasi ${edukasi.visible ? "landing-edukasi--visible" : ""}`}
-      >
-        <div className="landing-container">
-          <div className="landing-section-label">
-            <span className="badge-brutal badge-brutal--lime">{t("landing.educationTitle")}</span>
-          </div>
-          <h2 className="landing-section-title">
-            {t("landing.educationSubtitle")}
-          </h2>
-
-          <div className="landing-edukasi__intro card-brutal">
-            <p dangerouslySetInnerHTML={{ __html: t("landing.educationIntro") }} />
           </div>
 
-          <div className="landing-edukasi__grid">
-            {getEdukasiPoints(t).map((point, i) => (
-              <div key={i} className={`landing-edukasi__card card-brutal landing-edukasi__card--${point.color}`}>
-                <div className="landing-edukasi__card-header">
-                  <div className={`landing-edukasi__icon-box landing-edukasi__icon-box--${point.color}`}>
-                    <point.icon size={24} strokeWidth={2.5} />
-                  </div>
-                  <div className="landing-edukasi__stat-badge">
-                    <span className="landing-edukasi__stat-value">{point.stat}</span>
-                    <span className="landing-edukasi__stat-label">{point.statLabel}</span>
-                  </div>
-                </div>
-                <h3 className="landing-edukasi__card-title">{point.title}</h3>
-                <p className="landing-edukasi__card-desc">{point.desc}</p>
+          {/* Card 3: Deterministic Health Score (6 cols) */}
+          <div className="bento-card bento-card--6">
+            <span className="bento-card__badge" style={{ background: "#FFE600", color: "#0A192F" }}>
+              {t("landing.feat3Badge")}
+            </span>
+            <h3 className="bento-card__title">{t("landing.feat3Title")}</h3>
+            <p className="bento-card__desc">{t("landing.feat3Desc")}</p>
+
+            <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", textAlign: "center" }}>
+              <div style={{ background: "#FFFDF0", border: "2px solid #0A192F", borderRadius: "10px", padding: "8px" }}>
+                <div style={{ fontWeight: 900, fontSize: "1.1rem", color: "#0A192F" }}>40%</div>
+                <div style={{ fontSize: "0.7rem", fontWeight: 700 }}>Porsi Tabungan</div>
               </div>
-            ))}
+              <div style={{ background: "#FFFDF0", border: "2px solid #0A192F", borderRadius: "10px", padding: "8px" }}>
+                <div style={{ fontWeight: 900, fontSize: "1.1rem", color: "#0A192F" }}>30%</div>
+                <div style={{ fontSize: "0.7rem", fontWeight: 700 }}>Kebutuhan Pokok</div>
+              </div>
+              <div style={{ background: "#FFFDF0", border: "2px solid #0A192F", borderRadius: "10px", padding: "8px" }}>
+                <div style={{ fontWeight: 900, fontSize: "1.1rem", color: "#0A192F" }}>30%</div>
+                <div style={{ fontSize: "0.7rem", fontWeight: 700 }}>Batas Maksimal Jajan</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Impact Simulation (6 cols) */}
+          <div className="bento-card bento-card--6">
+            <span className="bento-card__badge" style={{ background: "#D2FF28", color: "#0A192F" }}>
+              {t("landing.feat4Badge")}
+            </span>
+            <h3 className="bento-card__title">{t("landing.feat4Title")}</h3>
+            <p className="bento-card__desc">{t("landing.feat4Desc")}</p>
+
+            <div style={{ marginTop: "1.5rem", background: "#F0FDF4", border: "2px solid #0A192F", borderRadius: "12px", padding: "12px", display: "flex", alignItems: "center", gap: "1rem" }}>
+              <Target size={32} color="#16A34A" />
+              <div>
+                <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "#0A192F" }}>Proyeksi Keterlambatan Target</div>
+                <div style={{ fontSize: "0.8rem", color: "#4B5563" }}>Kalkulasi pasti berapa hari target impian tertunda bila belanja tetap dilakukan.</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Leaderboard Preview ── */}
+
+      {/* ── How It Works (Alur 4 Langkah Baru 2.0) ── */}
       <section
-        ref={leaderboard.ref}
-        className={`landing-leaderboard ${leaderboard.visible ? "landing-leaderboard--visible" : ""}`}
+        ref={steps.ref}
+        className={`landing-steps ${steps.visible ? "landing-steps--visible" : ""}`}
       >
         <div className="landing-section-label">
-          <span className="badge-brutal badge-brutal--purple">{t("landing.leaderboardTitle")}</span>
+          <span className="badge-brutal badge-brutal--purple">{t("landing.stepsTitle")}</span>
         </div>
-        <h2 className="landing-section-title">
-          {t("landing.leaderboardSubtitle")}
-        </h2>
 
-        <div className="landing-leaderboard__table card-brutal">
-          {/* Header */}
-          <div className="landing-leaderboard__header">
-            <span className="landing-leaderboard__col landing-leaderboard__col--rank">{t("landing.leaderboardRank")}</span>
-            <span className="landing-leaderboard__col landing-leaderboard__col--name">{t("landing.leaderboardUser")}</span>
-            <span className="landing-leaderboard__col">{t("landing.leaderboardStreak")}</span>
-            <span className="landing-leaderboard__col">{t("landing.leaderboardBadge")}</span>
-            <span className="landing-leaderboard__col landing-leaderboard__col--score">{t("landing.leaderboardScore")}</span>
-          </div>
-          {/* Rows */}
-          {getLeaderboardData().map((user) => (
-            <div
-              key={user.rank}
-              className={`landing-leaderboard__row ${user.medal ? `landing-leaderboard__row--${user.medal}` : ""}`}
-            >
-              <span className="landing-leaderboard__col landing-leaderboard__col--rank">
-                <span className={`landing-leaderboard__rank-num ${user.medal ? `landing-leaderboard__rank-num--${user.medal}` : ""}`}>
-                  {user.rank}
-                </span>
-              </span>
-              <span className="landing-leaderboard__col landing-leaderboard__col--name">
-                <span className="landing-leaderboard__avatar">{user.name.charAt(0)}</span>
-                {user.name}
-              </span>
-              <span className="landing-leaderboard__col">
-                <strong>{user.streak}</strong> {t("landing.leaderboardDays")}
-              </span>
-              <span className="landing-leaderboard__col">
-                <strong>{user.badge}</strong> {t("landing.leaderboardBadgeLabel")}
-              </span>
-              <span className="landing-leaderboard__col landing-leaderboard__col--score">
-                <strong>{isMounted ? user.score.toLocaleString() : "..."}</strong> {t("landing.leaderboardPts")}
-              </span>
-            </div>
-          ))}
+        <div className="landing-steps__grid">
+          {(() => {
+            const stepsList = getSteps();
+            return stepsList.map((s, i) => (
+              <div
+                key={i}
+                className={`landing-step-card card-brutal landing-step-card--${s.color}`}
+              >
+                {i < stepsList.length - 1 && <div className="landing-step-card__connector" />}
+                <div className={`landing-step-card__num-badge landing-step-card__num-badge--${s.color}`}>
+                  {s.num}
+                </div>
+                <div className={`landing-step-card__icon-circle landing-step-card__icon-circle--${s.color}`}>
+                  <s.icon size={28} strokeWidth={2.5} />
+                </div>
+                <h3 className="landing-step-card__title">{s.title}</h3>
+                <p className="landing-step-card__desc">{s.desc}</p>
+              </div>
+            ));
+          })()}
         </div>
-        <p style={{ textAlign: "center", fontFamily: "var(--font-body)", fontSize: "0.875rem", color: "var(--color-text-muted)", marginTop: "1.5rem" }}>
-          {t("landing.leaderboardMock")}
-        </p>
       </section>
 
       {/* ── Testimonials ── */}
@@ -451,16 +569,17 @@ export default function LandingPage() {
           </h2>
 
           <div className="landing-testimonials__grid">
-            {getTestimonials(t).map((t, i) => (
-              <div key={i} className={`testimonial-bubble testimonial-bubble--${t.color}`}>
-                <p className="testimonial-bubble__text">"{t.text}"</p>
+            {getTestimonials().map((tItem, i) => (
+              <div key={i} className={`testimonial-bubble testimonial-bubble--${tItem.color}`}>
+                <div style={{ marginBottom: "0.5rem" }}>⭐⭐⭐⭐⭐</div>
+                <p className="testimonial-bubble__text">"{tItem.text}"</p>
                 <div className="testimonial-bubble__user">
                   <div className="testimonial-bubble__avatar">
-                    {t.name.charAt(0)}
+                    {tItem.name.charAt(0)}
                   </div>
                   <div className="testimonial-bubble__info">
-                    <span className="testimonial-bubble__name">{t.name}</span>
-                    <span className="testimonial-bubble__handle">{t.handle}</span>
+                    <span className="testimonial-bubble__name">{tItem.name}</span>
+                    <span className="testimonial-bubble__handle">{tItem.role} • {tItem.handle}</span>
                   </div>
                 </div>
               </div>
@@ -469,41 +588,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── How It Works ── */}
-      <section
-        ref={steps.ref}
-        className={`landing-steps ${steps.visible ? "landing-steps--visible" : ""}`}
-      >
-        <div className="landing-section-label">
-          <span className="badge-brutal badge-brutal--purple">{t("landing.stepsTitle")}</span>
-        </div>
-
-        <div className="landing-steps__grid">
-          {(() => {
-            const steps = getSteps(t);
-            return steps.map((s, i) => (
-              <div
-                key={i}
-                className={`landing-step-card card-brutal landing-step-card--${s.color}`}
-              >
-                {/* Connector line */}
-                {i < steps.length - 1 && <div className="landing-step-card__connector" />}
-                <div className={`landing-step-card__num-badge landing-step-card__num-badge--${s.color}`}>
-                  {s.num}
-                </div>
-                <div className={`landing-step-card__icon-circle landing-step-card__icon-circle--${s.color}`}>
-                  <s.icon size={28} strokeWidth={2.5} />
-                </div>
-                <h3 className="landing-step-card__title">{s.title}</h3>
-                <p className="landing-step-card__desc">{s.desc}</p>
-              </div>
-            ));
-          })()}
-        </div>
-      </section>
-
       {/* ── FAQ Section ── */}
       <section
+        id="faq"
         ref={faq.ref}
         className={`landing-faq ${faq.visible ? "landing-faq--visible" : ""}`}
       >
@@ -514,7 +601,7 @@ export default function LandingPage() {
           <h2 className="landing-section-title" style={{ color: "var(--color-navy)" }}>{t("landing.faqSubtitle")}</h2>
 
           <div className="landing-faq__list">
-            {getFaqData(t).map((item, i) => (
+            {getFaqData().map((item, i) => (
               <div
                 key={i}
                 className={`faq-item ${openFaq === i ? "faq-item--open" : ""}`}
@@ -522,7 +609,7 @@ export default function LandingPage() {
               >
                 <div className="faq-item__question">
                   {item.q}
-                  <div className="faq-item__icon">+</div>
+                  <div className="faq-item__icon">{openFaq === i ? "−" : "+"}</div>
                 </div>
                 <div className="faq-item__answer">
                   <div className="faq-item__answer-text">{item.a}</div>
@@ -533,20 +620,77 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA Section ── */}
+      {/* ── Download Hub & Final CTA (Mentorix Style) ── */}
       <section
-        ref={cta.ref}
-        className={`landing-cta ${cta.visible ? "landing-cta--visible" : ""}`}
+        id="download-app"
+        ref={downloadHub.ref}
+        className={`landing-download-hub ${downloadHub.visible ? "landing-download-hub--visible" : ""}`}
       >
-        <div className="landing-cta__card">
-          <div className="landing-cta__decoration" />
-          <h2 className="landing-cta__title">{t("landing.ctaFooterTitle")}</h2>
-          <p className="landing-cta__desc">
-            {t("landing.ctaFooterSubtitle")}
-          </p>
-          <Link href="/auth/register" className="btn-brutal btn-brutal--primary btn-brutal--lg">
-            {t("landing.ctaStart")}
-          </Link>
+        <div className="download-hub-card">
+          <div>
+            <div 
+              style={{ 
+                display: "inline-block", 
+                padding: "4px 12px", 
+                background: "#D2FF28", 
+                color: "#0A192F", 
+                fontWeight: 900, 
+                borderRadius: "100px",
+                fontSize: "0.8rem",
+                marginBottom: "1rem"
+              }}
+            >
+              FLUTTER MOBILE CLIENT
+            </div>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(2rem, 4vw, 2.75rem)", fontWeight: 900, lineHeight: 1.15, marginBottom: "1rem" }}>
+              {t("landing.ctaFooterTitle")}
+            </h2>
+            <p style={{ fontSize: "1.1rem", opacity: 0.85, lineHeight: 1.6, marginBottom: "2rem", maxWidth: "540px" }}>
+              {t("landing.ctaFooterSubtitle")}
+            </p>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+              <a 
+                href="#download-app" 
+                className="btn-brutal btn-brutal--lime btn-brutal--lg"
+                style={{ fontSize: "0.95rem" }}
+              >
+                <Download size={20} />
+                <span>{t("landing.ctaDownloadApp")}</span>
+              </a>
+              <Link 
+                href="/admin/dashboard" 
+                className="btn-brutal btn-brutal--sm"
+                style={{ 
+                  background: "#FFFFFF", 
+                  color: "#0A192F", 
+                  border: "3px solid #0A192F",
+                  boxShadow: "4px 4px 0px #0A192F",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.75rem 1.25rem",
+                  fontWeight: 800
+                }}
+              >
+                <ExternalLink size={18} />
+                <span>Buka Portal Admin</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* QR Code Container */}
+          <div className="download-qr-box">
+            <div style={{ fontWeight: 800, fontSize: "0.95rem" }}>
+              {t("landing.ctaScanQR")}
+            </div>
+            <div style={{ background: "#FFF", padding: "12px", border: "2px solid #0A192F", borderRadius: "12px" }}>
+              <QrCode size={130} color="#0A192F" />
+            </div>
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748B" }}>
+              Scan untuk unduh APK langsung di Android / iOS TestFlight
+            </div>
+          </div>
         </div>
       </section>
 
@@ -554,15 +698,25 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <div className="landing-footer__inner">
           <div className="landing-footer__brand">
-            <div className="landing-nav__logo" style={{ width: 56, height: 56, background: "transparent", border: "none", boxShadow: "none" }}>
-              <img src="/images/logo_color.webp" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            <div className="landing-nav__logo" style={{ width: 52, height: 52, background: "transparent", border: "none", boxShadow: "none" }}>
+              <img src="/images/logo_new.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <div>
-              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "1.125rem", color: "var(--color-white)" }}>CEAMIS</div>
-              <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.5)" }}>Control Every Awful Money Impulse System</div>
-
+              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "1.25rem", color: "var(--color-white)" }}>
+                CEAMIS
+              </div>
+              <div style={{ fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.6)" }}>
+                {t("landing.footerDesc")}
+              </div>
             </div>
           </div>
+
+          <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
+            <Link href="/admin/dashboard" style={{ color: "#D2FF28", fontWeight: 700, fontSize: "0.85rem", textDecoration: "underline" }}>
+              Portal Admin & Audit
+            </Link>
+          </div>
+
           <div className="landing-footer__copy">
             <p>{t("landing.footerCopy")}</p>
             <p>{t("landing.footerMotto")}</p>
@@ -570,6 +724,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
+      {/* Scroll to Top */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
@@ -577,38 +732,24 @@ export default function LandingPage() {
             position: "fixed",
             bottom: "2rem",
             right: "2rem",
-            padding: "0.75rem 1.5rem",
+            padding: "0.75rem 1.25rem",
             borderRadius: "100px",
-            background: "rgba(15, 23, 42, 0.85)", /* var(--color-navy) with opacity */
+            background: "#0A192F",
             color: "var(--color-white)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(204, 255, 0, 0.4)", /* lime outer glow */
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            border: "2px solid #D2FF28",
+            boxShadow: "4px 4px 0px #D2FF28",
             display: "flex",
             alignItems: "center",
-            gap: "0.6rem",
+            gap: "0.5rem",
             zIndex: 999,
             cursor: "pointer",
-            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
             fontWeight: 800,
             fontSize: "0.85rem",
-            letterSpacing: "0.5px",
             textTransform: "uppercase"
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-8px)";
-            e.currentTarget.style.boxShadow = "0 15px 40px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(204, 255, 0, 0.8)";
-            e.currentTarget.style.background = "rgba(15, 23, 42, 1)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(204, 255, 0, 0.4)";
-            e.currentTarget.style.background = "rgba(15, 23, 42, 0.85)";
           }}
           aria-label="Scroll to top"
         >
-          <ArrowUp size={18} strokeWidth={3} color="var(--color-lime)" className="animate-bounce" style={{ animationDuration: "2s" }} />
+          <ArrowUp size={18} strokeWidth={3} color="#D2FF28" />
           <span>Ke Atas</span>
         </button>
       )}

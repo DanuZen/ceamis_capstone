@@ -263,21 +263,22 @@ export default function Sidebar({ isOpen = true, onToggle }: { isOpen?: boolean;
         title={isOpen ? "Tutup Sidebar" : "Buka Sidebar"}
         aria-label={isOpen ? "Tutup sidebar" : "Buka sidebar"}
       >
-        {/* Wallet Icon in Navy Square */}
+        {/* CEAMIS Brand Logo */}
         <div 
           style={{
             width: isOpen ? "38px" : "32px",
             height: isOpen ? "38px" : "32px",
-            background: "var(--color-navy)",
-            border: "2px solid var(--color-navy)",
-            borderRadius: "8px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
           }}
         >
-          <Wallet size={isOpen ? 20 : 16} color="var(--color-lime)" strokeWidth={2.5} />
+          <img 
+            src="/images/logo_new.png" 
+            alt="CEAMIS Logo" 
+            style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+          />
         </div>
 
         {/* Title and Subtitle */}

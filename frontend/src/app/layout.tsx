@@ -9,9 +9,9 @@ export const metadata: Metadata = {
     "Ekosistem pencatatan keuangan Gen-Z berbasis AI, gamifikasi, & edukasi adaptif. Cerdas finansial, kontrol impuls, raih masa depan!",
   keywords: ["keuangan", "Gen-Z", "AI", "gamifikasi", "edukasi finansial", "CEAMIS"],
   icons: {
-    icon: "/images/logo_stroke_black.webp",
-    shortcut: "/images/logo_stroke_black.webp",
-    apple: "/images/logo_stroke_black.webp",
+    icon: "/images/logo_new.png",
+    shortcut: "/images/logo_new.png",
+    apple: "/images/logo_new.png",
   },
   openGraph: {
     title: "CEAMIS — Control Every Awful Money Impulse System",

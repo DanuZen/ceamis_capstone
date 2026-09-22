@@ -249,7 +249,7 @@ export default function RegisterPage() {
               display: "flex", alignItems: "center", justifyContent: "center",
               overflow: "hidden"
             }}>
-              <img src="/images/logo_white.webp" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              <img src="/images/logo_new.png" alt="CEAMIS Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <span style={{ fontFamily: "var(--font-heading)", fontWeight: 900, fontSize: "2.5rem", letterSpacing: "-1px", background: "linear-gradient(90deg, #FFFFFF, var(--color-lime))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               CEAMIS
