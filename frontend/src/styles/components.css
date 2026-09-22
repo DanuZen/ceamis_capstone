@@ -4,13 +4,25 @@
 .card-brutal {
   background: var(--color-surface);
   color: var(--color-text);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-brutal);
-  box-shadow: var(--shadow-brutal);
-  padding: 1.5rem;
+  border: 2.5px solid var(--color-navy);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0px var(--color-navy);
+  padding: 1.25rem 1.5rem;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.card-brutal-large {
+  background: #FFFFFF;
+  border: 2.5px solid var(--color-navy);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0px var(--color-navy);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .card-brutal h1, .card-brutal h2, .card-brutal h3, .card-brutal h4, .card-brutal h5, .card-brutal h6 {
@@ -171,7 +183,7 @@
 .badge-brutal--purple { 
   background: var(--color-purple); 
   color: var(--color-white); 
-  box-shadow: 0 0 15px rgba(98, 54, 255, 0.4), 4px 4px 0px var(--color-navy);
+  box-shadow: 0 0 15px rgba(29, 78, 216, 0.4), 4px 4px 0px var(--color-navy);
 }
 
 .badge-brutal--lime { 
