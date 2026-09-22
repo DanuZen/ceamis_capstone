@@ -125,122 +125,25 @@ export const aiApi = {
 };
 
 // ── OCR Receipt Gateway ───────────────────────────────────────
+// Parsing is handled entirely by the backend (Gemini AI → heuristic fallback).
+// No client-side duplication — keeps logic in one place for easier maintenance.
 export const ocrApi = {
   parseReceipt: async (payload: OcrParsePayload): Promise<OcrParseApiResponse> => {
-    try {
-      const res = await request<any>('/ocr/parse-receipt', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-      // Normalize response shape from FastAPI/NestJS
-      if (res && res.data) {
-        return res as OcrParseApiResponse;
-      }
-      return {
-        status: 'success',
-        message: 'Struk berhasil diekstrak',
-        data: res,
-      };
-    } catch (err: any) {
-      console.warn('[OCR] Remote backend unavailable, using heuristic fallback parser:', err?.message);
-      return fallbackParseReceipt(payload.raw_text);
+    const res = await request<any>('/ocr/parse-receipt', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    // Normalize response shape from FastAPI
+    if (res && res.data) {
+      return res as OcrParseApiResponse;
     }
+    return {
+      status: 'success',
+      message: 'Struk berhasil diekstrak',
+      data: res,
+    };
   },
 };
-
-function fallbackParseReceipt(rawText: string): OcrParseApiResponse {
-  const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
-  let merchantName = 'Merchant Terdeteksi';
-  if (lines.length > 0) {
-    if (/^(STK|INV|TRX|NO|KODE|RECEIPT|STRUK|ID)[-:\s#]/i.test(lines[0]) && lines.length > 1) {
-      merchantName = lines[1];
-    } else {
-      merchantName = lines[0];
-    }
-  }
-
-  const dateMatch = rawText.match(/\b(\d{2}[/-]\d{2}[/-]\d{4}|\d{4}[/-]\d{2}[/-]\d{2})\b/);
-  let transactionDate = new Date().toISOString().split('T')[0];
-  if (dateMatch) {
-    const parts = dateMatch[1].split(/[/-]/);
-    if (parts[0].length === 4) {
-      transactionDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-    } else if (parts[2].length === 4) {
-      transactionDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-    }
-  }
-
-  let paymentMethod = 'Cash';
-  if (/qris/i.test(rawText)) paymentMethod = 'QRIS';
-  else if (/debit/i.test(rawText)) paymentMethod = 'Debit';
-  else if (/kredit|credit/i.test(rawText)) paymentMethod = 'Credit';
-  else if (/gopay|ovo|shopee|dana/i.test(rawText)) paymentMethod = 'E-Wallet';
-
-  let category = 'Groceries';
-  let autoTag: 'needs' | 'wants' = 'needs';
-  const lower = rawText.toLowerCase();
-  if (lower.includes('kopi') || lower.includes('coffee') || lower.includes('cafe') || lower.includes('resto') || lower.includes('burger') || lower.includes('makan') || lower.includes('bakso')) {
-    category = 'Food & Beverage';
-    autoTag = 'wants';
-  } else if (lower.includes('bioskop') || lower.includes('cinema') || lower.includes('game') || lower.includes('tiket')) {
-    category = 'Entertainment';
-    autoTag = 'wants';
-  } else if (lower.includes('bensin') || lower.includes('spbu') || lower.includes('pertamina') || lower.includes('ojol') || lower.includes('grab') || lower.includes('gojek')) {
-    category = 'Transportation';
-    autoTag = 'needs';
-  } else if (lower.includes('pln') || lower.includes('listrik') || lower.includes('pdam') || lower.includes('wifi') || lower.includes('indihome')) {
-    category = 'Utilities';
-    autoTag = 'needs';
-  } else if (lower.includes('apotek') || lower.includes('obat') || lower.includes('klinik') || lower.includes('rs')) {
-    category = 'Health';
-    autoTag = 'needs';
-  } else if (lower.includes('baju') || lower.includes('fashion') || lower.includes('sepatu') || lower.includes('mall') || lower.includes('clothing')) {
-    category = 'Shopping';
-    autoTag = 'wants';
-  }
-
-  let totalAmount = 0;
-  const totalMatches = [...rawText.matchAll(/(?:total|grand\s*total|bayar|rp\.?)\s*:?\s*([\d.,]+)/gi)];
-  if (totalMatches.length > 0) {
-    const lastMatch = totalMatches[totalMatches.length - 1][1];
-    const cleaned = lastMatch.replace(/[.,](\d{2})$/, '').replace(/[^\d]/g, '');
-    totalAmount = parseInt(cleaned, 10) || 0;
-  } else {
-    const numberMatches = rawText.match(/\b\d{4,9}\b/g);
-    if (numberMatches) {
-      totalAmount = Math.max(...numberMatches.map((n) => parseInt(n, 10)));
-    }
-  }
-
-  const items: OcrItem[] = [];
-  for (const line of lines) {
-    const itemMatch = line.match(/^([A-Za-z0-9\s]+?)\s+(?:(\d+)\s*[xX]\s*)?(\d[\d.,]*)$/);
-    if (itemMatch && !/total|subtotal|tunai|kembali|cash|qris/i.test(itemMatch[1])) {
-      const name = itemMatch[1].trim();
-      const qty = itemMatch[2] ? parseInt(itemMatch[2], 10) : 1;
-      const price = parseInt(itemMatch[3].replace(/[^\d]/g, ''), 10) || 0;
-      if (price > 0) {
-        items.push({ name, qty, price, total: price * qty });
-      }
-    }
-  }
-
-  return {
-    status: 'success',
-    message: 'Struk berhasil diekstrak',
-    data: {
-      merchant_name: merchantName,
-      transaction_date: transactionDate,
-      category,
-      total_amount: totalAmount,
-      payment_method: paymentMethod,
-      items,
-      auto_tag: autoTag,
-      confidence_score: 0.85,
-      is_mock: true,
-    },
-  };
-}
 
 // ── Warnings ──────────────────────────────────────────────────
 export const warningsApi = {
