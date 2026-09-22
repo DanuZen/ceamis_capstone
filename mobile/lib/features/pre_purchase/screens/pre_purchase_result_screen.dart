@@ -359,6 +359,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
     final isOverbudget = widget.budgetRemainingAfter < 0;
     final usedRatio = 1 - (widget.budgetRemainingBefore / widget.budgetLimit);
     final projectedRatio = 1 - (widget.budgetRemainingAfter / widget.budgetLimit);
+    final deficitAmount = widget.budgetRemainingAfter.abs();
 
     return NeoBrutalCard(
       padding: const EdgeInsets.all(18),
@@ -370,7 +371,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
               const Icon(Icons.account_balance_wallet_rounded, color: AppColors.purple, size: 22),
               const SizedBox(width: 8),
               Text(
-                'Dampak Anggaran',
+                'Dampak Pembagian Anggaran',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: AppColors.navy,
@@ -381,21 +382,21 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
           const SizedBox(height: 14),
 
           // Budget limit
-          _buildInfoRow('Pagu ${widget.categoryName}', 'Rp ${_formatNumber(widget.budgetLimit)}'),
+          _buildInfoRow('Alokasi Pos ${widget.categoryName}', 'Rp ${_formatNumber(widget.budgetLimit)}'),
           const SizedBox(height: 6),
-          _buildInfoRow('Sisa Saat Ini', 'Rp ${_formatNumber(widget.budgetRemainingBefore)}'),
+          _buildInfoRow('Sisa Kuota Saat Ini', 'Rp ${_formatNumber(widget.budgetRemainingBefore)}'),
           const SizedBox(height: 6),
           _buildInfoRow(
-            'Sisa Setelah Beli',
+            'Sisa Kuota Setelah Pembelian',
             isOverbudget
-                ? '-Rp ${_formatNumber(widget.budgetRemainingAfter.abs())}'
+                ? '-Rp ${_formatNumber(deficitAmount)} (DEFISIT)'
                 : 'Rp ${_formatNumber(widget.budgetRemainingAfter)}',
-            valueColor: isOverbudget ? AppColors.orange : AppColors.lime,
+            valueColor: isOverbudget ? const Color(0xFFDC2626) : const Color(0xFF16A34A),
           ),
           const SizedBox(height: 14),
 
           // Progress bars
-          Text('Sebelum:', style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+          Text('Kuota Terpakai Sebelum:', style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -409,7 +410,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
             ),
           ),
           const SizedBox(height: 8),
-          Text('Proyeksi:', style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+          Text('Proyeksi Penggunaan:', style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -419,33 +420,50 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
                 value: projectedRatio.clamp(0.0, 1.0),
                 backgroundColor: AppColors.surfaceVariant,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isOverbudget ? AppColors.orange : AppColors.warning,
+                  isOverbudget ? const Color(0xFFDC2626) : AppColors.warning,
                 ),
               ),
             ),
           ),
 
+          // ── Strict Guardrail Alert Box ─────────────────────────────
           if (isOverbudget) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.orange, width: 1.5),
+                color: const Color(0xFFFEF2F2), // Soft Crimson
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFDC2626), width: 2.0),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.error_outline_rounded, color: AppColors.orange, size: 16),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Overbudget! Melebihi pagu kategori.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.orange,
+                  Row(
+                    children: const [
+                      Icon(Icons.gpp_bad_rounded, color: Color(0xFFDC2626), size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'PERINGATAN KETAT OVERBUDGET',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFFDC2626),
+                          letterSpacing: 0.5,
+                        ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '• Pembelian ini menjebol batas pos anggaran sebesar -Rp ${_formatNumber(deficitAmount)}.\n'
+                    '• Pos Kebutuhan Pokok terancam terpotong untuk menutupi defisit ini.\n'
+                    '• Target "${widget.savingsGoalTitle}" terpaksa mundur +${widget.savingsDelayedDays} hari!',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF991B1B),
+                      height: 1.45,
                     ),
                   ),
                 ],
@@ -469,7 +487,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
               const Icon(Icons.savings_rounded, color: AppColors.cyan, size: 22),
               const SizedBox(width: 8),
               Text(
-                'Dampak Tabungan',
+                'Efek Domino ke Tabungan',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: AppColors.navy,
@@ -483,23 +501,30 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.cyan.withValues(alpha: 0.15),
+                  color: widget.budgetRemainingAfter < 0
+                      ? const Color(0xFFFEE2E2)
+                      : AppColors.cyan.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.cyan, width: 2),
+                  border: Border.all(
+                    color: widget.budgetRemainingAfter < 0 ? const Color(0xFFDC2626) : AppColors.cyan,
+                    width: 2,
+                  ),
                 ),
                 child: Text(
                   '+${widget.savingsDelayedDays} hari',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 18,
-                    color: AppColors.navy,
+                    color: widget.budgetRemainingAfter < 0 ? const Color(0xFFDC2626) : AppColors.navy,
                   ),
                 ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
-                  'Proyeksi capaian "${widget.savingsGoalTitle}" tertunda.',
+                  widget.budgetRemainingAfter < 0
+                      ? 'Target "${widget.savingsGoalTitle}" akan tertunda karena jatah tabungan terpakai.'
+                      : 'Proyeksi target "${widget.savingsGoalTitle}" tetap berada dalam zona aman.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w600,
@@ -515,11 +540,13 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
   }
 
   Widget _buildActionButtons(BuildContext context) {
+    final isOverbudget = widget.budgetRemainingAfter < 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Apa keputusan kamu?',
+          'Rekomendasi Keputusan Bijak',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppColors.navy,
@@ -527,58 +554,126 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
         ),
         const SizedBox(height: 14),
 
-        // Postpone Button (recommended for HIGH risk)
-        if (widget.riskLevel == 'HIGH' || widget.riskLevel == 'MEDIUM')
+        if (isOverbudget) ...[
+          // Option 1 (Recommended): Alihkan ke Tabungan Bertahap
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: NeoBrutalButton(
-              onPressed: () => _handleDecision('POSTPONE'),
+              onPressed: () => _handleDecision('INSTALLMENT'),
               backgroundColor: AppColors.lime,
               textColor: AppColors.navy,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Icon(Icons.pause_circle_rounded, color: AppColors.navy, size: 20),
+                  Icon(Icons.savings_rounded, color: AppColors.navy, size: 20),
                   SizedBox(width: 8),
-                  Text('Tunda Pembelian'),
+                  Flexible(
+                    child: Text(
+                      'Nabung Bertahap (Saran AI)',
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
 
-        // Adjust Button
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: NeoBrutalButton(
-            onPressed: () => _handleDecision('ADJUST'),
-            backgroundColor: AppColors.warning,
-            textColor: AppColors.navy,
+          // Option 2: Tunda dengan jeda 72 jam
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: NeoBrutalButton(
+              onPressed: () => _handleDecision('POSTPONE'),
+              backgroundColor: const Color(0xFFFFE100),
+              textColor: AppColors.navy,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.timer_outlined, color: AppColors.navy, size: 20),
+                  SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Tunda Dulu (Jeda 72 Jam)',
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Option 3: Tetap beli dengan kesadaran risiko
+          NeoBrutalButton(
+            onPressed: () => _handleDecision('PROCEED'),
+            backgroundColor: AppColors.surface,
+            textColor: const Color(0xFFDC2626),
+            borderColor: const Color(0xFFDC2626),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: const [
-                Icon(Icons.edit_rounded, color: AppColors.navy, size: 20),
+                Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 20),
                 SizedBox(width: 8),
-                Text('Sesuaikan Nominal'),
+                Flexible(
+                  child: Text(
+                    'Beli Sekarang (Sadar Risiko)',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-
-        // Proceed Button
-        NeoBrutalButton(
-          onPressed: () => _handleDecision('PROCEED'),
-          backgroundColor: AppColors.surface,
-          textColor: AppColors.navy,
-          borderColor: AppColors.border,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.shopping_cart_checkout_rounded, color: AppColors.navy, size: 20),
-              SizedBox(width: 8),
-              Text('Tetap Lanjut Beli'),
-            ],
+        ] else ...[
+          // Safe to buy
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: NeoBrutalButton(
+              onPressed: () => _handleDecision('PROCEED'),
+              backgroundColor: AppColors.lime,
+              textColor: AppColors.navy,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.check_circle_rounded, color: AppColors.navy, size: 20),
+                  SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Wujudkan Impian (Aman)',
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
+          NeoBrutalButton(
+            onPressed: () => _handleDecision('POSTPONE'),
+            backgroundColor: AppColors.surface,
+            textColor: AppColors.navy,
+            borderColor: AppColors.border,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.pause_circle_outline_rounded, color: AppColors.navy, size: 20),
+                SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Tunda Pembelian',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -609,9 +704,9 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
 
   void _handleDecision(String decision) {
     final messages = {
-      'PROCEED': 'Keputusan dicatat. Semoga belanjanya bermanfaat!',
-      'ADJUST': 'Bagus! Kamu bisa menyesuaikan nominal belanja.',
-      'POSTPONE': 'Pilihan bijak untuk menunda belanja!',
+      'INSTALLMENT': 'Bagus sekali! Rencana tabungan bertahap dicatat agar impianmu terwujud tanpa mengganggu kebutuhan pokok.',
+      'POSTPONE': 'Pilihan bijak! Pengingat jeda berpikir telah diaktifkan untuk menjaga kesehatan finansialmu.',
+      'PROCEED': 'Keputusan dicatat. Tetap pantau pengeluaran pos keinginan agar tidak defisit lebih dalam.',
     };
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -623,7 +718,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
       ),
     );
 
-    Future.delayed(const Duration(milliseconds: 800), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         Navigator.of(context).pop();
       }

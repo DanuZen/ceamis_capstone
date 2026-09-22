@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/widgets/neo_brutal_card.dart';
@@ -17,6 +18,74 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _budgetAlertEnabled = true;
   bool _aiRiskCheckEnabled = true;
+  bool _isLoading = true;
+
+  // Dynamic user data with safe defaults
+  String _userName = 'Pengguna';
+  String _userEmail = 'email@ceamis.id';
+  int _totalTransactions = 0;
+  double _healthScore = 0.0;
+  int _streakDays = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    // 1. Fetch name & email from Supabase auth
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        setState(() {
+          _userEmail = user.email ?? _userEmail;
+          _userName = user.userMetadata?['name'] as String? ??
+              user.userMetadata?['full_name'] as String? ??
+              _userEmail.split('@').first;
+        });
+      }
+    } catch (e) {
+      debugPrint('[Profile] Supabase auth read failed: $e');
+    }
+
+    // 2. Fetch stats from backend API
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        final client = ApiClient().client;
+
+        try {
+          final summaryResp = await client.get('/api/v1/transactions/summary', queryParameters: {'user_id': userId});
+          if (mounted && summaryResp.data != null) {
+            setState(() {
+              _totalTransactions = (summaryResp.data['total_transactions'] as num?)?.toInt() ?? 0;
+            });
+          }
+        } catch (_) {}
+
+        try {
+          final profileResp = await client.get('/api/v1/users/$userId');
+          if (mounted && profileResp.data != null) {
+            final data = profileResp.data;
+            setState(() {
+              _healthScore = (data['health_score'] as num?)?.toDouble() ?? 0.0;
+              _streakDays = (data['streak'] as num?)?.toInt() ?? 0;
+              if (data['name'] != null && (data['name'] as String).isNotEmpty) {
+                _userName = data['name'] as String;
+              }
+            });
+          }
+        } catch (_) {}
+      }
+    } catch (e) {
+      debugPrint('[Profile] Backend stats fetch failed: $e');
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   void _handleLogout() {
     showDialog(
@@ -178,12 +247,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                'Danu',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      color: AppColors.navy,
-                                      fontWeight: FontWeight.w900,
-                                    ),
+                              Flexible(
+                                child: Text(
+                                  _userName,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                        color: AppColors.navy,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Container(
@@ -205,9 +277,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'danu@ceamis.id',
-                            style: TextStyle(
+                          Text(
+                            _userEmail,
+                            style: const TextStyle(
                               color: AppColors.navy,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
@@ -222,12 +294,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Icon(Icons.local_fire_department_rounded, color: AppColors.lime, size: 14),
-                                SizedBox(width: 4),
+                              children: [
+                                const Icon(Icons.local_fire_department_rounded, color: AppColors.lime, size: 14),
+                                const SizedBox(width: 4),
                                 Text(
-                                  '14 Hari Rutin Mencatat',
-                                  style: TextStyle(
+                                  _isLoading
+                                      ? 'Memuat...'
+                                      : '$_streakDays Hari Rutin Mencatat',
+                                  style: const TextStyle(
                                     color: AppColors.lime,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w900,
@@ -263,19 +337,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.all(14),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Icon(Icons.receipt_long_rounded, color: AppColors.navy, size: 22),
-                          SizedBox(height: 8),
-                          Text(
-                            '48 Catatan',
-                            style: TextStyle(
-                              color: AppColors.navy,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
+                        children: [
+                          const Icon(Icons.receipt_long_rounded, color: AppColors.navy, size: 22),
+                          const SizedBox(height: 8),
+                          _isLoading
+                              ? _buildShimmerText(width: 90)
+                              : Text(
+                                  '$_totalTransactions Catatan',
+                                  style: const TextStyle(
+                                    color: AppColors.navy,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                          const SizedBox(height: 2),
+                          const Text(
                             'Total Transaksi',
                             style: TextStyle(
                               color: AppColors.textSecondary,
@@ -296,19 +372,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.all(14),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Icon(Icons.insights_rounded, color: AppColors.navy, size: 22),
-                          SizedBox(height: 8),
-                          Text(
-                            '78.5 / 100',
-                            style: TextStyle(
-                              color: AppColors.navy,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
+                        children: [
+                          const Icon(Icons.insights_rounded, color: AppColors.navy, size: 22),
+                          const SizedBox(height: 8),
+                          _isLoading
+                              ? _buildShimmerText(width: 80)
+                              : Text(
+                                  '${_healthScore.toStringAsFixed(1)} / 100',
+                                  style: const TextStyle(
+                                    color: AppColors.navy,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                          const SizedBox(height: 2),
+                          const Text(
                             'Skor Finansial',
                             style: TextStyle(
                               color: AppColors.textSecondary,
@@ -397,6 +475,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Shimmer placeholder while loading stats
+  Widget _buildShimmerText({double width = 80}) {
+    return Container(
+      width: width,
+      height: 20,
+      decoration: BoxDecoration(
+        color: AppColors.navy.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
       ),
     );
   }
@@ -499,3 +589,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+

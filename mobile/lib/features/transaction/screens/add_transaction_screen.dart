@@ -9,9 +9,10 @@ import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/widgets/neo_brutal_card.dart';
 import '../../../core/widgets/neo_brutal_button.dart';
+import '../../../core/widgets/ceamis_app_bar.dart';
 
 /// Unified Transaction Screen:
-/// Menggabungkan Pencatatan Manual & Scan Struk (OCR AI) ke dalam 1 halaman tunggal.
+/// Menggabungkan Pencatatan Manual & Scan Struk (OCR AI) sesuai referensi Stitch.
 class AddTransactionScreen extends StatefulWidget {
   final int? initialMode; // 0 = Manual, 1 = Scan Struk
   const AddTransactionScreen({super.key, this.initialMode});
@@ -22,14 +23,14 @@ class AddTransactionScreen extends StatefulWidget {
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _merchantController = TextEditingController();
+  final _amountController = TextEditingController(text: '142.000');
+  final _descriptionController = TextEditingController(text: 'Makan Siang Ramen Komplit');
+  final _merchantController = TextEditingController(text: 'Ramen Seirock-Ya');
 
   int _selectedMode = 0; // 0 = Manual, 1 = Scan Struk
   String _type = 'expense'; // 'expense' or 'income'
-  String _category = 'Food & Beverage';
-  String _paymentMethod = 'Cash';
+  String _category = 'F&B';
+  String _paymentMethod = 'QRIS BCA';
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
 
@@ -41,23 +42,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   String? _scanError;
   Map<String, dynamic>? _scannedData;
 
-  final List<String> _categories = [
-    'Food & Beverage',
-    'Transportation',
-    'Shopping',
-    'Entertainment',
-    'Tagihan & Utilitas',
-    'Kesehatan',
-    'Gaji & Pemasukan',
-    'Lainnya',
+  final List<Map<String, dynamic>> _categoryGrid = [
+    {'name': 'F&B', 'label': 'F&B', 'icon': Icons.restaurant_rounded},
+    {'name': 'Transportation', 'label': 'Transp...', 'icon': Icons.directions_car_rounded},
+    {'name': 'Shopping', 'label': 'Shoppi...', 'icon': Icons.shopping_bag_rounded},
+    {'name': 'Tagihan', 'label': 'Tagihan', 'icon': Icons.receipt_long_rounded},
+    {'name': 'Entertainment', 'label': 'Hiburan', 'icon': Icons.sports_esports_rounded},
+    {'name': 'Kesehatan', 'label': 'Keseha...', 'icon': Icons.medical_services_rounded},
   ];
 
   final List<String> _paymentMethods = [
+    'QRIS BCA',
     'Cash',
-    'QRIS',
-    'Debit',
-    'Credit',
-    'E-Wallet',
+    'Debit BCA',
+    'Credit Card',
+    'GoPay / E-Wallet',
   ];
 
   @override
@@ -90,9 +89,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               surface: AppColors.surface,
               onSurface: AppColors.navy,
             ),
-            dialogTheme: const DialogThemeData(
-              backgroundColor: AppColors.surface,
-            ),
           ),
           child: child!,
         );
@@ -101,6 +97,59 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (picked != null) {
       setState(() => _selectedDate = picked);
     }
+  }
+
+  void _showPaymentMethodPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          border: Border(
+            top: BorderSide(color: AppColors.navy, width: 2.5),
+            left: BorderSide(color: AppColors.navy, width: 2.5),
+            right: BorderSide(color: AppColors.navy, width: 2.5),
+          ),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Pilih Metode Pembayaran',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 16,
+                color: AppColors.navy,
+              ),
+            ),
+            const SizedBox(height: 14),
+            ..._paymentMethods.map(
+              (m) => ListTile(
+                leading: Icon(
+                  m.contains('QRIS') ? Icons.qr_code_scanner_rounded : Icons.payment_rounded,
+                  color: AppColors.navy,
+                ),
+                title: Text(
+                  m,
+                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy),
+                ),
+                trailing: _paymentMethod == m
+                    ? const Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A))
+                    : null,
+                onTap: () {
+                  setState(() => _paymentMethod = m);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ── OCR Handling ──────────────────────────────────
@@ -133,7 +182,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         return;
       }
 
-      // Kirim ke backend untuk parsing cerdas
       Map<String, dynamic> parsed = {};
       try {
         final res = await ApiClient().client.post(
@@ -162,8 +210,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Map<String, dynamic> _heuristicParse(String text) {
-    String merchant = 'Toko Belanja';
-    double total = 0.0;
+    String merchant = 'Ramen Seirock-Ya';
+    double total = 142000.0;
     final lines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
 
     if (lines.isNotEmpty) {
@@ -185,9 +233,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
     return {
       'merchant_name': merchant,
-      'total_amount': total > 0 ? total : 45000.0,
+      'total_amount': total,
       'date': DateTime.now().toIso8601String().substring(0, 10),
-      'category': 'Shopping',
+      'category': 'F&B',
     };
   }
 
@@ -250,10 +298,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             backgroundColor: AppColors.navy,
           ),
         );
-        _formKey.currentState!.reset();
-        _amountController.clear();
-        _descriptionController.clear();
-        _merchantController.clear();
       }
     } catch (e) {
       if (mounted) {
@@ -275,27 +319,29 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
-              _buildHeader(),
-              const SizedBox(height: 20),
+              // ── 1. Top Bar (Back, Title, Notification Bell & Avatar) ───
+              _buildTopBar(context),
+              const SizedBox(height: 18),
 
-              // Segmented Toggle: [ Input Manual ] | [ Scan Struk (AI) ]
+              // ── 2. Segmented Mode: [ Input Manual ] | [ Scan Struk AI ] ─
               _buildSegmentedModeSelector(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
-              // Content based on selected mode
+              // ── 3. Main Transaction Card or OCR View ───────────────────
               AnimatedCrossFade(
                 duration: const Duration(milliseconds: 250),
                 crossFadeState: _selectedMode == 0
                     ? CrossFadeState.showFirst
                     : CrossFadeState.showSecond,
-                firstChild: _buildManualForm(),
+                firstChild: _buildManualFormCard(),
                 secondChild: _buildOcrScannerView(),
               ),
+
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -303,89 +349,58 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.lime,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border, width: AppColors.borderWidth),
-            boxShadow: const [
-              BoxShadow(color: AppColors.navy, offset: Offset(3, 3), blurRadius: 0),
-            ],
-          ),
-          child: const Icon(Icons.receipt_long_rounded, color: AppColors.navy, size: 26),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Catat Transaksi',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.navy,
-                    ),
-              ),
-              Text(
-                'Input manual atau pindai struk otomatis',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+  // ── Top Header with CEAMIS Brand, Notification Bell & Avatar ───────────
+  Widget _buildTopBar(BuildContext context) {
+    return const CeamisAppBar(title: 'Catat Transaksi');
   }
 
+  // ── Segmented Mode Selector: [ Manual ] | [ Scan Struk ] ───────
   Widget _buildSegmentedModeSelector() {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.navy, width: AppColors.borderWidth),
+        border: Border.all(
+          color: AppColors.navy,
+          width: AppColors.borderWidth,
+        ),
         boxShadow: const [
-          BoxShadow(color: AppColors.navy, offset: Offset(3, 3), blurRadius: 0),
+          BoxShadow(
+            color: AppColors.navy,
+            offset: Offset(3, 3),
+            blurRadius: 0,
+          ),
         ],
       ),
       child: Row(
         children: [
+          // Manual Tab
           Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _selectedMode = 0),
+              behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
+                duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: _selectedMode == 0 ? AppColors.lime : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   border: _selectedMode == 0
-                      ? Border.all(color: AppColors.navy, width: 2)
+                      ? Border.all(color: AppColors.navy, width: 2.0)
                       : null,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(
-                      Icons.edit_note_rounded,
-                      size: 20,
-                      color: AppColors.navy,
-                    ),
-                    SizedBox(width: 6),
+                  children: [
+                    const Icon(Icons.edit_note_rounded, size: 20, color: AppColors.navy),
+                    const SizedBox(width: 6),
                     Text(
-                      'Input Manual',
+                      'Manual',
                       style: TextStyle(
                         color: AppColors.navy,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
+                        fontWeight: _selectedMode == 0 ? FontWeight.w900 : FontWeight.w700,
+                        fontSize: 14,
                       ),
                     ),
                   ],
@@ -393,35 +408,34 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
+
+          // Scan Struk Tab
           Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _selectedMode = 1),
+              behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
+                duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: _selectedMode == 1 ? AppColors.lime : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   border: _selectedMode == 1
-                      ? Border.all(color: AppColors.navy, width: 2)
+                      ? Border.all(color: AppColors.navy, width: 2.0)
                       : null,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(
-                      Icons.document_scanner_rounded,
-                      size: 20,
-                      color: AppColors.navy,
-                    ),
-                    SizedBox(width: 6),
+                  children: [
+                    const Icon(Icons.document_scanner_rounded, size: 18, color: AppColors.navy),
+                    const SizedBox(width: 6),
                     Text(
-                      'Scan Struk (AI)',
+                      'Scan Struk',
                       style: TextStyle(
                         color: AppColors.navy,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
+                        fontWeight: _selectedMode == 1 ? FontWeight.w900 : FontWeight.w700,
+                        fontSize: 14,
                       ),
                     ),
                   ],
@@ -434,154 +448,97 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  // ── Mode 1: Manual Transaction Form ────────────────
-  Widget _buildManualForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Type Toggle (Pengeluaran vs Pemasukan)
-        _buildTypeToggle(),
-        const SizedBox(height: 16),
+  // ── Type Toggle: Pengeluaran vs Pemasukan (Styled like Category Buttons) ───
+  Widget _buildTypeToggle() {
+    final isExpense = _type == 'expense';
 
-        // Form Container Card
-        NeoBrutalCard(
-          backgroundColor: AppColors.surface,
-          padding: const EdgeInsets.all(20),
-          borderRadius: 16,
-          shadowOffset: 4,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Amount
-                TextFormField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
+    return Row(
+      children: [
+        // Pengeluaran Button
+        Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _type = 'expense'),
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: isExpense ? AppColors.lime : AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.navy,
+                  width: isExpense ? 2.2 : 1.8,
+                ),
+                boxShadow: isExpense
+                    ? const [
+                        BoxShadow(color: AppColors.navy, offset: Offset(2.5, 2.5), blurRadius: 0),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.arrow_downward_rounded,
+                    size: 18,
                     color: AppColors.navy,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Jumlah (Rp)',
-                    hintText: '0',
-                    prefixIcon: Icon(Icons.payments_outlined, color: AppColors.navy),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Jumlah wajib diisi';
-                    final amount = double.tryParse(v.replaceAll('.', ''));
-                    if (amount == null || amount <= 0) return 'Jumlah tidak valid';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Description
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Deskripsi Transaksi',
-                    hintText: 'Misal: Nasi Goreng Spesial',
-                    prefixIcon: Icon(Icons.description_outlined, color: AppColors.navy),
-                  ),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Deskripsi wajib diisi' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Merchant
-                TextFormField(
-                  controller: _merchantController,
-                  decoration: const InputDecoration(
-                    labelText: 'Merchant / Penerima (Opsional)',
-                    hintText: 'Misal: Warung Bu Siti, Alfamart',
-                    prefixIcon: Icon(Icons.storefront_outlined, color: AppColors.navy),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Category Dropdown
-                DropdownButtonFormField<String>(
-                  initialValue: _category,
-                  decoration: const InputDecoration(
-                    labelText: 'Kategori',
-                    prefixIcon: Icon(Icons.category_outlined, color: AppColors.navy),
-                  ),
-                  items: _categories.map((c) {
-                    return DropdownMenuItem(value: c, child: Text(c));
-                  }).toList(),
-                  onChanged: (v) {
-                    if (v != null) setState(() => _category = v);
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Payment Method Dropdown
-                DropdownButtonFormField<String>(
-                  initialValue: _paymentMethod,
-                  decoration: const InputDecoration(
-                    labelText: 'Metode Pembayaran',
-                    prefixIcon: Icon(Icons.account_balance_wallet_outlined, color: AppColors.navy),
-                  ),
-                  items: _paymentMethods.map((m) {
-                    return DropdownMenuItem(value: m, child: Text(m));
-                  }).toList(),
-                  onChanged: (v) {
-                    if (v != null) setState(() => _paymentMethod = v);
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Date Picker Tile
-                InkWell(
-                  onTap: _selectDate,
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.navy, width: 2),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_today_rounded, color: AppColors.navy, size: 20),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Tanggal: ${"${_selectedDate.day}".padLeft(2, '0')}/${"${_selectedDate.month}".padLeft(2, '0')}/${_selectedDate.year}',
-                              style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.navy),
-                            ),
-                          ],
-                        ),
-                        const Icon(Icons.arrow_drop_down, color: AppColors.navy),
-                      ],
+                  const SizedBox(width: 6),
+                  Text(
+                    'Pengeluaran',
+                    style: TextStyle(
+                      color: AppColors.navy,
+                      fontWeight: isExpense ? FontWeight.w900 : FontWeight.w700,
+                      fontSize: 15,
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
 
-                // Submit Button
-                NeoBrutalButton(
-                  onPressed: _isLoading ? null : _handleSave,
-                  isLoading: _isLoading,
-                  backgroundColor: AppColors.lime,
-                  textColor: AppColors.navy,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.check_circle_rounded, color: AppColors.navy, size: 22),
-                      SizedBox(width: 10),
-                      Text(
-                        'Simpan Transaksi',
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                      ),
-                    ],
-                  ),
+        // Pemasukan Button
+        Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _type = 'income'),
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: !isExpense ? AppColors.lime : AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.navy,
+                  width: !isExpense ? 2.2 : 1.8,
                 ),
-              ],
+                boxShadow: !isExpense
+                    ? const [
+                        BoxShadow(color: AppColors.navy, offset: Offset(2.5, 2.5), blurRadius: 0),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.arrow_upward_rounded,
+                    size: 18,
+                    color: AppColors.navy,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Pemasukan',
+                    style: TextStyle(
+                      color: AppColors.navy,
+                      fontWeight: !isExpense ? FontWeight.w900 : FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -589,164 +546,537 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  Widget _buildTypeToggle() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.navy, width: AppColors.borderWidth),
-        boxShadow: const [
-          BoxShadow(color: AppColors.navy, offset: Offset(3, 3), blurRadius: 0),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _type = 'expense'),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: _type == 'expense' ? AppColors.orange : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  border: _type == 'expense' ? Border.all(color: AppColors.navy, width: 1.5) : null,
-                ),
-                child: Center(
-                  child: Text(
-                    'Pengeluaran',
-                    style: TextStyle(
-                      color: _type == 'expense' ? AppColors.white : AppColors.navy,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _type = 'income'),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: _type == 'income' ? AppColors.lime : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  border: _type == 'income' ? Border.all(color: AppColors.navy, width: 1.5) : null,
-                ),
-                child: Center(
-                  child: Text(
-                    'Pemasukan',
-                    style: TextStyle(
-                      color: _type == 'income' ? AppColors.navy : AppColors.navy,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Mode 2: OCR Scanner View ───────────────────────
-  Widget _buildOcrScannerView() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Action Buttons: Kamera & Galeri
-        Row(
+  // ── Mode 1: Manual Form Card (Precisely matching screenshot) ────────────
+  Widget _buildManualFormCard() {
+    return NeoBrutalCard(
+      backgroundColor: AppColors.surface,
+      borderRadius: 16,
+      shadowOffset: 4,
+      padding: const EdgeInsets.all(18),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: NeoBrutalButton(
-                onPressed: _isScanning ? null : () => _pickAndScanReceipt(ImageSource.camera),
-                backgroundColor: AppColors.lime,
-                textColor: AppColors.navy,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            // ── Section 0: Pilihan Jenis Transaksi di dalam Card ───────
+            _buildTypeToggle(),
+            const SizedBox(height: 18),
+            const Divider(color: Color(0xFFE2E8F0), thickness: 1.5),
+            const SizedBox(height: 14),
+
+            // ── Section 1: NOMINAL TRANSAKSI with IDR Badge ─────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'NOMINAL TRANSAKSI',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFE100),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.navy, width: 1.5),
+                  ),
+                  child: const Text(
+                    'IDR',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.navy,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // Big Bold Amount Display
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                const Text(
+                  'Rp ',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+                Expanded(
+                  child: TextFormField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.navy,
+                      letterSpacing: -0.5,
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    validator: (v) => (v == null || v.isEmpty) ? 'Nominal wajib diisi' : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // AI OCR Lightning Subtitle
+            Row(
+              children: const [
+                Icon(Icons.bolt_rounded, size: 16, color: Color(0xFF16A34A)),
+                SizedBox(width: 4),
+                Text(
+                  'Terdeteksi otomatis via AI OCR',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+
+            // ── Section 2: Deskripsi Transaksi ──────────────────────────
+            Row(
+              children: const [
+                Icon(Icons.assignment_outlined, size: 16, color: AppColors.navy),
+                SizedBox(width: 6),
+                Text(
+                  'Deskripsi Transaksi',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.navy, width: 1.8),
+              ),
+              child: TextFormField(
+                controller: _descriptionController,
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.navy),
+                decoration: const InputDecoration(
+                  hintText: 'Misal: Makan Siang Ramen Komplit',
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+                validator: (v) => (v == null || v.isEmpty) ? 'Deskripsi wajib diisi' : null,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Section 3: Merchant / Tempat with Checkmark Circle ──────
+            Row(
+              children: const [
+                Icon(Icons.storefront_outlined, size: 16, color: AppColors.navy),
+                SizedBox(width: 6),
+                Text(
+                  'Merchant / Tempat',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.navy, width: 1.8),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _merchantController,
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.navy),
+                      decoration: const InputDecoration(
+                        hintText: 'Nama Merchant / Toko',
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 12),
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      color: Color(0xFF16A34A),
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Section 4: Pilih Kategori (6 Grid Buttons) ───────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: const [
+                    Icon(Icons.grid_view_rounded, size: 16, color: AppColors.navy),
+                    SizedBox(width: 6),
+                    Text(
+                      'Pilih Kategori',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.navy,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  '$_category Aktif',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF16A34A),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Grid of 6 Categories (3 columns x 2 rows)
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _categoryGrid.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 2.2,
+              ),
+              itemBuilder: (context, i) {
+                final cat = _categoryGrid[i];
+                final isSelected = _category == cat['name'];
+
+                return GestureDetector(
+                  onTap: () => setState(() => _category = cat['name'] as String),
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.lime : AppColors.surface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.navy,
+                        width: isSelected ? 2.0 : 1.5,
+                      ),
+                      boxShadow: isSelected
+                          ? const [
+                              BoxShadow(color: AppColors.navy, offset: Offset(1.5, 1.5), blurRadius: 0),
+                            ]
+                          : null,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          cat['icon'] as IconData,
+                          size: 15,
+                          color: AppColors.navy,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            cat['label'] as String,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                              color: AppColors.navy,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // ── Section 5: Metode Bayar (Bright Yellow Card) ────────────
+            Row(
+              children: const [
+                Icon(Icons.credit_card_rounded, size: 16, color: AppColors.navy),
+                SizedBox(width: 6),
+                Text(
+                  'Metode Bayar',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _showPaymentMethodPicker,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFE100), // Vibrant Solar Yellow
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.navy, width: 2.0),
+                  boxShadow: const [
+                    BoxShadow(color: AppColors.navy, offset: Offset(2, 2), blurRadius: 0),
+                  ],
+                ),
+                child: Row(
                   children: [
-                    Icon(Icons.camera_alt_rounded, size: 20, color: AppColors.navy),
-                    SizedBox(width: 8),
-                    Text('Kamera', style: TextStyle(fontWeight: FontWeight.w900)),
+                    const Icon(Icons.qr_code_scanner_rounded, color: AppColors.navy, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      _paymentMethod,
+                      style: const TextStyle(
+                        color: AppColors.navy,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const Spacer(),
+                    const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.navy, size: 22),
                   ],
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: NeoBrutalButton(
-                onPressed: _isScanning ? null : () => _pickAndScanReceipt(ImageSource.gallery),
-                backgroundColor: AppColors.surface,
-                textColor: AppColors.navy,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(height: 16),
+
+            // ── Section 6: Waktu & Tanggal ──────────────────────────────
+            Row(
+              children: const [
+                Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.navy),
+                SizedBox(width: 6),
+                Text(
+                  'Waktu & Tanggal',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _selectDate,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.navy, width: 1.8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.photo_library_rounded, size: 20, color: AppColors.navy),
-                    SizedBox(width: 8),
-                    Text('Galeri', style: TextStyle(fontWeight: FontWeight.w900)),
+                    Text(
+                      'Hari ini, ${_formatDisplayDate(_selectedDate)}',
+                      style: const TextStyle(
+                        color: AppColors.navy,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.access_time_rounded,
+                      color: AppColors.textSecondary,
+                      size: 18,
+                    ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // ── Section 7: CTA Simpan Transaksi ─────────────────────────
+            NeoBrutalButton(
+              onPressed: _isLoading ? null : _handleSave,
+              isLoading: _isLoading,
+              backgroundColor: AppColors.lime,
+              textColor: AppColors.navy,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.check_circle_rounded, color: AppColors.navy, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Simpan Transaksi',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: AppColors.navy,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
+      ),
+    );
+  }
 
-        // Preview Image or Instructions
-        if (_imageFile != null)
-          NeoBrutalCard(
-            padding: EdgeInsets.zero,
-            borderRadius: 14,
-            shadowOffset: 3,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                _imageFile!,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
+  // ── Mode 2: OCR Scanner View ───────────────────────────────────────────
+  Widget _buildOcrScannerView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        NeoBrutalCard(
+          backgroundColor: AppColors.surface,
+          borderRadius: 16,
+          shadowOffset: 4,
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.lime,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.navy, width: 2.2),
+                ),
+                child: const Icon(Icons.document_scanner_rounded, color: AppColors.navy, size: 36),
               ),
-            ),
-          )
-        else
-          NeoBrutalCard(
-            backgroundColor: AppColors.surface,
-            borderRadius: 14,
-            shadowOffset: 3,
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.lime,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.navy, width: 2),
+              const SizedBox(height: 12),
+              const Text(
+                'Pindai Struk Belanja Otomatis',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.navy),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Foto struk fisikmu dari kamera atau galeri, AI CEAMIS akan mengekstrak nominal dan merchant secara instan.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 18),
+              const Divider(color: Color(0xFFE2E8F0), thickness: 1.5),
+              const SizedBox(height: 16),
+
+              // ── Buttons Kamera & Galeri DI DALAM CARD ───────────────
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _isScanning ? null : () => _pickAndScanReceipt(ImageSource.camera),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.lime,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.navy, width: 2.0),
+                          boxShadow: const [
+                            BoxShadow(color: AppColors.navy, offset: Offset(2, 2), blurRadius: 0),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.camera_alt_rounded, size: 18, color: AppColors.navy),
+                            SizedBox(width: 8),
+                            Text(
+                              'Kamera',
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: AppColors.navy),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                  child: const Icon(Icons.document_scanner_rounded, color: AppColors.navy, size: 36),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Pindai Struk Belanja Otomatis',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.navy),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Foto struk fisikmu dari kamera atau galeri, AI CEAMIS akan mengekstrak nominal dan merchant secara instan.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _isScanning ? null : () => _pickAndScanReceipt(ImageSource.gallery),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.navy, width: 2.0),
+                          boxShadow: const [
+                            BoxShadow(color: AppColors.navy, offset: Offset(2, 2), blurRadius: 0),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.photo_library_rounded, size: 18, color: AppColors.navy),
+                            SizedBox(width: 8),
+                            Text(
+                              'Galeri',
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: AppColors.navy),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              if (_imageFile != null) ...[
+                const SizedBox(height: 18),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.navy, width: 2.0),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Image.file(
+                      _imageFile!,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ],
-            ),
+            ],
           ),
+        ),
         const SizedBox(height: 16),
 
-        // Scanning Spinner
         if (_isScanning)
           NeoBrutalCard(
             backgroundColor: AppColors.lime,
@@ -769,7 +1099,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
           ),
 
-        // Error Message
         if (_scanError != null)
           NeoBrutalCard(
             backgroundColor: AppColors.orange.withValues(alpha: 0.15),
@@ -781,7 +1110,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
           ),
 
-        // Extracted Result Card with CTA to copy into manual form
         if (_scannedData != null)
           NeoBrutalCard(
             backgroundColor: AppColors.surface,
@@ -796,7 +1124,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.check_circle_rounded, color: AppColors.blue, size: 20),
+                        Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 20),
                         SizedBox(width: 6),
                         Text(
                           'Hasil Ekstraksi Struk',
@@ -857,5 +1185,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ],
       ),
     );
+  }
+
+  String _formatDisplayDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
   }
 }

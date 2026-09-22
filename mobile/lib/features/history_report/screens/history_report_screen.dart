@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/neo_brutal_card.dart';
 import '../../../core/widgets/neo_brutal_button.dart';
+import '../../../core/widgets/ceamis_app_bar.dart';
 
 class HistoryReportScreen extends StatefulWidget {
   final int initialTab;
@@ -155,58 +156,9 @@ class _HistoryReportScreenState extends State<HistoryReportScreen> {
         child: Column(
           children: [
             // Top Header
-            Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 12),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.lime,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppColors.navy,
-                        width: AppColors.borderWidth,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: AppColors.navy,
-                          offset: Offset(3, 3),
-                          blurRadius: 0,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.analytics_rounded,
-                      color: AppColors.navy,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Riwayat & Laporan',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.navy,
-                              ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Analisis mutasi & keuangan kamu',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            const Padding(
+              padding: EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 12),
+              child: CeamisAppBar(title: 'Laporan'),
             ),
 
             // Segmented Tabs Pill: [ Riwayat Transaksi ] | [ Laporan Finansial ]

@@ -7,6 +7,7 @@ import '../../features/home/screens/home_screen.dart';
 import '../../features/transaction/screens/add_transaction_screen.dart';
 import '../../features/ocr/screens/ocr_scan_screen.dart';
 import '../../features/health_score/screens/health_score_screen.dart';
+import '../../features/planning/screens/planning_screen.dart';
 import '../../features/pre_purchase/screens/pre_purchase_screen.dart';
 import '../../features/pre_purchase/screens/pre_purchase_result_screen.dart';
 import '../../features/history_report/screens/history_report_screen.dart';
@@ -71,6 +72,11 @@ final appRouter = GoRouter(
           path: '/health-score',
           name: 'health-score',
           builder: (context, state) => const HealthScoreScreen(),
+        ),
+        GoRoute(
+          path: '/planning',
+          name: 'planning',
+          builder: (context, state) => const PlanningScreen(),
         ),
         GoRoute(
           path: '/pre-purchase',

@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-
 import '../../../core/widgets/neo_brutal_card.dart';
+import '../../../core/widgets/ceamis_app_bar.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,143 +15,111 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Halo, Danu!',
-                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.navy,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Yuk pantau keuanganmu hari ini',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                    ],
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/profile'),
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.lime,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: AppColors.borderWidth,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: AppColors.navy,
-                            offset: Offset(3, 3),
-                            blurRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.person_rounded,
-                        color: AppColors.navy,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              // ── 1. Top Header ──────────────────────────────────────────
+              _buildTopBar(context),
+              const SizedBox(height: 18),
+
+              // ── 2. AI Insight Card (CAMI AI) ───────────────────────────
+              _buildAiInsightCard(context),
+              const SizedBox(height: 18),
+
+              // ── 3. 2x2 Bento Metric Grid ───────────────────────────────
+              _buildBentoMetrics(context),
               const SizedBox(height: 24),
 
-              // Health Score Card (Neo-Brutalist Lime Card)
-              _buildHealthScoreCard(context),
-              const SizedBox(height: 20),
-
-              // 2x2 Bento Metric Grid (Dribbble inspired)
-              _buildBentoMetrics(context),
-              const SizedBox(height: 20),
-
-              // Quick Actions
-              _buildQuickActions(context),
-              const SizedBox(height: 28),
-
-              // Recent Transactions Header
+              // ── 4. Aktivitas Terakhir Header ───────────────────────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Transaksi Terakhir',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  Row(
+                    children: const [
+                      Text(
+                        'Aktivitas Terakhir',
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.w900,
                           color: AppColors.navy,
                         ),
+                      ),
+                      SizedBox(width: 6),
+                      Icon(Icons.circle, color: Color(0xFF10B981), size: 8),
+                    ],
                   ),
                   GestureDetector(
                     onTap: () => context.go('/history-report'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 1.5,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          'Lihat Semua',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
                             color: AppColors.navy,
-                            offset: Offset(2, 2),
-                            blurRadius: 0,
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        'Lihat Semua ➔',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.navy,
-                            ),
-                      ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.navy),
+                      ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
 
-              // Transactions (Consistent clean icons)
-              _buildTransactionItem(
-                icon: Icons.restaurant_rounded,
-                title: 'Makan Siang',
-                subtitle: 'Food & Beverage',
-                amount: '-Rp 35.000',
-                isExpense: true,
+              // ── 5. Activity Item 1 (Gaji Pokok) ────────────────────────
+              _buildActivityItem(
+                context,
+                icon: Icons.payments_rounded,
+                iconBg: AppColors.lime,
+                iconColor: AppColors.navy,
+                title: 'Gaji Pokok PT Te...',
+                badgeText: 'Income',
+                badgeBg: AppColors.surface,
+                dateText: '• 01 Sep',
+                amountText: '+Rp 5.200.000',
+                amountColor: const Color(0xFF16A34A), // vibrant green
+                statusText: 'Otomatis',
+                statusColor: AppColors.textSecondary,
               ),
-              _buildTransactionItem(
+
+              // ── 6. Activity Item 2 (Apple Music & iCloud) ──────────────
+              _buildActivityItem(
+                context,
+                icon: Icons.music_note_rounded,
+                iconBg: const Color(0xFFDCEBFE), // soft blue
+                iconColor: const Color(0xFF0095FF),
+                title: 'Apple Music & iCloud',
+                badgeText: 'Wants',
+                badgeBg: AppColors.surface,
+                dateText: '• 03 Sep',
+                amountText: '-Rp 169.000',
+                amountColor: AppColors.navy,
+                statusText: 'Langganan',
+                statusColor: const Color(0xFF0095FF),
+              ),
+
+              // ── 7. Activity Item 3 (Starbucks Reserve) ─────────────────
+              _buildActivityItem(
+                context,
                 icon: Icons.local_cafe_rounded,
-                title: 'Kopi Kekinian',
-                subtitle: 'Food & Beverage',
-                amount: '-Rp 28.000',
-                isExpense: true,
+                iconBg: const Color(0xFFFEF08A), // soft yellow
+                iconColor: const Color(0xFFB45309),
+                title: 'Starbucks Reserve',
+                badgeText: 'Impulsif',
+                badgeBg: const Color(0xFFFFE100),
+                dateText: '• Hari ini',
+                amountText: '-Rp 72.000',
+                amountColor: const Color(0xFFDC2626), // red
+                statusText: 'Waspada',
+                statusColor: const Color(0xFFDC2626),
               ),
-              _buildTransactionItem(
-                icon: Icons.account_balance_wallet_rounded,
-                title: 'Gaji Bulanan',
-                subtitle: 'Income Transfer',
-                amount: '+Rp 5.200.000',
-                isExpense: false,
-              ),
+
               const SizedBox(height: 100),
             ],
           ),
@@ -160,166 +128,233 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHealthScoreCard(BuildContext context) {
+  // ── Top Header with CEAMIS Brand, Notification Bell & Avatar ───────────
+  Widget _buildTopBar(BuildContext context) {
+    return const CeamisAppBar(title: 'Beranda');
+  }
+
+  // ── AI Insight Card (CAMI AI + Skor Finansial) ─────────────────────────
+  Widget _buildAiInsightCard(BuildContext context) {
     return NeoBrutalCard(
       backgroundColor: AppColors.lime,
       borderRadius: 16,
       shadowOffset: 4,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.navy,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.insights_rounded,
-                      color: AppColors.lime,
-                      size: 18,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'HEALTH SCORE',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.navy,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.2,
-                        ),
-                  ),
-                ],
-              ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.border,
-                    width: AppColors.borderWidth,
-                  ),
+                  border: Border.all(color: AppColors.navy, width: 1.8),
                   boxShadow: const [
                     BoxShadow(
                       color: AppColors.navy,
-                      offset: Offset(2, 2),
+                      offset: Offset(1.5, 1.5),
                       blurRadius: 0,
                     ),
                   ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: AppColors.lime,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.navy, width: 1),
-                      ),
-                      child: const SizedBox(width: 8, height: 8),
-                    ),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'SEHAT',
+                  children: const [
+                    Icon(Icons.check_circle_outline_rounded, color: AppColors.navy, size: 15),
+                    SizedBox(width: 6),
+                    Text(
+                      'SKOR FINANSIAL: 78.5 • SEHAT',
                       style: TextStyle(
                         color: AppColors.navy,
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '78.5',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontSize: 52,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.circle, color: AppColors.navy, size: 7),
+                  SizedBox(width: 5),
+                  Text(
+                    'CAMI AI',
+                    style: TextStyle(
+                      color: AppColors.navy,
+                      fontSize: 11,
                       fontWeight: FontWeight.w900,
-                      color: AppColors.navy,
-                      letterSpacing: -1.5,
-                      height: 1.0,
+                      letterSpacing: 0.5,
                     ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '/ 100',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.navy,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: AppColors.border,
-                width: 2.0,
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle_rounded,
-                    color: AppColors.navy, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Kondisi keuanganmu prima! Pertahankan rasio saving di atas 15%.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.navy,
-                          fontWeight: FontWeight.w700,
-                        ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.smart_toy_outlined, color: AppColors.navy, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RichText(
+                  text: const TextSpan(
+                    style: TextStyle(
+                      color: AppColors.navy,
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: 'AI Insight: ',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      TextSpan(
+                        text: 'Pengeluaran impulsif <8%, ritme tabungan optimal bulan ini.',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // ── 2x2 Bento Metrics Grid (Dribbble Screen 1 inspired) ────
+  // ── 2x2 Bento Metric Grid ──────────────────────────────────────────────
   Widget _buildBentoMetrics(BuildContext context) {
     return Column(
       children: [
         Row(
           children: [
+            // Pemasukan Tile
             Expanded(
-              child: _buildMetricTile(
-                title: 'Pemasukan',
-                value: 'Rp 5.200.000',
-                badgeText: 'Credited',
-                badgeColor: AppColors.blue,
-                isPositive: true,
+              child: NeoBrutalCard(
+                backgroundColor: AppColors.surface,
+                borderRadius: 14,
+                shadowOffset: 3,
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: AppColors.lime,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.navy, width: 1.5),
+                          ),
+                          child: const Icon(
+                            Icons.south_west_rounded,
+                            size: 14,
+                            color: AppColors.navy,
+                          ),
+                        ),
+                        const Text(
+                          'PEMASUKAN',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF16A34A),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Rp 5.200.000',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.navy,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Bulan ini',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 12),
+
+            // Pengeluaran Tile
             Expanded(
-              child: _buildMetricTile(
-                title: 'Pengeluaran',
-                value: 'Rp 1.450.000',
-                badgeText: 'Debit',
-                badgeColor: AppColors.orange,
-                isPositive: false,
+              child: NeoBrutalCard(
+                backgroundColor: AppColors.surface,
+                borderRadius: 14,
+                shadowOffset: 3,
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFE100),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.navy, width: 1.5),
+                          ),
+                          child: const Icon(
+                            Icons.north_east_rounded,
+                            size: 14,
+                            color: AppColors.navy,
+                          ),
+                        ),
+                        const Text(
+                          'PENGELUARAN',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFDC2626),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Rp 1.450.000',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFDC2626),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Terkendali',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -327,25 +362,142 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(height: 12),
         Row(
           children: [
+            // Sisa Pagu Tile (Navigates to /planning)
             Expanded(
-              child: _buildMetricTile(
-                title: 'Sisa Pagu',
-                value: 'Rp 3.750.000',
-                badgeText: '72% Pagu',
-                badgeColor: AppColors.lime,
-                textColor: AppColors.navy,
-                badgeTextColor: AppColors.navy,
+              child: GestureDetector(
+                onTap: () => context.go('/planning'),
+                behavior: HitTestBehavior.opaque,
+                child: NeoBrutalCard(
+                  backgroundColor: AppColors.surface,
+                  borderRadius: 14,
+                  shadowOffset: 3,
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: const [
+                          Text(
+                            'Sisa Pagu',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            '72%',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF16A34A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Rp 3.750.000',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.navy,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Container(
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: 0.72,
+                            child: Container(
+                              color: const Color(0xFF16A34A),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Pagu belanja aman',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
+
+            // Saving Rate Tile
             Expanded(
-              child: _buildMetricTile(
-                title: 'Saving Rate',
-                value: '28.4%',
-                badgeText: 'Optimal',
-                badgeColor: AppColors.lime,
-                textColor: AppColors.navy,
-                badgeTextColor: AppColors.navy,
+              child: NeoBrutalCard(
+                backgroundColor: AppColors.surface,
+                borderRadius: 14,
+                shadowOffset: 3,
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCEBFE),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.navy, width: 1.5),
+                          ),
+                          child: const Icon(
+                            Icons.savings_outlined,
+                            size: 14,
+                            color: Color(0xFF0095FF),
+                          ),
+                        ),
+                        const Text(
+                          'HEMAT',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0095FF),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      '28.4 %',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.navy,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Saving rate optimal',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -354,183 +506,40 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricTile({
-    required String title,
-    required String value,
-    required String badgeText,
-    required Color badgeColor,
-    Color? textColor,
-    Color? badgeTextColor,
-    bool? isPositive,
-  }) {
-    return NeoBrutalCard(
-      backgroundColor: AppColors.surface,
-      borderRadius: 14,
-      shadowOffset: 3,
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: badgeColor,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.navy, width: 1.5),
-                ),
-                child: Text(
-                  badgeText,
-                  style: TextStyle(
-                    color: badgeTextColor ?? AppColors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              color: textColor ?? AppColors.navy,
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionCard(
-            context,
-            icon: Icons.add_rounded,
-            label: 'Tambah\nTransaksi',
-            onTap: () => context.go('/add-transaction'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionCard(
-            context,
-            icon: Icons.shield_rounded,
-            label: 'Cek Risiko\nPra-Beli',
-            isHighlight: true,
-            onTap: () => context.go('/pre-purchase'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionCard(
-            context,
-            icon: Icons.document_scanner_rounded,
-            label: 'Scan\nStruk',
-            onTap: () => context.go('/ocr-scan'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard(
+  // ── Activity Item Card ─────────────────────────────────────────────────
+  Widget _buildActivityItem(
     BuildContext context, {
     required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool isHighlight = false,
-  }) {
-    return NeoBrutalCard(
-      backgroundColor: isHighlight ? AppColors.lime : AppColors.surface,
-      borderRadius: 14,
-      shadowOffset: 3,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isHighlight ? AppColors.navy : AppColors.lime,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: AppColors.border,
-                width: 2.0,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.navy,
-                  offset: Offset(2, 2),
-                  blurRadius: 0,
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              color: isHighlight ? AppColors.lime : AppColors.navy,
-              size: 24,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.navy,
-                  height: 1.2,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionItem({
-    required IconData icon,
+    required Color iconBg,
+    required Color iconColor,
     required String title,
-    required String subtitle,
-    required String amount,
-    required bool isExpense,
+    required String badgeText,
+    required Color badgeBg,
+    required String dateText,
+    required String amountText,
+    required Color amountColor,
+    required String statusText,
+    required Color statusColor,
   }) {
     return NeoBrutalCard(
       backgroundColor: AppColors.surface,
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       borderRadius: 12,
-      shadowOffset: 3,
+      shadowOffset: 2.5,
       child: Row(
         children: [
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+              color: iconBg,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: AppColors.border,
-                width: 2.0,
-              ),
+              border: Border.all(color: AppColors.navy, width: 2.0),
             ),
-            child: Icon(icon, color: AppColors.navy, size: 22),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,42 +548,64 @@ class HomeScreen extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     color: AppColors.navy,
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: badgeBg,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.navy, width: 1.2),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: const TextStyle(
+                          color: AppColors.navy,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      dateText,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isExpense
-                  ? AppColors.orange.withValues(alpha: 0.15)
-                  : AppColors.lime.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isExpense ? AppColors.orange : AppColors.navy,
-                width: 1.5,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amountText,
+                style: TextStyle(
+                  color: amountColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-            ),
-            child: Text(
-              amount,
-              style: TextStyle(
-                color: isExpense ? AppColors.orange : AppColors.navy,
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
+              const SizedBox(height: 2),
+              Text(
+                statusText,
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),

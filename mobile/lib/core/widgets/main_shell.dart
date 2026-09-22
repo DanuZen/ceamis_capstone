@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
 
 /// Main app shell with Neo-Brutalism floating bottom navigation dock.
-/// Features a prominent, distinctly shaped center action button for "Catat Transaksi".
+/// Restored to the original signature Neo-Brutalist style:
+/// White surface container, 2.5px navy border, hard brutalist shadow,
+/// rounded square center action button, and 5 buttons:
+/// [Beranda], [Wishlist], [+], [Rencana], [Laporan].
 class MainShell extends StatelessWidget {
   final Widget child;
   const MainShell({super.key, required this.child});
@@ -15,7 +18,7 @@ class MainShell extends StatelessWidget {
     if (location == '/') return 0;
     if (location == '/pre-purchase' || location.startsWith('/pre-purchase')) return 1;
     if (location == '/add-transaction' || location == '/ocr-scan') return 2;
-    if (location == '/health-score') return 3;
+    if (location == '/planning' || location.startsWith('/planning')) return 3;
     if (location == '/history-report') return 4;
     return 0;
   }
@@ -32,7 +35,7 @@ class MainShell extends StatelessWidget {
         context.go('/add-transaction');
         break;
       case 3:
-        context.go('/health-score');
+        context.go('/planning');
         break;
       case 4:
         context.go('/history-report');
@@ -70,7 +73,7 @@ class MainShell extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // 0: Home (Beranda)
+              // 0: Beranda
               Expanded(
                 child: Center(
                   child: _buildNavItem(
@@ -84,21 +87,21 @@ class MainShell extends StatelessWidget {
                 ),
               ),
 
-              // 1: Cek Risiko
+              // 1: Wishlist
               Expanded(
                 child: Center(
                   child: _buildNavItem(
                     context: context,
                     index: 1,
                     selectedIndex: selectedIndex,
-                    inactiveIcon: Icons.shield_outlined,
-                    activeIcon: Icons.shield_rounded,
-                    tooltip: 'Cek Risiko',
+                    inactiveIcon: Icons.stars_outlined,
+                    activeIcon: Icons.stars_rounded,
+                    tooltip: 'Wishlist',
                   ),
                 ),
               ),
 
-              // 2: Distinct Center Action Button for Catat Transaksi (Balanced 1/5 slot)
+              // 2: Distinct Center Action Button for Catat Transaksi
               Expanded(
                 child: Center(
                   child: _buildCenterActionButton(
@@ -108,29 +111,29 @@ class MainShell extends StatelessWidget {
                 ),
               ),
 
-              // 3: Health Score
+              // 3: Rencana
               Expanded(
                 child: Center(
                   child: _buildNavItem(
                     context: context,
                     index: 3,
                     selectedIndex: selectedIndex,
-                    inactiveIcon: Icons.auto_graph_outlined,
-                    activeIcon: Icons.auto_graph_rounded,
-                    tooltip: 'Skor Keuangan',
+                    inactiveIcon: Icons.pie_chart_outline_rounded,
+                    activeIcon: Icons.pie_chart_rounded,
+                    tooltip: 'Rencana',
                   ),
                 ),
               ),
 
-              // 4: Riwayat & Laporan (Unified)
+              // 4: Laporan
               Expanded(
                 child: Center(
                   child: _buildNavItem(
                     context: context,
                     index: 4,
                     selectedIndex: selectedIndex,
-                    inactiveIcon: Icons.analytics_outlined,
-                    activeIcon: Icons.analytics_rounded,
+                    inactiveIcon: Icons.article_outlined,
+                    activeIcon: Icons.article_rounded,
                     tooltip: 'Laporan',
                   ),
                 ),
