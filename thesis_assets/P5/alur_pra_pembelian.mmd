@@ -1,0 +1,22 @@
+flowchart TD
+    A([Mulai: Input Rencana Belanja]) --> B[Ekstraksi 7 Fitur Kontekstual & Inferensi Risiko]
+    B --> C[Tampilkan Skor Risiko, Alasan XAI & Dampak Finansial]
+    C --> D{Pilihan Respons Pengguna}
+
+    %% Tiga Percabangan Keputusan
+    D -->|PROCEED| E[Lanjut: Catat Keputusan & Transaksi Pengeluaran]
+    D -->|ADJUST| F[Sesuaikan: Koreksi Nominal ke Batas Aman]
+    D -->|POSTPONE| G[Tunda: Simpan Wishlist & Jeda Berpikir 72 Jam]
+
+    F --> H[Perbarui Catatan Perencanaan]
+    G --> I[Pencegahan Belanja Impulsif Berhasil]
+    E --> J{Konfirmasi Pasca-Keputusan?}
+
+    %% Titik Konfirmasi Pasca-Keputusan
+    J -->|Diisi Pengguna| K[Simpan Ground Truth: was_impulsive True/False]
+    J -->|Dilewati / Tidak Diisi| L[Data Tetap Tersimpan Tanpa Label Ground Truth]
+
+    H --> M([Selesai])
+    I --> M
+    K --> M
+    L --> M

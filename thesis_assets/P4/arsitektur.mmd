@@ -1,0 +1,48 @@
+flowchart TD
+    subgraph Clients ["Klien Sistem"]
+        FLUTTER["Aplikasi Mobile Flutter<br/>(Peran Pengguna / User)"]
+        NEXTJS["Dasbor Web Next.js<br/>(Peran Administrator / Admin)"]
+    end
+
+    subgraph Backend_Gateway ["Backend FastAPI Monolit Modular"]
+        API_GW["FastAPI Router Gateway<br/>(Uvicorn ASGI Server)"]
+        MOD_PRE["Modul Pra-Pembelian<br/>(pre_purchase.py)"]
+        MOD_ADM["Modul Tata Kelola Admin<br/>(admin.py)"]
+        MOD_OCR["Modul Smart OCR<br/>(ocr.py)"]
+        MOD_HS["Modul Health Score & Insight<br/>(health_score.py)"]
+    end
+
+    subgraph Machine_Learning ["Komponen Model Prediksi"]
+        ML_PRED["Risk Predictor Engine<br/>(7 Fitur Kontekstual)"]
+        ML_ART[("Artefak Model & Scaler<br/>(.joblib, Scikit-Learn)")]
+        ML_FALLBACK["Fallback Ambang Statis<br/>(Rule-Based Guardrail)"]
+    end
+
+    subgraph Database_Storage ["Basis Data PostgreSQL (Supabase Cloud)"]
+        DB_POSTGRES[("PostgreSQL 15+<br/>- auth.users & user_profiles<br/>- transactions & planning<br/>- pre_purchase_checks<br/>- risk_predictions & feedbacks<br/>- model_versions & audit_logs")]
+    end
+
+    subgraph External_Services ["Layanan Eksternal"]
+        EXT_AUTH["Supabase Auth Service<br/>(Manajemen Sesi & JWT)"]
+        EXT_GEMINI["Google Gemini 2.0 Flash<br/>(Ekstraksi Teks Struk Belanja)"]
+    end
+
+    %% Komunikasi Klien ke Backend & Layanan
+    FLUTTER -->|HTTPS / REST API| API_GW
+    FLUTTER -->|Otentikasi Langsung| EXT_AUTH
+    NEXTJS -->|HTTPS / REST API| API_GW
+    NEXTJS -->|Prisma Client / Direct SQL| DB_POSTGRES
+
+    %% Alur Internal Backend
+    API_GW --> MOD_PRE
+    API_GW --> MOD_ADM
+    API_GW --> MOD_OCR
+    API_GW --> MOD_HS
+
+    MOD_PRE --> ML_PRED
+    ML_PRED --> ML_ART
+    ML_PRED -.->|Fallback saat model nihil| ML_FALLBACK
+
+    MOD_OCR -->|HTTP API Call| EXT_GEMINI
+    MOD_PRE -->|Persistensi Data| DB_POSTGRES
+    MOD_ADM -->|Audit & Registry| DB_POSTGRES

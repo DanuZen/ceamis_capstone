@@ -1,0 +1,52 @@
+@startuml use_case
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam actorStyle awesome
+
+actor "Pengguna (User)" as User
+actor "Administrator (Admin)" as Admin
+
+rectangle "Sistem Peringatan Dini" {
+    usecase "Autentikasi dan Kelola Profil\n(FR-U01)" as UC_Auth
+    usecase "Rencanakan Anggaran dan Tabungan\n(FR-U02)" as UC_Budget
+    usecase "Catat Transaksi Pengeluaran Manual\n(FR-U03)" as UC_TxManual
+    usecase "Pindai Struk Belanja via OCR\n(FR-U03)" as UC_TxOCR
+    usecase "Pemeriksaan Risiko Pra-Pembelian\n(FR-U04)" as UC_PreCheck
+    usecase "Pilih Respons Intervensi\n(Lanjut, Sesuaikan, Tunda)\n(FR-U05)" as UC_Decision
+    usecase "Kirim Konfirmasi Pasca-Keputusan\n(FR-U05)" as UC_Feedback
+    usecase "Lihat Laporan Riwayat Pengeluaran\n(FR-U07)" as UC_Report
+    usecase "Pantau Skor Finansial dan Streak\n(FR-U08)" as UC_Health
+    usecase "Pelajari Modul Literasi Finansial\n(FR-U08)" as UC_Education
+
+    usecase "Kelola Versi Model dan Rollback\n(FR-A03)" as UC_ModelRollback
+    usecase "Pantau Status dan Metrik Layanan\n(FR-A04)" as UC_Monitoring
+    usecase "Evaluasi Metrik Performa Model ML\n(FR-A05)" as UC_ModelEval
+    usecase "Tinjau Audit Log Intervensi\n(FR-A06)" as UC_AuditLog
+    usecase "Kelola Konten Edukasi dan Kuis" as UC_AdminEdu
+    usecase "Kelola Katalog Badge Gamifikasi" as UC_AdminBadge
+
+    UC_PreCheck ..> UC_Decision : <<include>>
+    UC_Decision ..> UC_Feedback : <<extend>>
+    UC_TxOCR ..> UC_TxManual : <<extend>>
+}
+
+User --> UC_Auth
+User --> UC_Budget
+User --> UC_TxManual
+User --> UC_TxOCR
+User --> UC_PreCheck
+User --> UC_Decision
+User --> UC_Feedback
+User --> UC_Report
+User --> UC_Health
+User --> UC_Education
+
+Admin --> UC_ModelRollback
+Admin --> UC_Monitoring
+Admin --> UC_ModelEval
+Admin --> UC_AuditLog
+Admin --> UC_AdminEdu
+Admin --> UC_AdminBadge
+
+@enduml

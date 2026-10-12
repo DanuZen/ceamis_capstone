@@ -72,6 +72,63 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
+              // ── Banner Konfirmasi Pasca-Keputusan (Continuous Learning) ──
+              GestureDetector(
+                onTap: () => context.push('/pre-purchase/feedback', extra: {
+                  'checkId': 'check-starbucks-001',
+                  'itemName': 'Starbucks Reserve',
+                  'amount': 72000.0,
+                  'categoryName': 'F&B (Pos Keinginan)',
+                  'transactionDate': 'Hari ini, 14:20',
+                }),
+                child: NeoBrutalCard(
+                  backgroundColor: const Color(0xFFFEF08A),
+                  borderRadius: 12,
+                  shadowOffset: 3,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.navy, width: 1.5),
+                        ),
+                        child: const Icon(Icons.psychology_alt_rounded, color: AppColors.navy, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Konfirmasi Pasca-Keputusan',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.navy,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Apakah transaksi Starbucks Reserve (Rp 72k) sesuai rencana? Ketuk untuk refleksi.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.navy,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right_rounded, color: AppColors.navy),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
               // ── 5. Activity Item 1 (Gaji Pokok) ────────────────────────
               _buildActivityItem(
                 context,

@@ -10,6 +10,7 @@ import '../../features/health_score/screens/health_score_screen.dart';
 import '../../features/planning/screens/planning_screen.dart';
 import '../../features/pre_purchase/screens/pre_purchase_screen.dart';
 import '../../features/pre_purchase/screens/pre_purchase_result_screen.dart';
+import '../../features/pre_purchase/screens/post_decision_feedback_screen.dart';
 import '../../features/history_report/screens/history_report_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../widgets/main_shell.dart';
@@ -71,6 +72,22 @@ final appRouter = GoRouter(
           budgetRemainingAfter: (extra['budgetRemainingAfter'] as num?)?.toDouble() ?? 0.0,
           savingsDelayedDays: (extra['savingsDelayedDays'] as num?)?.toInt() ?? 0,
           savingsGoalTitle: extra['savingsGoalTitle'] as String? ?? 'Dana Darurat 2026',
+        );
+      },
+    ),
+
+    // Pre-purchase post-decision feedback screen (Gambar 3.13)
+    GoRoute(
+      path: '/pre-purchase/feedback',
+      name: 'pre-purchase-feedback',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        return PostDecisionFeedbackScreen(
+          checkId: extra['checkId'] as String? ?? 'demo-check-001',
+          itemName: extra['itemName'] as String? ?? 'Kopi Susu & Pastry',
+          amount: (extra['amount'] as num?)?.toDouble() ?? 72000.0,
+          categoryName: extra['categoryName'] as String? ?? 'F&B (Pos Keinginan)',
+          transactionDate: extra['transactionDate'] as String? ?? '2 hari lalu',
         );
       },
     ),

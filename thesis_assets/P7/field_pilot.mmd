@@ -1,0 +1,45 @@
+flowchart TD
+    subgraph P1 ["Fase 1: Persiapan & Rekrutmen (Minggu 1)"]
+        A1["Sosialisasi Riset ke Mahasiswa UNP<br/><i>(Di Luar Sistem)</i>"]
+        A2["Skrining Kriteria Partisipan (30-50 Orang)<br/><i>(Di Luar Sistem)</i>"]
+        A1 --> A2
+    end
+
+    subgraph P2 ["Fase 2: Onboarding & Consent (Minggu 1)"]
+        B1["Instalasi Aplikasi Mobile CEAMIS<br/><i>(Sistem Mobile)</i>"]
+        B2["Pemberian Informed Consent & Pseudonimisasi<br/><b>Didukung Sistem:</b> tabel consent_records<br/><i>(Sistem Mobile)</i>"]
+        B3["Pengisian Profil & Batas Pos Anggaran<br/><i>(Sistem Mobile)</i>"]
+        A2 --> B1
+        B1 --> B2
+        B2 --> B3
+    end
+
+    subgraph P3 ["Fase 3: Penggunaan Aktif (Minggu 2 - 7 / 6 Minggu)"]
+        C1["Pencatatan Transaksi Harian & OCR Struk<br/><i>(Sistem Mobile)</i>"]
+        C2["Evaluasi Rencana Belanja Pra-Pembelian<br/><b>Intervensi JITAI:</b> Skor Risiko & Alasan XAI<br/><i>(Sistem Mobile & Backend)</i>"]
+        C3["Respons Pengguna: Lanjut / Sesuaikan / Tunda<br/><i>(Sistem Mobile)</i>"]
+        C4["Konfirmasi Pasca-Keputusan (1-3 Hari)<br/>Label Ground Truth: Terencana vs Tidak Terencana<br/><i>(Sistem Mobile)</i>"]
+        B3 --> C1
+        C1 <--> C2
+        C2 --> C3
+        C3 --> C4
+    end
+
+    subgraph P4 ["Fase 4: Pencatatan Log Otomatis (Berkala)"]
+        D1["Logging Intervensi & Efektivitas Pencegahan<br/><b>Didukung Sistem:</b> tabel audit_logs & checks<br/><i>(Backend FastAPI & Supabase)</i>"]
+        D2["Pencatatan Keaktifan & Streak Harian<br/><b>Didukung Sistem:</b> tabel user_streaks<br/><i>(Backend & Supabase)</i>"]
+        C3 -.-> D1
+        C1 -.-> D2
+    end
+
+    subgraph P5 ["Fase 5: Evaluasi Akhir & Pasca-Pilot (Minggu 8)"]
+        E1["Pengisian Kuesioner SUS & Usability<br/><i>(Di Luar Sistem - Google Forms)</i>"]
+        E2["Wawancara Kualitatif Mendalam<br/><i>(Di Luar Sistem)</i>"]
+        E3["Ekspor Log Audit & Agregasi Metrik<br/><b>Didukung Sistem:</b> Dasbor Web Admin<br/><i>(Web Next.js)</i>"]
+        E4["Analisis Data Efektivitas & Retraining Model<br/><i>(Python Pipeline)</i>"]
+        C4 --> E1
+        E1 --> E2
+        D1 --> E3
+        D2 --> E3
+        E3 --> E4
+    end

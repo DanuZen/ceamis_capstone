@@ -1,0 +1,18 @@
+flowchart TD
+    subgraph CRISPDM ["Siklus CRISP-DM Fitur Pra-Pembelian (Increment 3)"]
+        direction TB
+        F1["1. Business Understanding<br/><b>Tujuan:</b> Intervensi pencegahan belanja impulsif & defisit pagu pra-transaksi<br/><b>Artefak:</b> docs/ceamis 2.0/MODEL_PREDIKSI_RISIKO.md"]
+        F2["2. Data Understanding<br/><b>Analisis:</b> Distribusi transaksi, variabilitas kategori, pola waktu belanja<br/><b>Artefak:</b> train_risk_model.py (generate_synthetic_data), EDA notebooks"]
+        F3["3. Data Preparation<br/><b>Transformasi:</b> Ekstraksi 7 fitur kontekstual, Temporal Split per-user, StandardScaler<br/><b>Artefak:</b> train_risk_model.py (temporal_split), pre_purchase_risk.py"]
+        F4["4. Modeling<br/><b>Algoritma:</b> Baseline Rule-based, Logistic Regression, Random Forest (class_weight='balanced')<br/><b>Artefak:</b> train_risk_model.py, pre_purchase_risk.py"]
+        F5["5. Evaluation<br/><b>Evaluasi:</b> Precision, Recall, F1, ROC-AUC, koefisien XAI, Confusion Matrix<br/><b>Artefak:</b> artifacts_risk/confusion_matrix_risk.png, model_metadata.json"]
+        F6["6. Deployment & Monitoring<br/><b>Penerapan:</b> FastAPI POST /pre-purchase/check, Admin Model Registry & 1-Click Rollback<br/><b>Artefak:</b> backend/app/api/pre_purchase.py, backend/app/api/admin.py"]
+
+        F1 --> F2
+        F2 --> F3
+        F3 --> F4
+        F4 --> F5
+        F5 -->|Model Lolos Kriteria: F1 > 0.75| F6
+        F5 -.->|Iterasi Rekayasa Fitur| F3
+        F6 -.->|Feedback Ground Truth (Retraining)| F1
+    end

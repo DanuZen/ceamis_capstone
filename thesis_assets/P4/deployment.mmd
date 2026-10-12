@@ -1,0 +1,34 @@
+flowchart TD
+    subgraph Client_Devices ["Perangkat Klien"]
+        DEVICE_MOBILE["Smartphone Android / iOS<br/>(Aplikasi Mobile Flutter)"]
+        DEVICE_ADMIN["Peramban Web Modern<br/>(Dasbor Admin Desktop)"]
+    end
+
+    subgraph Cloud_Hosting ["Infrastruktur Cloud & Penerapan"]
+        subgraph Vercel_Platform ["Vercel Edge Platform"]
+            VERCEL_APP["Next.js 16 Web Application<br/>(URL: https://ceamis.vercel.app)<br/>- Node.js Runtime<br/>- Edge Server Actions & SSR"]
+        end
+
+        subgraph Container_Host ["Container Cloud (Hugging Face Spaces)"]
+            FASTAPI_CONTAINER["Docker Container: python:3.11-slim<br/>(URL: https://danuzen-ceamis-backend.hf.space)<br/>- Port 8000 exposed<br/>- Uvicorn ASGI Server<br/>- Scikit-Learn Model Artifacts in-memory"]
+        end
+
+        subgraph Supabase_Cloud ["Supabase Managed Cloud Platform"]
+            SUPABASE_PG[("PostgreSQL 15+ Managed Instance<br/>- Port 5432 (SSL Required)<br/>- Row Level Security (RLS)<br/>- Schemas: auth & public")]
+            SUPABASE_AUTH_SVC["Supabase GoTrue Auth Service<br/>- JWT Token Issuance & Verification"]
+        end
+
+        subgraph External_Cloud ["Google AI Cloud"]
+            GEMINI_API["Google Gemini 2.0 Flash API<br/>(Generative Language API Endpoint)"]
+        end
+    end
+
+    %% Koneksi Deployment
+    DEVICE_MOBILE -->|HTTPS TLS 1.3| FASTAPI_CONTAINER
+    DEVICE_MOBILE -->|HTTPS TLS 1.3| SUPABASE_AUTH_SVC
+    DEVICE_ADMIN -->|HTTPS TLS 1.3| VERCEL_APP
+
+    VERCEL_APP -->|Direct Connection via Prisma / TCP 5432| SUPABASE_PG
+    VERCEL_APP -->|HTTPS REST API| FASTAPI_CONTAINER
+    FASTAPI_CONTAINER -->|SQLAlchemy / Supabase REST API| SUPABASE_PG
+    FASTAPI_CONTAINER -->|HTTPS API Requests| GEMINI_API

@@ -1,0 +1,25 @@
+stateDiagram-v2
+    [*] --> Direncanakan : Input rencana belanja
+
+    Direncanakan --> Diperiksa : Kirim permintaan POST /pre-purchase/check
+    Diperiksa --> MenungguKeputusan : Inferensi risiko & dampak selesai (Status PENDING)
+
+    state MenungguKeputusan {
+        [*] --> PertimbanganUser
+        PertimbanganUser --> Dilanjutkan : Pilihan PROCEED
+        PertimbanganUser --> Disesuaikan : Pilihan ADJUST
+        PertimbanganUser --> Ditunda : Pilihan POSTPONE
+    }
+
+    Dilanjutkan --> TransaksiTercatat : Simpan transaksi pengeluaran ke basis data
+    Disesuaikan --> RencanaDiperbarui : Nominal rencana disesuaikan ke batas aman
+    Ditunda --> TersimpanWishlist : Masuk wishlist & aktifkan jeda berpikir 72 jam
+
+    TransaksiTercatat --> MenungguKonfirmasi : Notifikasi konfirmasi berkala
+    MenungguKonfirmasi --> Berlabel : Pengguna mengisi konfirmasi (was_impulsive)
+    MenungguKonfirmasi --> TanpaLabel : Pengguna mengabaikan konfirmasi
+
+    Berlabel --> [*]
+    TanpaLabel --> [*]
+    RencanaDiperbarui --> [*]
+    TersimpanWishlist --> [*]

@@ -1,0 +1,221 @@
+erDiagram
+    users ||--o| user_profiles : "has"
+    users ||--o{ sessions : "creates"
+    users ||--o{ identities : "authenticates"
+    
+    user_profiles ||--o{ transactions : "records"
+    user_profiles ||--o| onboarding_data : "completes"
+    user_profiles ||--o{ warnings : "receives"
+    user_profiles ||--o{ debt_records : "tracks"
+    user_profiles ||--o{ planning : "plans"
+    user_profiles ||--o| RiskProfile : "assesses"
+    
+    EducationModule ||--o{ EducationPage : "contains"
+    EducationModule ||--o{ EducationQuiz : "evaluates"
+    
+    user_profiles ||--o{ pre_purchase_checks : "submits"
+    pre_purchase_checks ||--|| risk_predictions : "generates"
+    pre_purchase_checks ||--o| post_decision_feedbacks : "confirms"
+    pre_purchase_checks ||--o| transactions : "converts_to"
+    
+    model_versions ||--o{ risk_predictions : "used_by"
+    users ||--o{ model_versions : "deploys"
+    users ||--o{ audit_logs : "triggers"
+
+    users {
+        uuid id PK
+        string email UK
+        string role
+        timestamp created_at
+        timestamp last_sign_in_at
+    }
+
+    user_profiles {
+        uuid id PK,FK
+        string name
+        string email
+        int level
+        int xp
+        int streak
+        decimal health_score
+        string risk_profile
+        boolean onboarding_completed
+        timestamp created_at
+    }
+
+    transactions {
+        uuid id PK
+        uuid user_id FK
+        string description
+        decimal amount
+        string type
+        string category
+        string tag
+        timestamp transaction_date
+        timestamp created_at
+    }
+
+    onboarding_data {
+        uuid id PK
+        uuid user_id FK,UK
+        string name
+        int age
+        decimal income
+        string income_source
+        decimal monthly_expense
+        string risk_profile
+        int savings_ratio
+        timestamp completed_at
+    }
+
+    warnings {
+        uuid id PK
+        uuid user_id FK
+        string type
+        string message
+        string severity
+        boolean is_resolved
+        timestamp created_at
+    }
+
+    debt_records {
+        uuid id PK
+        uuid user_id FK
+        string type
+        string person_name
+        decimal amount
+        date due_date
+        boolean is_paid
+        timestamp created_at
+    }
+
+    planning {
+        uuid id PK
+        uuid user_id FK
+        string title
+        string category
+        decimal target_amount
+        decimal current_amount
+        date deadline
+        string status
+        timestamp created_at
+    }
+
+    FinancialBudget {
+        int id PK
+        string userId FK
+        float limit
+        string period
+        timestamp createdAt
+    }
+
+    FinancialTarget {
+        int id PK
+        string userId FK
+        string name
+        float targetAmount
+        float currentAmount
+        timestamp deadline
+    }
+
+    RiskProfile {
+        int id PK
+        string userId UK
+        string profile
+        string answers
+        string aiRecommendation
+        timestamp createdAt
+    }
+
+    GamificationBadge {
+        string id PK
+        string name
+        string desc
+        string requirementType
+        int requirementValue
+        int xp
+    }
+
+    EducationModule {
+        int id PK
+        string title
+        string category
+        string status
+        int points
+        string duration
+    }
+
+    EducationPage {
+        int id PK
+        int moduleId FK
+        string subtitle
+        string text
+        int pageOrder
+    }
+
+    EducationQuiz {
+        int id PK
+        int moduleId FK
+        string question
+        int correctAnswer
+        int points
+    }
+
+    pre_purchase_checks {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id
+        decimal planned_amount
+        string merchant_name
+        string user_decision
+        timestamp decided_at
+        timestamp created_at
+    }
+
+    risk_predictions {
+        uuid id PK
+        uuid check_id FK,UK
+        uuid model_version_id FK
+        decimal risk_score
+        string risk_level
+        json features_snapshot
+        json trigger_factors
+        decimal budget_remaining_before
+        decimal budget_remaining_after
+        int savings_delayed_days
+        timestamp created_at
+    }
+
+    post_decision_feedbacks {
+        uuid id PK
+        uuid check_id FK,UK
+        boolean was_impulsive
+        int satisfaction_rating
+        string feedback_notes
+        timestamp submitted_at
+    }
+
+    model_versions {
+        uuid id PK
+        string version_tag UK
+        string algorithm
+        decimal precision_score
+        decimal recall_score
+        decimal f1_score
+        decimal roc_auc_score
+        string artifact_path
+        boolean is_active
+        timestamp deployed_at
+        uuid deployed_by FK
+    }
+
+    audit_logs {
+        uuid id PK
+        uuid actor_id FK
+        string action
+        string entity_type
+        string entity_id
+        json details
+        string ip_address
+        timestamp created_at
+    }

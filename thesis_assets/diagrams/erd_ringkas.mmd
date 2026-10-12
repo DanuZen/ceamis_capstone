@@ -1,0 +1,125 @@
+erDiagram
+    users ||--o| profiles : "has"
+    users ||--o{ transactions : "records"
+    users ||--o{ budgets : "allocates"
+    users ||--o{ financial_goals : "sets"
+    users ||--o{ notification_preferences : "configures"
+    users ||--o{ consent_records : "grants"
+    users ||--o{ audit_logs : "audited_in"
+    
+    transaction_categories ||--o{ transactions : "categorizes"
+    transaction_categories ||--o{ budgets : "defines"
+    transaction_categories ||--o{ pre_purchase_checks : "applies_to"
+    
+    users ||--o{ pre_purchase_checks : "submits"
+    pre_purchase_checks ||--|| risk_predictions : "produces"
+    pre_purchase_checks ||--o| user_feedback : "labeled_by"
+    pre_purchase_checks ||--o| transactions : "originates"
+    
+    model_versions ||--o{ risk_predictions : "evaluates"
+
+    users {
+        uuid id PK
+        string email UK
+        string role
+        timestamp created_at
+    }
+
+    profiles {
+        uuid id PK,FK
+        string name
+        int streak
+        decimal health_score
+        string risk_profile
+    }
+
+    budgets {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        decimal amount_limit
+        int period_month
+    }
+
+    financial_goals {
+        uuid id PK
+        uuid user_id FK
+        string title
+        decimal target_amount
+        decimal current_amount
+        date deadline
+    }
+
+    transaction_categories {
+        uuid id PK
+        string name
+        string type
+        boolean is_need
+    }
+
+    transactions {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        decimal amount
+        string type
+        timestamp transaction_date
+    }
+
+    pre_purchase_checks {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        decimal planned_amount
+        string user_decision
+        timestamp created_at
+    }
+
+    risk_predictions {
+        uuid id PK
+        uuid check_id FK,UK
+        uuid model_version_id FK
+        decimal risk_score
+        string risk_level
+        json trigger_factors
+    }
+
+    user_feedback {
+        uuid id PK
+        uuid check_id FK,UK
+        boolean was_impulsive
+        int satisfaction_rating
+        timestamp submitted_at
+    }
+
+    notification_preferences {
+        uuid id PK
+        uuid user_id FK
+        boolean enable_reminders
+        string quiet_hours_start
+        string quiet_hours_end
+    }
+
+    consent_records {
+        uuid id PK
+        uuid user_id FK
+        string consent_type
+        boolean is_consented
+        timestamp consented_at
+    }
+
+    model_versions {
+        uuid id PK
+        string version_tag UK
+        string algorithm
+        decimal f1_score
+        boolean is_active
+    }
+
+    audit_logs {
+        uuid id PK
+        uuid admin_id FK
+        string accessed_resource
+        string reason
+        timestamp created_at
+    }

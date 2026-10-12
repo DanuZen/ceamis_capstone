@@ -1,0 +1,50 @@
+flowchart LR
+    subgraph Aktor_Pengguna [Peran Pengguna]
+        User["Pengguna (User)"]
+    end
+
+    subgraph Boundary ["Sistem Peringatan Dini"]
+        UC01["Autentikasi & Kelola Profil<br/>(FR-U01)"]
+        UC02["Rencanakan Anggaran & Tabungan<br/>(FR-U02)"]
+        UC03["Catat Transaksi Manual<br/>(FR-U03)"]
+        UC03_OCR["Pindai Struk Belanja OCR<br/>(FR-U03)"]
+        UC04["Pemeriksaan Risiko Pra-Pembelian<br/>(FR-U04)"]
+        UC05["Pilih Respons Lanjut, Sesuaikan, Tunda<br/>(FR-U05)"]
+        UC05_FB["Konfirmasi Pasca-Keputusan<br/>(FR-U05)"]
+        UC07["Lihat Laporan Pengeluaran<br/>(FR-U07)"]
+        UC08_Health["Pantau Kesehatan Finansial & Streak<br/>(FR-U08)"]
+        UC08_Edu["Akses Modul Edukasi<br/>(FR-U08)"]
+
+        AC03["Manajemen Versi Model & Rollback<br/>(FR-A03)"]
+        AC04["Monitoring Status Layanan<br/>(FR-A04)"]
+        AC05["Panel Evaluasi Model ML<br/>(FR-A05)"]
+        AC06["Tinjau Audit Log Intervensi<br/>(FR-A06)"]
+        AC_Edu["Kelola Modul Edukasi & Kuis<br/>(Admin)"]
+        AC_Badge["Kelola Badge Gamifikasi<br/>(Admin)"]
+    end
+
+    subgraph Aktor_Admin [Peran Administrator]
+        Admin["Administrator (Admin)"]
+    end
+
+    User --> UC01
+    User --> UC02
+    User --> UC03
+    User --> UC03_OCR
+    User --> UC04
+    User --> UC05
+    User --> UC05_FB
+    User --> UC07
+    User --> UC08_Health
+    User --> UC08_Edu
+
+    UC04 -.->|include| UC05
+    UC05 -.->|extend| UC05_FB
+    UC03_OCR -.->|extend| UC03
+
+    Admin --> AC03
+    Admin --> AC04
+    Admin --> AC05
+    Admin --> AC06
+    Admin --> AC_Edu
+    Admin --> AC_Badge

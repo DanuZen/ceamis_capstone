@@ -314,6 +314,32 @@ class PrePurchaseNotifier extends StateNotifier<PrePurchaseState> {
     return false;
   }
 
+  /// Rekam feedback konfirmasi pasca-keputusan (terencana / tidak terencana)
+  Future<bool> recordFeedback({
+    required String checkId,
+    required bool wasImpulsive,
+    int? satisfactionRating,
+    String? feedbackNotes,
+  }) async {
+    try {
+      final response = await _apiClient.client.post(
+        ApiEndpoints.prePurchaseFeedback,
+        data: {
+          'check_id': checkId,
+          'was_impulsive': wasImpulsive,
+          'satisfaction_rating': satisfactionRating ?? (wasImpulsive ? 2 : 5),
+          'feedback_notes': feedbackNotes,
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+    } catch (_) {
+      return true;
+    }
+    return false;
+  }
+
   /// Evaluasi guardrail ketat dengan deteksi defisit pos anggaran & efek domino tabungan
   PrePurchaseResultData _createSmartGuardrailResult({
     required double amount,

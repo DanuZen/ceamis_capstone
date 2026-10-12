@@ -154,42 +154,6 @@ class RecommendationResponse(BaseModel):
     is_mock:         bool = True
 
 
-# ═══════════════════════════════════════════════════
-# MODEL 4 — CHATBOT CAMI (Real ✅)
-# ═══════════════════════════════════════════════════
-
-class ChatMessage(BaseModel):
-    role:    str   # "user" | "assistant"
-    content: str
-
-
-class ChatRequest(BaseModel):
-    user_id:            str
-    messages:           List[ChatMessage]
-    financial_context:  Optional[dict] = None
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "user_id": "user-123",
-                "messages": [
-                    {"role": "user", "content": "Gimana kondisi keuangan aku bulan ini?"}
-                ],
-                "financial_context": {
-                    "username": "Raka",
-                    "health_score": 58.5,
-                    "spending_category": "Waspada",
-                    "risk_profile": "Moderat",
-                    "saving_rate": 0.12,
-                }
-            }
-        }
-
-
-class ChatResponse(BaseModel):
-    reply:     str
-    is_mock:   bool = True
-    triggered: Optional[str] = None   # "ok"|"crisis"|"off_topic"|"sensitive"
 
 
 # ═══════════════════════════════════════════════════

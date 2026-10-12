@@ -1,0 +1,36 @@
+flowchart TD
+    subgraph Dataset ["Seluruh Riwayat Transaksi Pengguna (N Pengguna, 4 Bulan)"]
+        D1["Data Transaksi Berdasarkan Waktu & Pengguna"]
+    end
+
+    subgraph SplitProtocol ["Protokol Pembagian Temporal per Pengguna (Dilarang Acak / Shuffle)"]
+        direction TB
+        SP1["Bulan 1 s.d. Bulan 3 (Data Historis Masa Lalu)"]
+        SP2["Bulan 4 (Data Masa Depan / Paling Mutakhir)"]
+    end
+
+    subgraph TrainPipeline ["Pipeline Data Latih (Training Pipeline)"]
+        direction TB
+        TR1["Training Set (X_train, y_train)<br/>Bulan 1 - 3 dari Semua Pengguna"]
+        TR2["StandardScaler.fit_transform(X_train)<br/>Penskalaan di-fit HANYA pada data latih"]
+        TR3["Pelatihan Model ML<br/>Logistic Regression / Random Forest<br/>(class_weight='balanced')"]
+    end
+
+    subgraph TestPipeline ["Pipeline Evaluasi Uji (Testing Pipeline)"]
+        direction TB
+        TE1["Test Set (X_test, y_test)<br/>Bulan 4 dari Semua Pengguna"]
+        TE2["StandardScaler.transform(X_test)<br/>Menerapkan skala data latih (Tanpa Bocor)"]
+        TE3["Evaluasi Metrik Uji<br/>Precision, Recall, F1-Score, ROC-AUC"]
+    end
+
+    D1 --> SplitProtocol
+    SP1 --> TR1
+    SP2 --> TE1
+    TR1 --> TR2
+    TR2 --> TR3
+    TR2 -.->|Parameter mean & std dipakai| TE2
+    TE1 --> TE2
+    TE2 --> TE3
+    TR3 -->|Model yang sudah dilatih| TE3
+
+    note1["Pencegahan Kebocoran Data (Data Leakage Guard):<br/>1. Tidak menggunakan random shuffle (urut sekuensial waktu)<br/>2. Scaler di-fit eksklusif pada Training Set<br/>3. Pengujian merefleksikan inferensi real-time di masa depan"]

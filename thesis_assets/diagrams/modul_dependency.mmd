@@ -1,0 +1,54 @@
+flowchart TD
+    subgraph Core_Entry ["Entry Point"]
+        MAIN["main.py (FastAPI App)"]
+    end
+
+    subgraph API_Routers ["Lapisan Router API (app/api/)"]
+        API_PRE["pre_purchase.py"]
+        API_ADM["admin.py"]
+        API_OCR["ocr.py"]
+        API_HS["health_score.py"]
+        API_INS["dashboard_insight.py"]
+        API_EDU["education.py"]
+    end
+
+    subgraph Services ["Lapisan Layanan & Inferensi (app/services/)"]
+        SRV_RISK["pre_purchase_risk.py<br/>(RiskPredictor 7-Fitur)"]
+        SRV_INS["insight_generator.py"]
+    end
+
+    subgraph Schemas_Models ["Lapisan Data & Kontrak (app/schemas & models)"]
+        SCH_PRE["pre_purchase_schema.py<br/>(Pydantic v2 Models)"]
+        MOD_ORM["models/pre_purchase.py<br/>(SQLAlchemy ORM)"]
+        ART_ML[("artifacts_risk/<br/>model_registry.json")]
+    end
+
+    subgraph Utilities ["Utilitas Sistem (app/utils/)"]
+        UTL_SUP["supabase_client.py<br/>(Akses Multi-Tabel DB)"]
+        UTL_HSC["health_score_calculator.py"]
+        UTL_LLM["llm_client.py"]
+    end
+
+    %% Relasi pemanggilan
+    MAIN --> API_PRE
+    MAIN --> API_ADM
+    MAIN --> API_OCR
+    MAIN --> API_HS
+    MAIN --> API_INS
+    MAIN --> API_EDU
+
+    API_PRE --> SRV_RISK
+    API_PRE --> SCH_PRE
+
+    API_ADM --> SCH_PRE
+    API_ADM --> ART_ML
+
+    API_HS --> UTL_HSC
+
+    API_INS --> SRV_INS
+    SRV_INS --> UTL_LLM
+
+    API_EDU --> UTL_LLM
+
+    %% Catatan pelanggaran batas modul
+    UTL_SUP -.->|Pelanggaran Batas: Bypass ORM & Baca Langsung| UTL_SUP_NOTE["Catatan: Membaca user_profiles, transactions, planning, debt_records via Service Role"]

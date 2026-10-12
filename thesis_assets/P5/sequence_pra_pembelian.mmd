@@ -1,0 +1,46 @@
+sequenceDiagram
+    autonumber
+    actor User as Pengguna (User)
+    participant Flutter as Aplikasi Flutter<br/>(Layar & Provider)
+    participant FastAPI as Backend FastAPI<br/>(app/api/pre_purchase)
+    participant MLEngine as ML Risk Service<br/>(app/services/pre_purchase_risk)
+    participant Database as PostgreSQL<br/>(Supabase Cloud)
+
+    %% 1. Input dan Cek Risiko
+    User->>Flutter: Input rencana belanja (nominal, kategori, merchant)
+    Flutter->>FastAPI: POST /api/v1/pre-purchase/check
+    FastAPI->>Database: Ambil riwayat belanja, pagu anggaran, target tabungan
+    Database-->>FastAPI: Data konteks keuangan pengguna
+    FastAPI->>MLEngine: extract_features() & predict() (7 fitur kontekstual)
+    MLEngine-->>FastAPI: Hasil inferensi (skor risiko, risk_level, trigger_factors)
+    FastAPI->>Database: Simpan log evaluasi awal (pre_purchase_checks, risk_predictions)
+    FastAPI-->>Flutter: Return PrePurchaseCheckResponse (skor, XAI, dampak, check_id)
+    Flutter-->>User: Tampilkan PrePurchaseResultScreen (peringatan, dampak, 3 tombol aksi)
+
+    %% 2. Pengambilan Keputusan
+    alt Pilihan PROCEED (Lanjut Belanja)
+        User->>Flutter: Tekan tombol 'Beli Sekarang (Sadar Risiko)'
+        Flutter->>FastAPI: POST /api/v1/pre-purchase/decide (decision='PROCEED')
+        FastAPI->>Database: UPDATE pre_purchase_checks SET user_decision='PROCEED'
+        FastAPI-->>Flutter: Status RECORDED
+        User->>Flutter: Catat pengeluaran riil di Form Transaksi
+        Flutter->>Database: INSERT into transactions (amount, category, tag)
+    else Pilihan ADJUST (Sesuaikan Nominal)
+        User->>Flutter: Tekan tombol 'Sesuaikan Nominal' (input nominal baru)
+        Flutter->>FastAPI: POST /api/v1/pre-purchase/decide (decision='ADJUST', adjusted_amount)
+        FastAPI->>Database: UPDATE pre_purchase_checks SET user_decision='ADJUST'
+        FastAPI-->>Flutter: Status RECORDED
+    else Pilihan POSTPONE (Tunda Belanja)
+        User->>Flutter: Tekan tombol 'Tunda Dulu (Jeda 72 Jam)'
+        Flutter->>FastAPI: POST /api/v1/pre-purchase/decide (decision='POSTPONE')
+        FastAPI->>Database: UPDATE pre_purchase_checks SET user_decision='POSTPONE'
+        FastAPI-->>Flutter: Status RECORDED
+    end
+
+    %% 3. Konfirmasi Pasca-Keputusan (Feedback Ground Truth)
+    opt Konfirmasi Pasca-Keputusan Berkala
+        User->>Flutter: Konfirmasi kepuasan (terencana / impulsif disesali)
+        Flutter->>FastAPI: POST /api/v1/pre-purchase/feedback (was_impulsive, rating)
+        FastAPI->>Database: INSERT into post_decision_feedbacks (check_id, was_impulsive)
+        FastAPI-->>Flutter: Feedback berhasil disimpan
+    end
