@@ -23,14 +23,10 @@ from app.schemas.pre_purchase_schema import (
     RecommendedAction,
 )
 from app.services.pre_purchase_risk import risk_predictor
+from app.services.pre_purchase_repository import repository
 
 
 router = APIRouter()
-
-# ── In-memory stores (production: replace with Supabase/PostgreSQL) ──────────
-_checks_store: dict = {}    # check_id -> check data
-_decisions_store: dict = {} # check_id -> decision data
-_feedbacks_store: dict = {} # check_id -> feedback data
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -169,19 +165,19 @@ async def check_pre_purchase(req: PrePurchaseCheckRequest):
     # Generate unique check ID
     check_id = str(uuid.uuid4())
 
-    # Store check data for decide/feedback endpoints
-    _checks_store[check_id] = {
-        "user_id": user_id,
-        "category_id": req.category_id,
-        "planned_amount": req.planned_amount,
-        "merchant_name": req.merchant_name,
-        "notes": req.notes,
-        "risk_score": prediction["risk_score"],
-        "risk_level": risk_level,
-        "features_snapshot": features,
-        "method": prediction["method"],
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
+    # Store check data via repository (supports in-memory and PostgreSQL)
+    await repository.save_check(
+        check_id=check_id,
+        user_id=user_id,
+        category_id=req.category_id,
+        planned_amount=req.planned_amount,
+        merchant_name=req.merchant_name,
+        notes=req.notes,
+        prediction_data=prediction,
+        budget_remaining_before=budget_info["remaining"],
+        budget_remaining_after=remaining_after,
+        savings_delayed_days=delayed_days,
+    )
 
     return {
         "success": True,
@@ -216,19 +212,18 @@ async def record_decision(req: DecisionRecordRequest):
     Merekam respon pengguna (PROCEED / ADJUST / POSTPONE) setelah
     melihat peringatan risiko dari /pre-purchase/check.
     """
-    if req.check_id not in _checks_store:
+    check = await repository.get_check(req.check_id)
+    if not check:
         raise HTTPException(
             status_code=404,
             detail=f"Check ID '{req.check_id}' tidak ditemukan.",
         )
 
-    decided_at = datetime.now(timezone.utc)
-
-    _decisions_store[req.check_id] = {
-        "decision": req.decision.value,
-        "adjusted_amount": req.adjusted_amount,
-        "decided_at": decided_at.isoformat(),
-    }
+    decision_res = await repository.record_decision(
+        check_id=req.check_id,
+        decision=req.decision.value,
+        adjusted_amount=req.adjusted_amount,
+    )
 
     # Friendly response messages
     messages = {
@@ -242,7 +237,7 @@ async def record_decision(req: DecisionRecordRequest):
         "data": {
             "check_id": req.check_id,
             "status": "RECORDED",
-            "decided_at": decided_at.isoformat(),
+            "decided_at": decision_res["decided_at"],
         },
         "message": messages.get(req.decision.value, "Keputusan berhasil dicatat."),
     }
@@ -264,18 +259,19 @@ async def record_feedback(req: FeedbackRecordRequest):
     Mengumpulkan label verifikasi dari pengguna 1–3 hari setelah transaksi
     untuk dataset evaluasi model berikutnya (continuous learning pipeline).
     """
-    if req.check_id not in _checks_store:
+    check = await repository.get_check(req.check_id)
+    if not check:
         raise HTTPException(
             status_code=404,
             detail=f"Check ID '{req.check_id}' tidak ditemukan.",
         )
 
-    _feedbacks_store[req.check_id] = {
-        "was_impulsive": req.was_impulsive,
-        "satisfaction_rating": req.satisfaction_rating,
-        "feedback_notes": req.feedback_notes,
-        "submitted_at": datetime.now(timezone.utc).isoformat(),
-    }
+    await repository.record_feedback(
+        check_id=req.check_id,
+        was_impulsive=req.was_impulsive,
+        satisfaction_rating=req.satisfaction_rating,
+        feedback_notes=req.feedback_notes,
+    )
 
     return {
         "success": True,
