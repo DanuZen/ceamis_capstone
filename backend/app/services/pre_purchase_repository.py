@@ -5,6 +5,7 @@ Dikonfigurasi via variabel lingkungan PERSISTENCE_BACKEND=db|memory.
 """
 
 import os
+import uuid
 import json
 import logging
 from datetime import datetime, timezone
@@ -59,6 +60,7 @@ class PrePurchaseRepository:
         self._decisions: Dict[str, Dict[str, Any]] = {}
         self._feedbacks: Dict[str, Dict[str, Any]] = {}
         self._audit_logs: List[Dict[str, Any]] = []
+        self._consents: Dict[str, Dict[str, Any]] = {}
 
     def set_mode(self, mode: str):
         """Ubah mode persistensi secara dinamis (berguna untuk testing)."""
@@ -559,6 +561,125 @@ class PrePurchaseRepository:
                 "prevention_rate": round(prevention_rate, 1),
                 "total_amount_prevented": total_amount_prevented,
             },
+        }
+
+    # ═══════════════════════════════════════════════════════════════
+    # 5. PARTICIPANT CONSENT RECORDS (TUGAS F3)
+    # ═══════════════════════════════════════════════════════════════
+
+    async def record_consent(
+        self,
+        user_id: str,
+        consent_version: str = "v1.0",
+        purpose: str = "Penelitian tesis evaluasi efektivitas intervensi pra-pembelian CEAMIS",
+    ) -> Dict[str, Any]:
+        """Mencatat pemberian persetujuan eksplisit partisipan penelitian."""
+        record_id = str(uuid.uuid4())
+        now_iso = datetime.now(timezone.utc).isoformat()
+        record = {
+            "id": record_id,
+            "user_id": user_id,
+            "consent_version": consent_version,
+            "purpose": purpose,
+            "given": True,
+            "given_at": now_iso,
+            "withdrawn_at": None,
+            "created_at": now_iso,
+            "updated_at": now_iso,
+        }
+        self._consents[user_id] = record
+
+        if self.is_db_mode and self.supabase_url and self.service_key:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    await client.post(
+                        f"{self.supabase_url}/rest/v1/consent_records",
+                        headers=self._get_headers(),
+                        json=record,
+                    )
+            except Exception as e:
+                print(f"⚠️ [WARN] DB save consent failed: {e}")
+
+        return record
+
+    async def withdraw_consent(
+        self,
+        user_id: str,
+        reason: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Mencatat pencabutan/penarikan izin penelitian oleh partisipan."""
+        now_iso = datetime.now(timezone.utc).isoformat()
+        record = self._consents.get(user_id)
+        if not record:
+            record = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "consent_version": "v1.0",
+                "purpose": "Penelitian tesis evaluasi efektivitas intervensi pra-pembelian CEAMIS",
+                "given": False,
+                "given_at": None,
+                "withdrawn_at": now_iso,
+                "created_at": now_iso,
+                "updated_at": now_iso,
+            }
+        else:
+            record["given"] = False
+            record["withdrawn_at"] = now_iso
+            record["updated_at"] = now_iso
+
+        self._consents[user_id] = record
+
+        if self.is_db_mode and self.supabase_url and self.service_key:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    await client.post(
+                        f"{self.supabase_url}/rest/v1/consent_records",
+                        headers=self._get_headers(),
+                        json=record,
+                    )
+            except Exception as e:
+                print(f"⚠️ [WARN] DB withdraw consent failed: {e}")
+
+        return record
+
+    async def get_consent_status(
+        self,
+        user_id: str,
+    ) -> Dict[str, Any]:
+        """Mengambil status persetujuan penelitian terkini untuk pengguna."""
+        if user_id in self._consents:
+            return self._consents[user_id]
+
+        if self.is_db_mode and self.supabase_url and self.service_key:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    r = await client.get(
+                        f"{self.supabase_url}/rest/v1/consent_records",
+                        headers=self._get_headers(),
+                        params={
+                            "user_id": f"eq.{user_id}",
+                            "order": "created_at.desc",
+                            "limit": "1",
+                        },
+                    )
+                    if r.status_code == 200:
+                        rows = r.json()
+                        if rows:
+                            self._consents[user_id] = rows[0]
+                            return rows[0]
+            except Exception as e:
+                print(f"⚠️ [WARN] DB get consent status failed: {e}")
+
+        return {
+            "id": None,
+            "user_id": user_id,
+            "consent_version": "v1.0",
+            "purpose": "Penelitian tesis evaluasi efektivitas intervensi pra-pembelian CEAMIS",
+            "given": False,
+            "given_at": None,
+            "withdrawn_at": None,
+            "created_at": None,
+            "updated_at": None,
         }
 
 

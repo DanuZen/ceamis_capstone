@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from app.api import (
     recommendation, dashboard_insight
 )
-from app.api import pre_purchase, admin, ocr
+from app.api import pre_purchase, admin, ocr, consent
 
 # Lazy import health_score (butuh TF — skip jika tidak tersedia)
 health_score = None
@@ -94,6 +94,9 @@ app.include_router(pre_purchase.router, prefix="/api/v1", tags=["★ Pre-Purchas
 
 # ★ Admin Governance Dashboard
 app.include_router(admin.router, prefix="/api/v1", tags=["★ Admin Governance"])
+
+# ★ Participant Consent (Informed Consent - Ethics)
+app.include_router(consent.router, prefix="/api/v1", tags=["★ Participant Consent (Ethics)"])
 
 # Supporting modules
 if health_score:

@@ -172,3 +172,27 @@ class AuditLog(Base):
         nullable=False,
         index=True,
     )
+
+
+class ConsentRecord(Base):
+    """Pencatatan Persetujuan Eksplisit Partisipan (Informed Consent) untuk Penelitian Tesis."""
+    __tablename__ = "consent_records"
+
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(PG_UUID(as_uuid=True), ForeignKey("auth.users.id", ondelete="CASCADE"), nullable=False, index=True)
+    consent_version = Column(String(20), nullable=False, default="v1.0")
+    purpose = Column(Text, nullable=False)
+    given = Column(Boolean, nullable=False, default=True)
+    given_at = Column(DateTime(timezone=True), nullable=True)
+    withdrawn_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

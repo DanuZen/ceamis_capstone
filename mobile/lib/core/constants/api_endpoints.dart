@@ -24,4 +24,9 @@ class ApiEndpoints {
   static const String ocrParseReceipt = '/api/v1/ocr/parse-receipt';
   static const String healthScore = '/api/v1/predict/health-score';
   static const String dashboardInsight = '/api/v1/dashboard/insight';
+
+  // ── Participant Consent (Informed Consent - Ethics) ─
+  static const String consent = '/api/v1/consent';
+  static const String consentWithdraw = '/api/v1/consent/withdraw';
+  static const String consentStatus = '/api/v1/consent/status';
 }

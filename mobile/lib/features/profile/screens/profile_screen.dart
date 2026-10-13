@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/consent_text.dart';
+import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/widgets/neo_brutal_card.dart';
 import '../../../core/widgets/neo_brutal_button.dart';
@@ -18,6 +20,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _budgetAlertEnabled = true;
   bool _aiRiskCheckEnabled = true;
+  bool _researchConsentGiven = true;
   bool _isLoading = true;
 
   // Dynamic user data with safe defaults
@@ -77,6 +80,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             });
           }
         } catch (_) {}
+
+        try {
+          final consentResp = await client.get(ApiEndpoints.consentStatus, queryParameters: {'user_id': userId});
+          if (mounted && consentResp.data != null && consentResp.data['data'] != null) {
+            setState(() {
+              _researchConsentGiven = consentResp.data['data']['given'] as bool? ?? true;
+            });
+          }
+        } catch (_) {}
       }
     } catch (e) {
       debugPrint('[Profile] Backend stats fetch failed: $e');
@@ -85,6 +97,129 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _handleConsentToggle(bool newVal) async {
+    if (!newVal) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppColors.navy, width: 2.5),
+          ),
+          title: const Text(
+            'Tarik Persetujuan Penelitian?',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          content: const Text(
+            'Jika izin dicabut, data transaksi Anda tidak lagi dianalisis untuk penelitian tesis ini. Anda dapat mengaktifkannya kembali kapan saja.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.orange),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Ya, Tarik Izin', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
+
+    setState(() => _researchConsentGiven = newVal);
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null) {
+      try {
+        final client = ApiClient().client;
+        if (newVal) {
+          await client.post(
+            ApiEndpoints.consent,
+            data: {
+              'user_id': userId,
+              'consent_version': ConsentText.consentVersion,
+              'purpose': ConsentText.researchPurpose,
+            },
+          );
+        } else {
+          await client.post(
+            ApiEndpoints.consentWithdraw,
+            data: {
+              'user_id': userId,
+              'reason': 'Pencabutan via menu Pengaturan Profil',
+            },
+          );
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(newVal
+                  ? 'Persetujuan penelitian berhasil diaktifkan kembali.'
+                  : 'Persetujuan penelitian berhasil dicabut.'),
+              backgroundColor: AppColors.navy,
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('[Profile] Consent update failed: $e');
+      }
+    }
+  }
+
+  void _showConsentInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.navy, width: 2.5),
+        ),
+        title: const Text(
+          'Informasi Protokol Penelitian',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Judul Penelitian:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(ConsentText.researchTitle, style: const TextStyle(fontSize: 11)),
+              const Divider(height: 16),
+              const Text('Tujuan Penelitian:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(ConsentText.researchPurpose, style: const TextStyle(fontSize: 11)),
+              const Divider(height: 16),
+              const Text('Data & Privasi:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(ConsentText.dataCollected, style: const TextStyle(fontSize: 11)),
+              const Divider(height: 16),
+              const Text('Hak Menarik Diri:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(ConsentText.withdrawalRights, style: const TextStyle(fontSize: 11)),
+              const Divider(height: 16),
+              const Text('Kontak Peneliti:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(ConsentText.researcherContact, style: const TextStyle(fontSize: 11, color: AppColors.blue)),
+            ],
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.navy),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Tutup', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleLogout() {
@@ -445,6 +580,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.palette_outlined,
                       title: 'Gaya Desain',
                       value: 'Neo-Brutalism',
+                    ),
+                    const Divider(height: 1),
+                    _buildSwitchTile(
+                      icon: Icons.verified_user_outlined,
+                      title: 'Persetujuan Penelitian Tesis',
+                      subtitle: _researchConsentGiven
+                          ? 'Izin aktif: data dianalisis secara pseudonim'
+                          : 'Izin dicabut: data dikecualikan dari studi',
+                      value: _researchConsentGiven,
+                      onChanged: _handleConsentToggle,
+                    ),
+                    InkWell(
+                      onTap: _showConsentInfoDialog,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline, color: AppColors.blue, size: 18),
+                            SizedBox(width: 8),
+                            Text(
+                              'Lihat Lembar Informasi Penelitian',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.blue,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),

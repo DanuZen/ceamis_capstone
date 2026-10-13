@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/consent_text.dart';
+import '../../../core/constants/api_endpoints.dart';
 import '../../../core/widgets/neo_brutal_card.dart';
 import '../../../core/widgets/neo_brutal_button.dart';
 import '../../../core/network/api_client.dart';
@@ -39,6 +41,7 @@ class _MobileOnboardingScreenState extends State<MobileOnboardingScreen> {
   int _saveHabit = 4;
   int _selfControl = 2; // 1: Langsung beli, 2: Mikir, 3: Tunda 24 jam
   int _riskTolerance = 1; // 0: Panik jual, 1: Pantau, 2: Beli lagi
+  bool _consentGiven = true; // Persetujuan partisipan penelitian (Informed Consent)
 
   final List<Map<String, dynamic>> _stepMeta = [
     {
@@ -77,6 +80,12 @@ class _MobileOnboardingScreenState extends State<MobileOnboardingScreen> {
       'icon': Icons.psychology_rounded,
       'color': AppColors.blue,
     },
+    {
+      'title': 'Persetujuan Penelitian',
+      'subtitle': 'Lembar informasi & etika partisipasi studi',
+      'icon': Icons.verified_user_rounded,
+      'color': AppColors.lime,
+    },
   ];
 
   @override
@@ -91,6 +100,16 @@ class _MobileOnboardingScreenState extends State<MobileOnboardingScreen> {
   }
 
   void _nextPage() {
+    if (_currentStep == _stepMeta.length - 1 && !_consentGiven) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan centang persetujuan partisipasi penelitian untuk memulai.'),
+          backgroundColor: AppColors.orange,
+        ),
+      );
+      return;
+    }
+
     if (_currentStep < _stepMeta.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 250),
@@ -114,9 +133,10 @@ class _MobileOnboardingScreenState extends State<MobileOnboardingScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // 1. Save onboarding completion flag locally
+      // 1. Save onboarding completion flag and consent locally
       await _storage.write(key: 'has_completed_onboarding', value: 'true');
       await _storage.write(key: 'user_display_name', value: _nameController.text.trim());
+      await _storage.write(key: 'consent_given', value: _consentGiven ? 'true' : 'false');
 
       // 2. Optionally sync with backend if session is active
       final user = Supabase.instance.client.auth.currentUser;
@@ -142,6 +162,22 @@ class _MobileOnboardingScreenState extends State<MobileOnboardingScreen> {
           );
         } catch (apiError) {
           debugPrint('[ONBOARDING] Backend sync note: $apiError');
+        }
+
+        // Catat persetujuan partisipan ke API backend (Tugas F3)
+        if (_consentGiven) {
+          try {
+            await ApiClient().client.post(
+              ApiEndpoints.consent,
+              data: {
+                'user_id': user.id,
+                'consent_version': ConsentText.consentVersion,
+                'purpose': ConsentText.researchPurpose,
+              },
+            );
+          } catch (consentError) {
+            debugPrint('[ONBOARDING] Consent API sync note: $consentError');
+          }
         }
       }
 
@@ -318,6 +354,7 @@ class _MobileOnboardingScreenState extends State<MobileOnboardingScreen> {
                   _buildStep4(),
                   _buildStep5(),
                   _buildStep6(),
+                  _buildStep7Consent(),
                 ],
               ),
             ),
@@ -754,6 +791,182 @@ class _MobileOnboardingScreenState extends State<MobileOnboardingScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep7Consent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          NeoBrutalCard(
+            backgroundColor: AppColors.white,
+            borderColor: AppColors.navy,
+            borderRadius: 12,
+            shadowOffset: 3,
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.lime,
+                        border: Border.all(color: AppColors.navy, width: 1.5),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'PROTOKOL PENELITIAN',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.navy,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'Versi: ${ConsentText.consentVersion}',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Judul Penelitian:',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  ConsentText.researchTitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const Divider(height: 20),
+                Text(
+                  'Tujuan Penelitian:',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  ConsentText.researchPurpose,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const Divider(height: 20),
+                Text(
+                  'Data yang Dikumpulkan & Privasi:',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  ConsentText.dataCollected,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const Divider(height: 20),
+                Text(
+                  'Hak Menarik Diri (Pencabutan Izin):',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  ConsentText.withdrawalRights,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const Divider(height: 20),
+                Text(
+                  'Kontak Peneliti:',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  ConsentText.researcherContact,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blue,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Checkbox Persetujuan Card
+          GestureDetector(
+            onTap: () => setState(() => _consentGiven = !_consentGiven),
+            child: NeoBrutalCard(
+              backgroundColor: _consentGiven ? const Color(0xFFD2FF28) : AppColors.white,
+              borderColor: AppColors.navy,
+              borderRadius: 12,
+              shadowOffset: _consentGiven ? 3 : 1.5,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    _consentGiven ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                    color: AppColors.navy,
+                    size: 26,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      ConsentText.consentCheckboxLabel,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.navy,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
