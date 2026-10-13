@@ -8,6 +8,7 @@ import '../../../core/widgets/neo_brutal_card.dart';
 import '../../../core/widgets/neo_brutal_button.dart';
 import '../../../core/widgets/ceamis_app_bar.dart';
 import '../providers/pre_purchase_provider.dart';
+import '../services/post_decision_reminder_service.dart';
 
 /// Halaman Konfirmasi Pasca-Keputusan (Gambar 3.13 Naskah BAB III)
 /// Mengumpulkan label ground truth operasional dari pengguna (terencana vs tidak terencana)
@@ -57,29 +58,66 @@ class _PostDecisionFeedbackScreenState extends ConsumerState<PostDecisionFeedbac
 
     setState(() => _isSubmitting = true);
 
-    await ref.read(prePurchaseProvider.notifier).recordFeedback(
-      checkId: widget.checkId,
-      wasImpulsive: _wasImpulsive!,
-      satisfactionRating: _satisfactionRating,
-      feedbackNotes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
-    );
+    try {
+      final success = await ref.read(prePurchaseProvider.notifier).recordFeedback(
+        checkId: widget.checkId,
+        wasImpulsive: _wasImpulsive!,
+        satisfactionRating: _satisfactionRating,
+        feedbackNotes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      );
 
-    if (!mounted) return;
-    setState(() => _isSubmitting = false);
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _wasImpulsive!
-              ? 'Terima kasih atas refleksinya. Model akan menyesuaikan batas kewaspadaan Anda.'
-              : 'Konfirmasi tersimpan! Senang keputusan belanjamu berjalan sesuai rencana.',
+      if (success) {
+        // Tandai konfirmasi selesai di service lokal agar pengingat Beranda terhapus
+        await PostDecisionReminderService.markSubmitted(widget.checkId);
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _wasImpulsive!
+                  ? 'Konfirmasi dicatat (tidak terencana). Model akan mempelajari pola pengeluaran ini.'
+                  : 'Konfirmasi tersimpan! Senang keputusan belanjamu berjalan sesuai rencana.',
+            ),
+            backgroundColor: AppColors.navy,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        Navigator.of(context).pop();
+      } else {
+        // Kegagalan jaringan: jawaban tetap tersimpan, sediakan opsi coba lagi
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Gagal mengirim konfirmasi. Periksa koneksi internet Anda.'),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Coba Lagi',
+              textColor: Colors.white,
+              onPressed: _submitFeedback,
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Terjadi galat jaringan saat mengirim konfirmasi.'),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Coba Lagi',
+            textColor: Colors.white,
+            onPressed: _submitFeedback,
+          ),
         ),
-        backgroundColor: AppColors.navy,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-
-    Navigator.of(context).pop();
+      );
+    }
   }
 
   @override
@@ -212,7 +250,7 @@ class _PostDecisionFeedbackScreenState extends ConsumerState<PostDecisionFeedbac
 
               // Pertanyaan Inti Konfirmasi
               const Text(
-                'Apakah transaksi ini sesuai rencana atau terasa tidak terencana / disesali?',
+                'Apakah pengeluaran ini sesuai rencana atau tidak terencana?',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
@@ -243,7 +281,7 @@ class _PostDecisionFeedbackScreenState extends ConsumerState<PostDecisionFeedbac
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Sesuai Rencana Anggaran',
+                              'Sesuai Rencana',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w900,
@@ -252,7 +290,7 @@ class _PostDecisionFeedbackScreenState extends ConsumerState<PostDecisionFeedbac
                             ),
                             SizedBox(height: 2),
                             Text(
-                              'Belanja memang dibutuhkan dan tidak mengganggu pagu kebutuhan pokok.',
+                              'Pengeluaran memang sudah direncanakan dan sesuai alokasi kebutuhan.',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -268,7 +306,7 @@ class _PostDecisionFeedbackScreenState extends ConsumerState<PostDecisionFeedbac
               ),
               const SizedBox(height: 12),
 
-              // Pilihan 2: Tidak Terencana / Disesali (wasImpulsive = true)
+              // Pilihan 2: Tidak Terencana (wasImpulsive = true)
               GestureDetector(
                 onTap: () => setState(() => _wasImpulsive = true),
                 child: NeoBrutalCard(
@@ -289,7 +327,7 @@ class _PostDecisionFeedbackScreenState extends ConsumerState<PostDecisionFeedbac
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Tidak Terencana / Terasa Impulsif',
+                              'Tidak Terencana',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w900,
@@ -298,7 +336,7 @@ class _PostDecisionFeedbackScreenState extends ConsumerState<PostDecisionFeedbac
                             ),
                             SizedBox(height: 2),
                             Text(
-                              'Keputusan emosional yang sebenarnya bisa ditunda atau dihindari.',
+                              'Pengeluaran di luar rencana awal yang sebenarnya tidak direncanakan sebelumnya.',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,

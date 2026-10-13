@@ -61,6 +61,7 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>? ?? {};
         return PrePurchaseResultScreen(
+          checkId: extra['checkId'] as String?,
           plannedAmount: (extra['plannedAmount'] as num?)?.toDouble() ?? 0.0,
           categoryName: extra['categoryName'] as String? ?? 'Shopping',
           merchantName: extra['merchantName'] as String? ?? '',

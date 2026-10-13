@@ -5,9 +5,42 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/neo_brutal_card.dart';
 import '../../../core/widgets/ceamis_app_bar.dart';
+import '../../pre_purchase/services/post_decision_reminder_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  PendingFeedbackCheck? _activeReminder;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadActiveReminder();
+  }
+
+  Future<void> _loadActiveReminder() async {
+    final reminder = await PostDecisionReminderService.getActiveReminder();
+    if (mounted) {
+      setState(() => _activeReminder = reminder);
+    }
+  }
+
+  String _formatNumber(double value) {
+    final str = value.abs().toStringAsFixed(0);
+    final result = StringBuffer();
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      result.write(str[i]);
+      count++;
+      if (count % 3 == 0 && i > 0) result.write('.');
+    }
+    return result.toString().split('').reversed.join();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,16 +105,9 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // ── Banner Konfirmasi Pasca-Keputusan (Continuous Learning) ──
-              GestureDetector(
-                onTap: () => context.push('/pre-purchase/feedback', extra: {
-                  'checkId': 'check-starbucks-001',
-                  'itemName': 'Starbucks Reserve',
-                  'amount': 72000.0,
-                  'categoryName': 'F&B (Pos Keinginan)',
-                  'transactionDate': 'Hari ini, 14:20',
-                }),
-                child: NeoBrutalCard(
+              // ── Banner Pengingat Konfirmasi Pasca-Keputusan (Tugas F5: 24h - 72h) ──
+              if (_activeReminder != null) ...[
+                NeoBrutalCard(
                   backgroundColor: const Color(0xFFFEF08A),
                   borderRadius: 12,
                   shadowOffset: 3,
@@ -98,36 +124,58 @@ class HomeScreen extends StatelessWidget {
                         child: const Icon(Icons.psychology_alt_rounded, color: AppColors.navy, size: 22),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Konfirmasi Pasca-Keputusan',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.navy,
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () async {
+                            await context.push('/pre-purchase/feedback', extra: {
+                              'checkId': _activeReminder!.checkId,
+                              'itemName': _activeReminder!.itemName,
+                              'amount': _activeReminder!.amount,
+                              'categoryName': _activeReminder!.categoryName,
+                              'transactionDate': 'Keputusan ${_activeReminder!.decision}',
+                            });
+                            _loadActiveReminder();
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Konfirmasi Pasca-Keputusan',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.navy,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Apakah transaksi Starbucks Reserve (Rp 72k) sesuai rencana? Ketuk untuk refleksi.',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.navy,
+                              const SizedBox(height: 2),
+                              Text(
+                                'Apakah transaksi ${_activeReminder!.itemName} (Rp ${_formatNumber(_activeReminder!.amount)}) sesuai rencana? Ketuk untuk refleksi.',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.navy,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                      const Icon(Icons.chevron_right_rounded, color: AppColors.navy),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.navy),
+                        tooltip: 'Abaikan Pengingat',
+                        onPressed: () async {
+                          await PostDecisionReminderService.dismissReminder(_activeReminder!.checkId);
+                          if (mounted) {
+                            setState(() => _activeReminder = null);
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
+              ],
 
               // ── 5. Activity Item 1 (Gaji Pokok) ────────────────────────
               _buildActivityItem(

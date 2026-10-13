@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/neo_brutal_card.dart';
 import '../../../core/widgets/neo_brutal_button.dart';
+import '../services/post_decision_reminder_service.dart';
 
 /// Pre-Purchase Result Screen — Tampilan hasil cek risiko
 /// Badge risiko dinamis (Hijau/Kuning/Merah), trigger factors, dampak anggaran.
 class PrePurchaseResultScreen extends StatefulWidget {
+  final String? checkId;
   final double plannedAmount;
   final String categoryName;
   final String merchantName;
@@ -24,6 +26,7 @@ class PrePurchaseResultScreen extends StatefulWidget {
 
   const PrePurchaseResultScreen({
     super.key,
+    this.checkId,
     required this.plannedAmount,
     required this.categoryName,
     required this.merchantName,
@@ -703,6 +706,17 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
   }
 
   void _handleDecision(String decision) {
+    // Jadwalkan pengingat konfirmasi pasca-keputusan (24h - 72h) jika PROCEED atau ADJUST
+    if (decision == 'PROCEED' || decision == 'ADJUST') {
+      PostDecisionReminderService.recordDecision(
+        checkId: widget.checkId ?? 'chk-${DateTime.now().millisecondsSinceEpoch}',
+        itemName: widget.merchantName.isNotEmpty ? widget.merchantName : widget.categoryName,
+        amount: widget.plannedAmount,
+        categoryName: widget.categoryName,
+        decision: decision,
+      );
+    }
+
     final messages = {
       'INSTALLMENT': 'Bagus sekali! Rencana tabungan bertahap dicatat agar impianmu terwujud tanpa mengganggu kebutuhan pokok.',
       'POSTPONE': 'Pilihan bijak! Pengingat jeda berpikir telah diaktifkan untuk menjaga kesehatan finansialmu.',
