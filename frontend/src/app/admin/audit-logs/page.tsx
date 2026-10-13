@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Shield, FileSearch, TrendingDown, AlertCircle, CheckCircle2, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 // ── Types ─────────────────────────────────────────────
 
@@ -39,6 +40,19 @@ export default function AuditLogsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  async function getAuthHeaders(): Promise<Record<string, string>> {
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        return { Authorization: `Bearer ${session.access_token}` };
+      }
+    } catch {
+      // fallback jika gagal mengambil sesi
+    }
+    return {};
+  }
+
   useEffect(() => {
     fetchLogs(page);
   }, [page]);
@@ -46,12 +60,19 @@ export default function AuditLogsPage() {
   async function fetchLogs(p: number) {
     try {
       setLoading(true);
-      const res = await fetch(`${AI_BASE_URL}/admin/audit-logs?page=${p}&per_page=10`);
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch(`${AI_BASE_URL}/admin/audit-logs?page=${p}&per_page=10`, {
+        headers: {
+          ...authHeaders,
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setLogs(data.data.logs);
         setSummary(data.data.summary);
         setTotalPages(data.data.pagination.total_pages);
+      } else {
+        setError(data.detail || data.message || "Gagal memuat data audit log.");
       }
     } catch (err) {
       setError("Gagal memuat data audit log. Pastikan backend aktif.");

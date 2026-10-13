@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Brain, ArrowUpDown, CheckCircle2, AlertTriangle, RotateCcw } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 // ── Types ─────────────────────────────────────────────
 
@@ -32,6 +33,19 @@ export default function ModelGovernancePage() {
   const [showRollbackModal, setShowRollbackModal] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
 
+  async function getAuthHeaders(): Promise<Record<string, string>> {
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        return { Authorization: `Bearer ${session.access_token}` };
+      }
+    } catch {
+      // fallback jika gagal mengambil sesi
+    }
+    return {};
+  }
+
   useEffect(() => {
     fetchModels();
   }, []);
@@ -39,10 +53,17 @@ export default function ModelGovernancePage() {
   async function fetchModels() {
     try {
       setLoading(true);
-      const res = await fetch(`${AI_BASE_URL}/admin/models`);
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch(`${AI_BASE_URL}/admin/models`, {
+        headers: {
+          ...authHeaders,
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setModels(data.data);
+      } else {
+        setError(data.detail || data.message || "Gagal memuat data model.");
       }
     } catch (err) {
       setError("Gagal memuat data model. Pastikan backend aktif.");
@@ -56,9 +77,13 @@ export default function ModelGovernancePage() {
 
     try {
       setRolling(selectedModelId);
+      const authHeaders = await getAuthHeaders();
       const res = await fetch(`${AI_BASE_URL}/admin/models/rollback`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify({
           target_model_version_id: selectedModelId,
           reason: rollbackReason,
@@ -70,6 +95,8 @@ export default function ModelGovernancePage() {
         setShowRollbackModal(false);
         setRollbackReason("");
         setSelectedModelId(null);
+      } else {
+        setError(data.detail || data.message || "Rollback gagal.");
       }
     } catch (err) {
       setError("Rollback gagal.");

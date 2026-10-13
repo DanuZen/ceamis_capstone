@@ -48,8 +48,7 @@ export default function AuthPage() {
       return;
     }
 
-    const role = data.user?.user_metadata?.role || "user";
-    const finalRole = (email === "admin@ceamis.com" || email === "admin@ceamis.id") ? "admin" : role;
+    const finalRole = data.user?.app_metadata?.role || data.user?.user_metadata?.role || "user";
     
     localStorage.setItem("ceamis_role", finalRole);
     

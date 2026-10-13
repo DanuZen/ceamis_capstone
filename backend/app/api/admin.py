@@ -11,12 +11,13 @@ Endpoints:
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 
 from app.schemas.pre_purchase_schema import ModelRollbackRequest
+from app.utils.auth import verify_admin_role
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_admin_role)])
 
 # ── Paths ──────────────────────────────────────────────
 ARTIFACTS_DIR = Path(__file__).resolve().parent.parent.parent / "artifacts_risk"
@@ -100,7 +101,10 @@ async def list_model_versions():
     summary="Rollback Model ke Versi Sebelumnya",
     description="Melakukan one-click rollback ke model versi stabil sebelumnya.",
 )
-async def rollback_model(req: ModelRollbackRequest):
+async def rollback_model(
+    req: ModelRollbackRequest,
+    admin_user: dict = Depends(verify_admin_role),
+):
     """
     Mengubah model aktif menjadi versi yang dipilih dan menonaktifkan versi lainnya.
     """
@@ -139,6 +143,7 @@ async def rollback_model(req: ModelRollbackRequest):
             "rolled_back_to": target["version_tag"],
             "algorithm": target["algorithm"],
             "reason": req.reason,
+            "admin_id": admin_user.get("sub"),
             "deployed_at": target["deployed_at"],
         },
         "message": f"Model berhasil di-rollback ke {target['version_tag']}.",
