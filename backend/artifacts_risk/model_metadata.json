@@ -1,0 +1,26 @@
+{
+  "version_tag": "v1.1.0-rf",
+  "algorithm": "RandomForestClassifier",
+  "precision": 0.9295,
+  "recall": 0.9416,
+  "f1_score": 0.9355,
+  "roc_auc": 0.979,
+  "pr_auc": 0.9759,
+  "balanced_accuracy": 0.945,
+  "false_alert_rate": 0.0516,
+  "brier_score": 0.0515,
+  "feature_names": [
+    "amount_ratio_median",
+    "budget_remaining_ratio",
+    "category_frequency",
+    "day_of_week",
+    "days_to_reset",
+    "savings_impact",
+    "deviation_from_pattern"
+  ],
+  "trained_at": "2026-10-13T19:34:17.169542+00:00",
+  "split_method": "temporal_per_user",
+  "train_months": "1-3",
+  "test_month": "4",
+  "random_seed": 42
+}

@@ -1,0 +1,116 @@
+==========================================================================================
+🧠 CEAMIS 2.0 — Pre-Purchase Risk Model Training Pipeline
+==========================================================================================
+
+📊 Generating synthetic data for 30 users over 4 months...
+   Generated 1537 transactions
+   Label distribution: {0: 894, 1: 643}
+   Risky rate: 41.8%
+
+💾 Training data saved: C:\Users\wira1\project\ceamis_capstone\backend\artifacts_risk\training_data.csv
+
+🔀 Temporal split: Train months 1-3, Test month 4
+   Train: 1170 samples (months 1-3)
+   Test:  367 samples (month 4)
+   Train risky rate: 41.8%
+   Test risky rate:  42.0%
+
+📏 Evaluating Baseline Rule-Based...
+   Precision:         0.9481
+   Recall:            0.8312
+   F1-Score:          0.8858
+   ROC-AUC:           0.9783
+   PR-AUC:            0.9704
+   Balanced Accuracy: 0.8992
+   False Alert Rate:  0.0329
+   Brier Score:       0.1200
+
+   Classification Report (Rule-Based Baseline):
+              precision    recall  f1-score   support
+
+        Safe       0.89      0.97      0.93       213
+       Risky       0.95      0.83      0.89       154
+
+    accuracy                           0.91       367
+   macro avg       0.92      0.90      0.91       367
+weighted avg       0.91      0.91      0.91       367
+
+🔬 Training Logistic Regression...
+   Precision:         0.8993
+   Recall:            0.8117
+   F1-Score:          0.8532
+   ROC-AUC:           0.9253
+   PR-AUC:            0.9132
+   Balanced Accuracy: 0.8730
+   False Alert Rate:  0.0657
+   Brier Score:       0.0922
+
+   Feature Coefficients (Logistic Regression):
+     budget_remaining_ratio         β = +1.7472
+     deviation_from_pattern         β = +1.6696
+     amount_ratio_median            β = +1.2127
+     savings_impact                 β = +0.4248
+     category_frequency             β = +0.2509
+     days_to_reset                  β = -0.0928
+     day_of_week                    β = +0.0201
+
+   Classification Report (LogReg):
+              precision    recall  f1-score   support
+
+        Safe       0.87      0.93      0.90       213
+       Risky       0.90      0.81      0.85       154
+
+    accuracy                           0.88       367
+   macro avg       0.89      0.87      0.88       367
+weighted avg       0.88      0.88      0.88       367
+
+🌲 Training Random Forest...
+   Precision:         0.9295
+   Recall:            0.9416
+   F1-Score:          0.9355
+   ROC-AUC:           0.9790
+   PR-AUC:            0.9759
+   Balanced Accuracy: 0.9450
+   False Alert Rate:  0.0516
+   Brier Score:       0.0515
+
+   Feature Importances (Random Forest):
+     amount_ratio_median            importance = 0.3434
+     budget_remaining_ratio         importance = 0.2953
+     deviation_from_pattern         importance = 0.2421
+     savings_impact                 importance = 0.0609
+     days_to_reset                  importance = 0.0249
+     category_frequency             importance = 0.0194
+     day_of_week                    importance = 0.0141
+
+   Classification Report (RF):
+              precision    recall  f1-score   support
+
+        Safe       0.96      0.95      0.95       213
+       Risky       0.93      0.94      0.94       154
+
+    accuracy                           0.95       367
+   macro avg       0.94      0.94      0.94       367
+weighted avg       0.95      0.95      0.95       367
+
+
+==========================================================================================
+📊 MODEL COMPARISON SUMMARY (TEMPORAL TEST EVALUATION)
+==========================================================================================
+                 Model         Version Precision Recall     F1 ROC-AUC PR-AUC Bal-Acc False-Alert  Brier
+     RuleBasedBaseline v1.0.0-baseline    0.9481 0.8312 0.8858  0.9783 0.9704  0.8992      0.0329 0.1200
+    LogisticRegression   v1.0.0-logreg    0.8993 0.8117 0.8532  0.9253 0.9132  0.8730      0.0657 0.0922
+RandomForestClassifier       v1.1.0-rf    0.9295 0.9416 0.9355  0.9790 0.9759  0.9450      0.0516 0.0515
+
+🏆 Best Deployed ML Model: RandomForestClassifier (v1.1.0-rf)
+   F1-Score: 0.9355 | PR-AUC: 0.9759
+
+✅ Exported artifacts to: C:\Users\wira1\project\ceamis_capstone\backend\artifacts_risk/
+   - risk_model.joblib (best model)
+   - risk_scaler.joblib
+   - model_metadata.json & model_metadata_trained.json
+   - model_registry.json & model_registry_trained.json
+
+==========================================================================================
+✅ Training pipeline completed successfully!
+==========================================================================================

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "model-baseline-001",
+    "version_tag": "v1.0.0-baseline",
+    "algorithm": "RuleBasedBaseline",
+    "precision": 0.9481,
+    "recall": 0.8312,
+    "f1_score": 0.8858,
+    "roc_auc": 0.9783,
+    "pr_auc": 0.9704,
+    "balanced_accuracy": 0.8992,
+    "false_alert_rate": 0.0329,
+    "brier_score": 0.12,
+    "is_active": false,
+    "artifact_path": null,
+    "deployed_at": "2026-10-13T19:34:17.170075+00:00"
+  },
+  {
+    "id": "model-logreg-001",
+    "version_tag": "v1.0.0-logreg",
+    "algorithm": "LogisticRegression",
+    "precision": 0.8993,
+    "recall": 0.8117,
+    "f1_score": 0.8532,
+    "roc_auc": 0.9253,
+    "pr_auc": 0.9132,
+    "balanced_accuracy": 0.873,
+    "false_alert_rate": 0.0657,
+    "brier_score": 0.0922,
+    "is_active": false,
+    "artifact_path": "artifacts_risk/logreg_v1.0.0-logreg.joblib",
+    "deployed_at": "2026-10-13T19:34:17.170083+00:00"
+  },
+  {
+    "id": "model-rf-001",
+    "version_tag": "v1.1.0-rf",
+    "algorithm": "RandomForestClassifier",
+    "precision": 0.9295,
+    "recall": 0.9416,
+    "f1_score": 0.9355,
+    "roc_auc": 0.979,
+    "pr_auc": 0.9759,
+    "balanced_accuracy": 0.945,
+    "false_alert_rate": 0.0516,
+    "brier_score": 0.0515,
+    "is_active": true,
+    "artifact_path": "artifacts_risk/rf_v1.1.0-rf.joblib",
+    "deployed_at": "2026-10-13T19:34:17.170086+00:00"
+  }
+]
