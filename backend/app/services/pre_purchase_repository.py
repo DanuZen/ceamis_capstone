@@ -202,8 +202,9 @@ class PrePurchaseRepository:
         decision: str,
         adjusted_amount: Optional[float] = None,
         decided_at: Optional[datetime] = None,
+        decision_latency_ms: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """Mencatat keputusan akhir pengguna (PROCEED/ADJUST/POSTPONE)."""
+        """Mencatat keputusan akhir pengguna (PROCEED/ADJUST/POSTPONE) beserta telemetri jeda waktu refleksi."""
         dt = decided_at or datetime.now(timezone.utc)
         dt_iso = dt.isoformat()
 
@@ -213,12 +214,15 @@ class PrePurchaseRepository:
             self._checks[check_id]["decided_at"] = dt_iso
             if adjusted_amount is not None:
                 self._checks[check_id]["adjusted_amount"] = adjusted_amount
+            if decision_latency_ms is not None:
+                self._checks[check_id]["decision_latency_ms"] = decision_latency_ms
 
         decision_record = {
             "check_id": check_id,
             "decision": decision,
             "adjusted_amount": adjusted_amount,
             "decided_at": dt_iso,
+            "decision_latency_ms": decision_latency_ms,
         }
         self._decisions[check_id] = decision_record
 
@@ -230,6 +234,8 @@ class PrePurchaseRepository:
                         "user_decision": decision,
                         "decided_at": dt_iso,
                     }
+                    if decision_latency_ms is not None:
+                        update_data["decision_latency_ms"] = decision_latency_ms
                     r = await client.patch(
                         f"{self.supabase_url}/rest/v1/pre_purchase_checks?id=eq.{check_id}",
                         headers=self._get_headers(),

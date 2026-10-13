@@ -50,6 +50,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
   late Animation<double> _scoreAnimation;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  final DateTime _screenOpenedAt = DateTime.now();
 
   @override
   void initState() {
@@ -706,6 +707,10 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
   }
 
   void _handleDecision(String decision) {
+    // Ukur jeda waktu refleksi keputusan (Tugas F10)
+    final int decisionLatencyMs =
+        DateTime.now().difference(_screenOpenedAt).inMilliseconds;
+
     // Jadwalkan pengingat konfirmasi pasca-keputusan (24h - 72h) jika PROCEED atau ADJUST
     if (decision == 'PROCEED' || decision == 'ADJUST') {
       PostDecisionReminderService.recordDecision(
@@ -714,6 +719,7 @@ class _PrePurchaseResultScreenState extends State<PrePurchaseResultScreen>
         amount: widget.plannedAmount,
         categoryName: widget.categoryName,
         decision: decision,
+        decisionLatencyMs: decisionLatencyMs,
       );
     }
 

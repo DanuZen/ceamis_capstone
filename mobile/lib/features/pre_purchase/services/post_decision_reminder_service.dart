@@ -12,6 +12,7 @@ class PendingFeedbackCheck {
   final String categoryName;
   final String decision; // PROCEED / ADJUST
   final DateTime decidedAt;
+  final int? decisionLatencyMs; // Jeda waktu refleksi keputusan (ms)
   final bool dismissed;
   final bool feedbackSubmitted;
 
@@ -22,6 +23,7 @@ class PendingFeedbackCheck {
     required this.categoryName,
     required this.decision,
     required this.decidedAt,
+    this.decisionLatencyMs,
     this.dismissed = false,
     this.feedbackSubmitted = false,
   });
@@ -33,6 +35,7 @@ class PendingFeedbackCheck {
         'category_name': categoryName,
         'decision': decision,
         'decided_at': decidedAt.toIso8601String(),
+        'decision_latency_ms': decisionLatencyMs,
         'dismissed': dismissed,
         'feedback_submitted': feedbackSubmitted,
       };
@@ -46,11 +49,13 @@ class PendingFeedbackCheck {
         decision: json['decision'] as String? ?? 'PROCEED',
         decidedAt: DateTime.tryParse(json['decided_at'] as String? ?? '') ??
             DateTime.now(),
+        decisionLatencyMs: json['decision_latency_ms'] as int?,
         dismissed: json['dismissed'] as bool? ?? false,
         feedbackSubmitted: json['feedback_submitted'] as bool? ?? false,
       );
 
   PendingFeedbackCheck copyWith({
+    int? decisionLatencyMs,
     bool? dismissed,
     bool? feedbackSubmitted,
   }) =>
@@ -61,6 +66,7 @@ class PendingFeedbackCheck {
         categoryName: categoryName,
         decision: decision,
         decidedAt: decidedAt,
+        decisionLatencyMs: decisionLatencyMs ?? this.decisionLatencyMs,
         dismissed: dismissed ?? this.dismissed,
         feedbackSubmitted: feedbackSubmitted ?? this.feedbackSubmitted,
       );
@@ -125,6 +131,7 @@ class PostDecisionReminderService {
     required String categoryName,
     required String decision,
     DateTime? decidedAt,
+    int? decisionLatencyMs,
   }) async {
     final list = await getAllPending();
     // Hapus duplikat ID jika sudah ada sebelumnya
@@ -136,6 +143,7 @@ class PostDecisionReminderService {
       categoryName: categoryName,
       decision: decision,
       decidedAt: decidedAt ?? DateTime.now(),
+      decisionLatencyMs: decisionLatencyMs,
     ));
     await _saveAll(list);
   }

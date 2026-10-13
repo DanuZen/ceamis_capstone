@@ -98,6 +98,11 @@ class DecisionRecordRequest(BaseModel):
     check_id: str = Field(..., description="ID dari hasil cek pra-pembelian")
     decision: UserDecision = Field(..., description="Keputusan user: PROCEED / ADJUST / POSTPONE")
     adjusted_amount: Optional[float] = Field(None, ge=0, description="Nominal baru jika decision = ADJUST")
+    decision_latency_ms: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Durasi refleksi keputusan dalam milidetik (Tugas F10). Hanya dicatat bila persetujuan aktif.",
+    )
 
     class Config:
         json_schema_extra = {
@@ -105,6 +110,7 @@ class DecisionRecordRequest(BaseModel):
                 "check_id": "b1a7d65e-26f5-46aa-9d57-897db6746f33",
                 "decision": "POSTPONE",
                 "adjusted_amount": None,
+                "decision_latency_ms": 4250,
             }
         }
 
@@ -114,6 +120,7 @@ class DecisionRecordResponse(BaseModel):
     check_id: str
     status: str = "RECORDED"
     decided_at: datetime
+    decision_latency_ms: Optional[int] = None
 
 
 # ═══════════════════════════════════════════════════

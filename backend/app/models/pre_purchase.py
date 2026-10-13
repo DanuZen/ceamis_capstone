@@ -77,6 +77,7 @@ class PrePurchaseCheck(Base):
         nullable=False,
     )  # PENDING, PROCEED, ADJUST, POSTPONE
     decided_at = Column(DateTime(timezone=True), nullable=True)
+    decision_latency_ms = Column(Integer, nullable=True)  # Tugas F10: jeda refleksi keputusan
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

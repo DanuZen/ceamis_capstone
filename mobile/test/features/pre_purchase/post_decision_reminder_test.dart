@@ -164,5 +164,23 @@ void main() {
       expect(active, isNotNull);
       expect(active!.checkId, equals('check-eligible'));
     });
+
+    test('Telemetri jeda waktu refleksi (decisionLatencyMs) tersimpan pada pending item', () async {
+      await PostDecisionReminderService.recordDecision(
+        checkId: 'check-telemetry-01',
+        itemName: 'Headphone Wireless',
+        amount: 850000,
+        categoryName: 'Elektronik',
+        decision: 'PROCEED',
+        decidedAt: baseTime.subtract(const Duration(hours: 25)),
+        decisionLatencyMs: 5420,
+      );
+
+      final active = await PostDecisionReminderService.getActiveReminder(now: baseTime);
+      expect(active, isNotNull);
+      expect(active!.checkId, equals('check-telemetry-01'));
+      expect(active.decisionLatencyMs, equals(5420));
+      expect(active.toJson()['decision_latency_ms'], equals(5420));
+    });
   });
 }

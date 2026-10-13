@@ -140,6 +140,7 @@ def sanitize_check_record(raw: Dict[str, Any], participant_code: str) -> Dict[st
         "risk_score": float(raw.get("risk_score", 0.0)),
         "risk_level": raw.get("risk_level", "LOW"),
         "cold_start": bool(raw.get("cold_start", False)),
+        "decision_latency_ms": raw.get("decision_latency_ms"),
         "created_at": created_at,
     }
 
@@ -152,6 +153,7 @@ def sanitize_decision_record(raw: Dict[str, Any], participant_code: str) -> Dict
         "participant_code": participant_code,
         "decision": raw.get("decision"),  # PROCEED, ADJUST, POSTPONE
         "adjusted_amount": float(raw.get("adjusted_amount")) if raw.get("adjusted_amount") is not None else None,
+        "decision_latency_ms": raw.get("decision_latency_ms"),
         "decided_at": raw.get("decided_at") or raw.get("created_at"),
     }
 

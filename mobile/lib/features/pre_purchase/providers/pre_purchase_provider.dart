@@ -288,20 +288,26 @@ class PrePurchaseNotifier extends StateNotifier<PrePurchaseState> {
     return fallbackData;
   }
 
-  /// Catat keputusan user (PROCEED, ADJUST, POSTPONE)
+  /// Catat keputusan user (PROCEED, ADJUST, POSTPONE) beserta telemetri refleksi
   Future<bool> recordDecision({
     required String checkId,
     required String decision,
     double? adjustedAmount,
+    int? decisionLatencyMs,
   }) async {
     try {
+      final Map<String, dynamic> payload = {
+        'check_id': checkId,
+        'decision': decision,
+        'adjusted_amount': adjustedAmount,
+      };
+      if (decisionLatencyMs != null) {
+        payload['decision_latency_ms'] = decisionLatencyMs;
+      }
+
       final response = await _apiClient.client.post(
         ApiEndpoints.prePurchaseDecide,
-        data: {
-          'check_id': checkId,
-          'decision': decision,
-          'adjusted_amount': adjustedAmount,
-        },
+        data: payload,
       );
       if (response.statusCode == 200) {
         state = state.copyWith(decisionRecorded: true);

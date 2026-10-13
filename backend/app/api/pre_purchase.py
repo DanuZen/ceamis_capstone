@@ -195,10 +195,26 @@ async def record_decision(req: DecisionRecordRequest):
             detail=f"Check ID '{req.check_id}' tidak ditemukan.",
         )
 
+    # Verifikasi informed consent partisipan (Tugas F10 & F3)
+    # Telemetri jeda waktu refleksi HANYA disimpan jika pengguna memiliki izin aktif
+    user_id = check.get("user_id")
+    stored_latency_ms = None
+    if req.decision_latency_ms is not None and user_id:
+        consent_status = await repository.get_consent_status(user_id)
+        has_active_consent = (
+            consent_status.get("given") is True
+            and consent_status.get("withdrawn_at") is None
+        )
+        if has_active_consent:
+            stored_latency_ms = req.decision_latency_ms
+        else:
+            stored_latency_ms = None
+
     decision_res = await repository.record_decision(
         check_id=req.check_id,
         decision=req.decision.value,
         adjusted_amount=req.adjusted_amount,
+        decision_latency_ms=stored_latency_ms,
     )
 
     # Friendly response messages
@@ -214,6 +230,7 @@ async def record_decision(req: DecisionRecordRequest):
             "check_id": req.check_id,
             "status": "RECORDED",
             "decided_at": decision_res["decided_at"],
+            "decision_latency_ms": decision_res.get("decision_latency_ms"),
         },
         "message": messages.get(req.decision.value, "Keputusan berhasil dicatat."),
     }
