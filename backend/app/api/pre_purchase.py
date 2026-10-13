@@ -24,53 +24,10 @@ from app.schemas.pre_purchase_schema import (
 )
 from app.services.pre_purchase_risk import risk_predictor
 from app.services.pre_purchase_repository import repository
+from app.services.user_stats_service import user_stats_service
 
 
 router = APIRouter()
-
-
-# ═══════════════════════════════════════════════════════════════
-# Mock data helpers (simulated user context from Supabase)
-# In production these would be database queries
-# ═══════════════════════════════════════════════════════════════
-
-def _get_user_category_stats(user_id: str, category_id: str) -> dict:
-    """Simulate retrieving user's category transaction statistics."""
-    # Default mock stats per category — in production: query transactions table
-    return {
-        "category_name": "Shopping",
-        "median_amount": 115000.0,
-        "mean_amount": 135000.0,
-        "std_amount": 62000.0,
-        "frequency_7d": 2,
-    }
-
-
-def _get_user_budget_info(user_id: str, category_id: str) -> dict:
-    """Simulate retrieving user's budget for the category."""
-    return {
-        "budget_limit": 800000.0,
-        "spent_so_far": 680000.0,
-        "remaining": 120000.0,
-    }
-
-
-def _get_user_savings_info(user_id: str) -> dict:
-    """Simulate retrieving user's active savings goal."""
-    return {
-        "goal_title": "Dana Darurat 2026",
-        "target_amount": 5000000.0,
-        "current_amount": 2800000.0,
-        "monthly_income": 4500000.0,
-        "monthly_savings_rate": 0.15,
-    }
-
-
-def _get_user_profile(user_id: str) -> dict:
-    """Simulate retrieving user profile."""
-    return {
-        "budget_reset_day": 1,
-    }
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -91,11 +48,19 @@ async def check_pre_purchase(req: PrePurchaseCheckRequest):
     """
     user_id = req.user_id or "demo-user"
 
-    # Fetch context data
-    cat_stats = _get_user_category_stats(user_id, req.category_id)
-    budget_info = _get_user_budget_info(user_id, req.category_id)
-    savings_info = _get_user_savings_info(user_id)
-    profile = _get_user_profile(user_id)
+    # Ambil konteks nyata (point-in-time, bebas kebocoran temporal, dan cold-start aware)
+    now_utc = datetime.now(timezone.utc)
+    user_context = await user_stats_service.get_user_context(
+        user_id=user_id,
+        category_id=req.category_id,
+        check_time=now_utc,
+    )
+
+    cat_stats = user_context["category_stats"]
+    budget_info = user_context["budget_info"]
+    savings_info = user_context["savings_info"]
+    profile = user_context["profile"]
+    is_cold_start = user_context["cold_start"]
 
     # Extract 7 contextual features
     features = risk_predictor.extract_features(
@@ -107,7 +72,9 @@ async def check_pre_purchase(req: PrePurchaseCheckRequest):
         savings_goal_target=savings_info["target_amount"],
         category_mean=cat_stats["mean_amount"],
         category_std=cat_stats["std_amount"],
+        now=now_utc,
     )
+    features["cold_start"] = is_cold_start
 
     # Run inference (ML or rule-based)
     prediction = risk_predictor.predict(features)
@@ -165,6 +132,14 @@ async def check_pre_purchase(req: PrePurchaseCheckRequest):
     # Generate unique check ID
     check_id = str(uuid.uuid4())
 
+    # Prediction snapshot
+    prediction_record = {
+        **prediction,
+        "features_snapshot": features,
+        "trigger_factors": trigger_factors,
+        "cold_start": is_cold_start,
+    }
+
     # Store check data via repository (supports in-memory and PostgreSQL)
     await repository.save_check(
         check_id=check_id,
@@ -173,7 +148,7 @@ async def check_pre_purchase(req: PrePurchaseCheckRequest):
         planned_amount=req.planned_amount,
         merchant_name=req.merchant_name,
         notes=req.notes,
-        prediction_data=prediction,
+        prediction_data=prediction_record,
         budget_remaining_before=budget_info["remaining"],
         budget_remaining_after=remaining_after,
         savings_delayed_days=delayed_days,
@@ -185,6 +160,7 @@ async def check_pre_purchase(req: PrePurchaseCheckRequest):
             "check_id": check_id,
             "risk_score": prediction["risk_score"],
             "risk_level": risk_level,
+            "cold_start": is_cold_start,
             "trigger_factors": trigger_factors,
             "budget_impact": budget_impact.model_dump(),
             "savings_impact": savings_impact.model_dump(),

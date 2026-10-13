@@ -85,6 +85,8 @@ class PrePurchaseCheckResponse(BaseModel):
     budget_impact: BudgetImpact
     savings_impact: SavingsImpact
     recommended_actions: List[RecommendedAction]
+    cold_start: bool = False
+    features_snapshot: Optional[dict] = None
 
 
 # ═══════════════════════════════════════════════════
