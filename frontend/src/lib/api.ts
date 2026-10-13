@@ -116,12 +116,6 @@ export const aiApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-
-  chat: (payload: ChatPayload) =>
-    request<ChatResult>('/ai/chat', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
 };
 
 // ── OCR Receipt Gateway ───────────────────────────────────────
@@ -269,18 +263,6 @@ export interface SpendingClusterResult {
   savings_ratio: number;
   trend: 'improving' | 'stable' | 'declining';
   is_mock: boolean;
-}
-
-export interface ChatPayload {
-  user_id: string;
-  message: string;
-  context?: object;
-}
-
-export interface ChatResult {
-  reply: string;
-  suggestions: string[];
-  is_mock?: boolean;
 }
 
 export interface Warning {
