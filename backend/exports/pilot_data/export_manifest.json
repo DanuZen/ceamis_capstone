@@ -1,0 +1,32 @@
+{
+  "total_active_consented_participants": 0,
+  "exported_tables": {
+    "checks": {
+      "exported_rows": 0,
+      "skipped_unconsented_rows": 0,
+      "skipped_out_of_date_range": 0,
+      "output_file": "exports\\pilot_data\\pilot_checks_pseudonymized.csv"
+    },
+    "decisions": {
+      "exported_rows": 0,
+      "skipped_unconsented_rows": 0,
+      "skipped_out_of_date_range": 0,
+      "output_file": "exports\\pilot_data\\pilot_decisions_pseudonymized.csv"
+    },
+    "feedback": {
+      "exported_rows": 0,
+      "skipped_unconsented_rows": 0,
+      "skipped_out_of_date_range": 0,
+      "output_file": "exports\\pilot_data\\pilot_feedback_pseudonymized.csv"
+    },
+    "transactions": {
+      "exported_rows": 0,
+      "skipped_unconsented_rows": 0,
+      "skipped_out_of_date_range": 0,
+      "output_file": "exports\\pilot_data\\pilot_transactions_pseudonymized.csv"
+    }
+  },
+  "salt_used_preview": "ceam***2026",
+  "output_directory": "exports\\pilot_data",
+  "exported_at": "2026-10-13T19:46:16.543892+00:00"
+}
