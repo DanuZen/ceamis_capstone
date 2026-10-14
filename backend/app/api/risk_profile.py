@@ -3,6 +3,7 @@ import numpy as np
 from fastapi import APIRouter, HTTPException
 from app.schemas.request_response import RiskProfileRequest, RiskProfileResponse
 from app.services.risk_predictor import risk_predictor
+from app.utils.model_config import is_onboarding_models_enabled
 
 router = APIRouter()
 
@@ -44,10 +45,41 @@ PROFILE_INFO = {
 }
 
 
+def _build_rule_based_risk_profile(input_dict: dict) -> RiskProfileResponse:
+    """Fallback aturan sederhana deterministik tanpa model ML (Tugas F12)."""
+    loss_tol = int(input_dict.get("toleransi_rugi_enc", 1))
+    if loss_tol == 0:
+        pred_label = "Konservatif"
+        probs = {"Konservatif": 0.8, "Moderat": 0.15, "Agresif": 0.05}
+    elif loss_tol == 2:
+        pred_label = "Agresif"
+        probs = {"Konservatif": 0.05, "Moderat": 0.2, "Agresif": 0.75}
+    else:
+        pred_label = "Moderat"
+        probs = {"Konservatif": 0.2, "Moderat": 0.65, "Agresif": 0.15}
+
+    info = PROFILE_INFO[pred_label]
+    return RiskProfileResponse(
+        risk_profile=pred_label,
+        confidence=probs[pred_label],
+        probabilities=probs,
+        description=info["description"],
+        suggestion=info["suggestion"],
+        budget_allocation=info["budget_allocation"],
+        is_mock=True
+    )
+
+
 @router.post("/predict/risk-profile", response_model=RiskProfileResponse)
 async def predict_risk_profile(request: RiskProfileRequest):
+    input_dict = request.model_dump()
+
+    # 1. Pengecekan sakelar ONBOARDING_MODELS_ENABLED (Tugas F12)
+    if not is_onboarding_models_enabled():
+        return _build_rule_based_risk_profile(input_dict)
+
+    # 2. Eksekusi inferensi ML
     try:
-        input_dict = request.model_dump()
         proba = risk_predictor.predict_risk(input_dict)
 
         pred_idx = int(np.argmax(proba))
@@ -67,7 +99,6 @@ async def predict_risk_profile(request: RiskProfileRequest):
             budget_allocation = info["budget_allocation"], 
             is_mock           = False
         )
-    except FileNotFoundError:
-        raise HTTPException(status_code=503, detail="Model belum tersedia. Pastikan artifacts sudah ada di app/models/")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Prediksi gagal: {str(e)}")
+        # Fallback aman jika terjadi galat I/O atau TensorFlow absen
+        return _build_rule_based_risk_profile(input_dict)

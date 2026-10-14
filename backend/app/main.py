@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from app.api import (
     recommendation, dashboard_insight
 )
-from app.api import pre_purchase, admin, ocr, consent, education
+from app.api import pre_purchase, admin, ocr, consent, education, risk_profile
 
 # Lazy import health_score (butuh TF — skip jika tidak tersedia)
 health_score = None
@@ -106,6 +106,7 @@ app.include_router(dashboard_insight.router, prefix="/api/v1", tags=["LLM-Powere
 app.include_router(recommendation.router,  prefix="/api/v1", tags=["Recommendation"])
 app.include_router(ocr.router, prefix="/api/v1", tags=["OCR Receipt Parsing"])
 app.include_router(education.router, prefix="/api/v1", tags=["Adaptive Education"])
+app.include_router(risk_profile.router, prefix="/api/v1", tags=["Model 3 - Risk Profile (Legacy Onboarding)"])
 
 
 # ── Health Score Fallback (jika TF tidak tersedia) ──────────────────────────
