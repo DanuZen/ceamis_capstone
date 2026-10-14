@@ -17,6 +17,13 @@ class ConsentText {
   static const String dataCollected =
       '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Data yang dikumpulkan meliputi nominal rencana belanja, kategori transaksi, status pagu anggaran, target tabungan, respons intervensi (lanjut/sesuaikan/tunda), dan evaluasi pasca-keputusan. Semua data dienkripsi dan diproses secara pseudonim.';
 
+  static const String thirdPartyProcessing =
+      '[PEMROSESAN PIHAK KETIGA] [ISI SESUAI LEMBAR INFORMASI PENELITIAN] '
+      'Sistem CEAMIS memanfaatkan layanan pemrosesan bahasa alami berbasis kecerdasan buatan pihak ketiga (Google Gemini API) '
+      'untuk mengekstraksi teks struk belanja secara otomatis serta menyusun ringkasan wawasan dan materi edukasi keuangan '
+      'bila fitur LLM aktif. Tidak ada identitas pribadi (seperti nama lengkap, alamat email, atau nomor telepon) yang dikirimkan '
+      'ke pihak ketiga; data yang diproses terbatas pada teks hasil pemindaian struk mentah atau angka agregat keuangan semata.';
+
   static const String withdrawalRights =
       '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Partisipasi bersifat sukarela. Anda berhak menarik persetujuan partisipasi penelitian kapan saja melalui menu Pengaturan Profil tanpa konsekuensi atau sanksi apa pun.';
 

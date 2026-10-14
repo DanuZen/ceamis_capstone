@@ -899,6 +899,24 @@ class _MobileOnboardingScreenState extends State<MobileOnboardingScreen> {
                 ),
                 const Divider(height: 20),
                 Text(
+                  'Pemrosesan Pihak Ketiga (Layanan AI):',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  ConsentText.thirdPartyProcessing,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const Divider(height: 20),
+                Text(
                   'Hak Menarik Diri (Pencabutan Izin):',
                   style: GoogleFonts.quicksand(
                     fontSize: 12,
