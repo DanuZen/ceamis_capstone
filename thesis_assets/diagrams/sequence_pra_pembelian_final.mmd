@@ -1,0 +1,49 @@
+sequenceDiagram
+    autonumber
+    actor User as Partisipan (User)
+    participant Flutter as Aplikasi Flutter Mobile<br/>(Layar, Reminder, Timer)
+    participant FastAPI as Backend FastAPI<br/>(app/api/pre_purchase)
+    participant MLEngine as ML Risk Service<br/>(PrePurchaseRiskPredictor)
+    participant Database as PostgreSQL (Supabase)<br/>(consent, checks, decisions)
+    participant Researcher as Peneliti (Admin)<br/>(export_pilot_data.py)
+
+    %% 1. Input dan Cek Risiko Pra-Pembelian
+    User->>Flutter: Input rencana belanja (nominal, kategori, merchant)
+    Flutter->>FastAPI: POST /api/v1/pre-purchase/check
+    FastAPI->>Database: Ambil saldo kas, pagu anggaran, target tabungan pengguna
+    Database-->>FastAPI: Konteks keuangan aktual (UserStatsService)
+    FastAPI->>MLEngine: extract_features() & predict() (7 fitur kontekstual)
+    MLEngine-->>FastAPI: Hasil inferensi (skor risiko, risk_level, trigger_factors)
+    FastAPI->>Database: Simpan log pra-pembelian (pre_purchase_checks)
+    FastAPI-->>Flutter: Return PrePurchaseCheckResponse (check_id, skor, dampak)
+    Flutter-->>User: Tampilkan PrePurchaseResultScreen (peringatan, dampak anggaran)
+    Note over Flutter: Stopwatch internal mulai mengukur durasi refleksi
+
+    %% 2. Pengambilan Keputusan & Telemetri Refleksi
+    User->>Flutter: Memilih aksi: PROCEED / ADJUST / POSTPONE
+    Note over Flutter: Hitung decision_latency_ms (selisih waktu lihat s.d. klik)
+    Flutter->>FastAPI: POST /api/v1/pre-purchase/decide (decision, decision_latency_ms)
+    FastAPI->>Database: Cek status persetujuan etik (consent_records)
+    alt Persetujuan Aktif (given = true)
+        FastAPI->>Database: Simpan keputusan + decision_latency_ms (pre_purchase_decisions)
+    else Persetujuan Tidak Ada / Dicabut
+        FastAPI->>Database: Simpan keputusan murni (decision_latency_ms = null)
+    end
+    FastAPI-->>Flutter: Status RECORDED
+
+    %% 3. Jeda Refleksi & Konfirmasi Pasca-Keputusan (In-App Reminder)
+    alt Pilihan PROCEED (Belanja Berlanjut)
+        Note over Flutter: PostDecisionReminderService menjadwalkan jendela 24-72 jam
+        Note over User,Flutter: Waktu berlalu (antara 24 s.d. 72 jam kemudian)
+        Flutter-->>User: Tampilkan Banner Pengingat Konfirmasi di Beranda
+        User->>Flutter: Klik konfirmasi -> Isi PostDecisionFeedbackScreen
+        Flutter->>FastAPI: POST /api/v1/pre-purchase/feedback (was_impulsive, regret_score)
+        FastAPI->>Database: Simpan evaluasi riil (post_purchase_evaluations)
+        FastAPI-->>Flutter: Konfirmasi tersimpan & banner ditutup
+    end
+
+    %% 4. Ekspor Data Penelitian Pseudonim
+    Researcher->>FastAPI: Jalankan CLI scripts/export_pilot_data.py
+    FastAPI->>Database: SELECT data JOIN consent_records WHERE given = true
+    Database-->>FastAPI: Dataset transaksi, keputusan, dan latensi refleksi
+    FastAPI-->>Researcher: Ekspor CSV berlabel pseudonim (HMAC participant_code, zero PII)

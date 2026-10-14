@@ -1,0 +1,133 @@
+erDiagram
+    users ||--o| user_profiles : "has"
+    users ||--o{ transactions : "records"
+    users ||--o{ budgets : "allocates"
+    users ||--o{ financial_goals : "sets"
+    users ||--o{ consent_records : "grants"
+    users ||--o{ model_audit_logs : "audited_in"
+    
+    transaction_categories ||--o{ transactions : "categorizes"
+    transaction_categories ||--o{ budgets : "defines"
+    transaction_categories ||--o{ pre_purchase_checks : "applies_to"
+    
+    users ||--o{ pre_purchase_checks : "submits"
+    pre_purchase_checks ||--o| pre_purchase_decisions : "results_in"
+    pre_purchase_checks ||--o| post_purchase_evaluations : "evaluated_by"
+    pre_purchase_checks ||--o| transactions : "originates"
+    
+    model_registry ||--o{ pre_purchase_checks : "predicts"
+
+    users {
+        uuid id PK
+        string email UK
+        string role
+        timestamp created_at
+    }
+
+    user_profiles {
+        uuid id PK,FK
+        string name
+        int streak
+        decimal health_score
+        string risk_profile
+    }
+
+    budgets {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        decimal amount_limit
+        int period_month
+    }
+
+    financial_goals {
+        uuid id PK
+        uuid user_id FK
+        string title
+        decimal target_amount
+        decimal current_amount
+        date deadline
+    }
+
+    transaction_categories {
+        uuid id PK
+        string name
+        string type
+        boolean is_need
+    }
+
+    transactions {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        decimal amount
+        string type
+        timestamp transaction_date
+    }
+
+    pre_purchase_checks {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        decimal planned_amount
+        string merchant_name
+        decimal risk_score
+        string risk_level
+        string model_version
+        boolean is_cold_start
+        decimal budget_remaining_before
+        decimal budget_remaining_after
+        int savings_delayed_days
+        timestamp created_at
+    }
+
+    pre_purchase_decisions {
+        uuid id PK
+        uuid check_id FK,UK
+        uuid user_id FK
+        string decision
+        decimal adjusted_amount
+        int decision_latency_ms
+        timestamp decided_at
+    }
+
+    post_purchase_evaluations {
+        uuid id PK
+        uuid check_id FK,UK
+        uuid user_id FK
+        boolean was_impulsive
+        int regret_score
+        string feedback_notes
+        timestamp evaluated_at
+    }
+
+    consent_records {
+        uuid id PK
+        uuid user_id FK
+        string consent_version
+        string purpose
+        boolean given
+        timestamp given_at
+        timestamp withdrawn_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    model_registry {
+        uuid id PK
+        string model_name
+        string algorithm
+        string version UK
+        jsonb metrics
+        string status
+        timestamp deployed_at
+    }
+
+    model_audit_logs {
+        uuid id PK
+        uuid admin_id FK
+        string action
+        jsonb details
+        string ip_address
+        timestamp created_at
+    }

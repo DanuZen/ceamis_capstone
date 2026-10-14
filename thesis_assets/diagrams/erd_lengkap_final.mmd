@@ -1,0 +1,211 @@
+erDiagram
+    users ||--o| user_profiles : "has"
+    users ||--o{ sessions : "creates"
+    users ||--o{ identities : "authenticates"
+    
+    user_profiles ||--o{ transactions : "records"
+    user_profiles ||--o| onboarding_data : "completes"
+    user_profiles ||--o{ warnings : "receives"
+    user_profiles ||--o{ debt_records : "tracks"
+    user_profiles ||--o{ planning : "plans"
+    user_profiles ||--o{ consent_records : "grants"
+    
+    transaction_categories ||--o{ transactions : "categorizes"
+    transaction_categories ||--o{ planning : "defines"
+    transaction_categories ||--o{ pre_purchase_checks : "applies_to"
+    
+    EducationModule ||--o{ EducationPage : "contains"
+    EducationModule ||--o{ EducationQuiz : "evaluates"
+    
+    user_profiles ||--o{ pre_purchase_checks : "submits"
+    pre_purchase_checks ||--o| pre_purchase_decisions : "records"
+    pre_purchase_checks ||--o| post_purchase_evaluations : "confirms"
+    pre_purchase_checks ||--o| transactions : "converts_to"
+    
+    model_registry ||--o{ pre_purchase_checks : "predicts"
+    users ||--o{ model_registry : "deploys"
+    users ||--o{ model_audit_logs : "triggers"
+
+    users {
+        uuid id PK
+        string email UK
+        string role
+        timestamp created_at
+        timestamp last_sign_in_at
+    }
+
+    user_profiles {
+        uuid id PK,FK
+        string name
+        string email
+        int level
+        int xp
+        int streak
+        decimal health_score
+        string risk_profile
+        boolean onboarding_completed
+        timestamp created_at
+    }
+
+    transactions {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        string description
+        decimal amount
+        string type
+        string category
+        string tag
+        timestamp transaction_date
+        timestamp created_at
+    }
+
+    transaction_categories {
+        uuid id PK
+        string name
+        string type
+        boolean is_need
+        string icon
+    }
+
+    onboarding_data {
+        uuid id PK
+        uuid user_id FK,UK
+        int age
+        decimal monthly_income
+        string income_source
+        jsonb top_expenses
+        decimal monthly_expense
+        jsonb goals
+        int city_tier_enc
+        int tanggungan_keluarga
+        int save_habit
+        boolean punya_tabungan
+        decimal jumlah_tabungan_bulan
+        timestamp created_at
+    }
+
+    planning {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        decimal budget_amount
+        decimal actual_amount
+        int period_month
+        int period_year
+        timestamp created_at
+    }
+
+    debt_records {
+        uuid id PK
+        uuid user_id FK
+        string debt_name
+        decimal total_amount
+        decimal remaining_amount
+        decimal monthly_payment
+        date due_date
+        timestamp created_at
+    }
+
+    warnings {
+        uuid id PK
+        uuid user_id FK
+        string warning_type
+        text message
+        boolean is_read
+        timestamp created_at
+    }
+
+    consent_records {
+        uuid id PK
+        uuid user_id FK
+        string consent_version
+        string purpose
+        boolean given
+        timestamp given_at
+        timestamp withdrawn_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    pre_purchase_checks {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        decimal planned_amount
+        string merchant_name
+        text notes
+        decimal risk_score
+        string risk_level
+        string model_version
+        boolean is_cold_start
+        decimal budget_remaining_before
+        decimal budget_remaining_after
+        int savings_delayed_days
+        timestamp created_at
+    }
+
+    pre_purchase_decisions {
+        uuid id PK
+        uuid check_id FK,UK
+        uuid user_id FK
+        string decision
+        decimal adjusted_amount
+        int decision_latency_ms
+        timestamp decided_at
+        timestamp created_at
+    }
+
+    post_purchase_evaluations {
+        uuid id PK
+        uuid check_id FK,UK
+        uuid user_id FK
+        boolean was_impulsive
+        int regret_score
+        text feedback_notes
+        timestamp evaluated_at
+        timestamp created_at
+    }
+
+    model_registry {
+        uuid id PK
+        string model_name
+        string algorithm
+        string version UK
+        jsonb metrics
+        string status
+        timestamp deployed_at
+        timestamp created_at
+    }
+
+    model_audit_logs {
+        uuid id PK
+        uuid admin_id FK
+        string action
+        jsonb details
+        string ip_address
+        timestamp created_at
+    }
+
+    EducationModule {
+        string module_id PK
+        string title
+        int level
+        int xp_reward
+        string duration
+    }
+
+    EducationPage {
+        uuid id PK
+        string module_id FK
+        int page_number
+        text content
+    }
+
+    EducationQuiz {
+        uuid id PK
+        string module_id FK
+        text question
+        json options
+        int correct_index
+    }

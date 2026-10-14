@@ -1,0 +1,87 @@
+flowchart TD
+    subgraph Core_Entry ["Entry Point"]
+        MAIN["main.py (FastAPI Lifespan & Mounting)"]
+    end
+
+    subgraph API_Routers ["Lapisan Router API (app/api/)"]
+        API_PRE["pre_purchase.py"]
+        API_ADM["admin.py"]
+        API_CON["consent.py"]
+        API_OCR["ocr.py"]
+        API_HS["health_score.py"]
+        API_INS["dashboard_insight.py"]
+        API_EDU["education.py"]
+        API_RP["risk_profile.py"]
+    end
+
+    subgraph Services ["Lapisan Layanan & Inferensi (app/services/)"]
+        SRV_RISK["pre_purchase_risk.py<br/>(RiskPredictor 7-Fitur ML)"]
+        SRV_REPO["pre_purchase_repository.py<br/>(Dual-Mode Persistence)"]
+        SRV_STAT["user_stats_service.py<br/>(Statistik Nyata Dinamis)"]
+        SRV_INS["insight_generator.py<br/>(XAI Coaching & Fallback)"]
+    end
+
+    subgraph Schemas_Models ["Lapisan Data & Kontrak (app/schemas & models)"]
+        SCH_PRE["pre_purchase_schema.py"]
+        SCH_CON["consent_schema.py"]
+        SCH_REQ["request_response.py"]
+        MOD_ORM["models/pre_purchase.py<br/>(SQLAlchemy ORM)"]
+        ART_ML[("artifacts_risk/<br/>model_registry.json")]
+    end
+
+    subgraph Utilities ["Utilitas Sistem & Keamanan (app/utils/)"]
+        UTL_AUTH["auth.py<br/>(Supabase JWT Verification)"]
+        UTL_LLM_CFG["llm_config.py<br/>(Modular Feature Switches)"]
+        UTL_SAFE["safety_filter.py<br/>(Guardrails & AI Disclaimer)"]
+        UTL_MDL_CFG["model_config.py<br/>(Onboarding Model Switch)"]
+        UTL_CURR["curriculum.py<br/>(Silabus Statis Edukasi)"]
+        UTL_HSC["health_score_calculator.py"]
+        UTL_SUP["supabase_client.py"]
+    end
+
+    subgraph Research_Scripts ["Skrip Evaluasi Penelitian (scripts/)"]
+        SCR_EXP["export_pilot_data.py<br/>(Ekspor Riset Pseudonim)"]
+        SCR_LAT["measure_latency.py<br/>(Ukur Responsif API)"]
+    end
+
+    %% Relasi Mounting
+    MAIN --> API_PRE
+    MAIN --> API_ADM
+    MAIN --> API_CON
+    MAIN --> API_OCR
+    MAIN --> API_HS
+    MAIN --> API_INS
+    MAIN --> API_EDU
+    MAIN --> API_RP
+
+    %% Relasi Router ke Service & Schema
+    API_PRE --> SRV_RISK
+    API_PRE --> SRV_REPO
+    API_PRE --> SRV_STAT
+    API_PRE --> SCH_PRE
+
+    API_ADM --> UTL_AUTH
+    API_ADM --> SRV_REPO
+    API_ADM --> ART_ML
+
+    API_CON --> UTL_AUTH
+    API_CON --> SRV_REPO
+    API_CON --> SCH_CON
+
+    API_OCR --> UTL_LLM_CFG
+    API_INS --> SRV_INS
+    SRV_INS --> UTL_LLM_CFG
+    SRV_INS --> UTL_SAFE
+
+    API_EDU --> UTL_LLM_CFG
+    API_EDU --> UTL_SAFE
+    API_EDU --> UTL_CURR
+
+    API_RP --> UTL_MDL_CFG
+    API_RP --> SCH_REQ
+
+    API_HS --> UTL_HSC
+
+    SRV_REPO --> MOD_ORM
+    SCR_EXP --> SRV_REPO
+    SCR_EXP --> UTL_SUP

@@ -1,0 +1,43 @@
+stateDiagram-v2
+    [*] --> RencanaBelanja : Pengguna menginput item & nominal rencana
+
+    RencanaBelanja --> Diperiksa : POST /api/v1/pre-purchase/check
+    Diperiksa --> MenungguKeputusan : Inferensi 7-fitur selesai (Skor risiko & XAI tampil)
+
+    state MenungguKeputusan {
+        [*] --> RefleksiPengguna
+        note right of RefleksiPengguna : Mengukur decision_latency_ms (Tugas F10)
+        RefleksiPengguna --> Dilanjutkan : Pilihan PROCEED (Lanjut Belanja)
+        RefleksiPengguna --> Disesuaikan : Pilihan ADJUST (Kurangi Nominal)
+        RefleksiPengguna --> Ditunda : Pilihan POSTPONE (Tunda Checkout)
+    }
+
+    Disesuaikan --> RencanaDiperbarui : Nominal disesuaikan ke batas aman pagu
+    Ditunda --> TersimpanWishlist : Rencana ditunda & jeda berpikir aktif
+
+    Dilanjutkan --> MenungguJendela24Jam : Transaksi dicatat ke sistem
+    
+    state MenungguJendela24Jam {
+        [*] --> PeriodeTenang : Waktu < 24 jam (Belum muncul banner)
+        PeriodeTenang --> JendelaAktif : Tepat 24 s.d. 72 jam (Banner Beranda Tampil)
+        JendelaAktif --> JendelaKedaluwarsa : Waktu > 72 jam (Pengingat ditutup)
+    }
+
+    JendelaAktif --> Dikonfirmasi : Pengguna mengisi evaluasi (was_impulsive, regret)
+    JendelaAktif --> Diabaikan : Pengguna menepis banner (dismiss)
+    JendelaKedaluwarsa --> SelesaiTanpaFeedback
+
+    state EksporPenelitian {
+        [*] --> PengecekanConsent
+        PengecekanConsent --> DieksporPseudonim : Consent Aktif (given = true)
+        PengecekanConsent --> DikecualikanDariRiset : Consent Dicabut / Kosong
+    }
+
+    Dikonfirmasi --> EksporPenelitian
+    Diabaikan --> EksporPenelitian
+    SelesaiTanpaFeedback --> EksporPenelitian
+    RencanaDiperbarui --> [*]
+    TersimpanWishlist --> [*]
+
+    DieksporPseudonim --> [*]
+    DikecualikanDariRiset --> [*]

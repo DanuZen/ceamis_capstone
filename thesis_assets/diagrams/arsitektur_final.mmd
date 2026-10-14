@@ -1,0 +1,71 @@
+flowchart TD
+    subgraph Clients ["Klien Sistem"]
+        FLUTTER["Aplikasi Mobile Flutter<br/>• On-Device ML Kit OCR (Zero Image Egress)<br/>• Pre-Purchase Intervensi & Telemetri Refleksi<br/>• In-App Post-Decision Reminder (24-72 Jam)<br/>• Persetujuan Riset & Pengaturan Profil"]
+        NEXTJS["Dasbor Web Next.js<br/>• Admin Model Registry & Audit Logs<br/>• Visualisasi Metrik Nyata (PR-AUC, Brier)<br/>• Perencanaan Finansial & Alokasi"]
+    end
+
+    subgraph Backend_Gateway ["Backend FastAPI Monolit Modular (CEAMIS 2.0)"]
+        API_GW["FastAPI Router Gateway<br/>(ASGI Server)"]
+        
+        MOD_PRE["Modul Pra-Pembelian<br/>(pre_purchase.py)"]
+        MOD_ADM["Modul Tata Kelola Admin<br/>(admin.py + auth.py JWT Guard)"]
+        MOD_CON["Modul Persetujuan Partisipan<br/>(consent.py)"]
+        MOD_OCR["Modul Smart OCR<br/>(ocr.py + LLM Switch)"]
+        MOD_HS["Modul Health Score & XAI<br/>(health_score.py & dashboard_insight.py)"]
+        MOD_EDU["Modul Edukasi Finansial<br/>(education.py + Curriculum)"]
+        MOD_RP["Modul Profil Risiko Onboarding<br/>(risk_profile.py + Onboarding Switch)"]
+        
+        SRV_REP["PrePurchaseRepository<br/>(Dual Mode: Memory / DB PostgreSQL)"]
+        SRV_STAT["UserStatsService<br/>(Statistik Nyata Dinamis Pengguna)"]
+        CLI_EXP["Skrip Ekspor Riset<br/>(export_pilot_data.py - HMAC & Consent Gate)"]
+    end
+
+    subgraph Machine_Learning ["Komponen Model & Inferensi"]
+        ML_PRED["PrePurchaseRiskPredictor<br/>(7 Fitur Finansial Kontekstual)"]
+        ML_REG[("Model Registry & Trained Artifacts<br/>(Baseline, LogReg, Random Forest)")]
+        ML_FALLBACK["Fallback Deterministik Statis<br/>(Threshold Arus Kas & Limit Kategori)"]
+        SAFE_FILT["Safety Guardrails Filter<br/>(Penyaring Nasihat Investasi/Kredit & AI Disclaimer)"]
+    end
+
+    subgraph Database_Storage ["Basis Data PostgreSQL (Supabase Cloud)"]
+        DB_POSTGRES[("Supabase PostgreSQL 15+<br/>• auth.users & user_profiles<br/>• pre_purchase_checks & decisions<br/>• post_purchase_evaluations<br/>• consent_records (RLS Enforcement)<br/>• model_registry & model_audit_logs")]
+    end
+
+    subgraph External_Services ["Layanan Eksternal"]
+        EXT_AUTH["Supabase Auth Service<br/>(JWT Token & Role Verification)"]
+        EXT_GEMINI["Google Gemini 1.5 Flash API<br/>• Ekstraksi Teks OCR (String Text Only)<br/>• Personalisasi Insight & Edukasi<br/>• Master & Feature Kill-Switches"]
+    end
+
+    %% Komunikasi Klien ke Backend & Layanan
+    FLUTTER -->|HTTPS / REST API| API_GW
+    FLUTTER -->|Otentikasi Sesi Langsung| EXT_AUTH
+    NEXTJS -->|Bearer JWT Admin| API_GW
+    NEXTJS -->|Prisma / Supabase Client| DB_POSTGRES
+
+    %% Alur Internal Router Backend
+    API_GW --> MOD_PRE
+    API_GW --> MOD_ADM
+    API_GW --> MOD_CON
+    API_GW --> MOD_OCR
+    API_GW --> MOD_HS
+    API_GW --> MOD_EDU
+    API_GW --> MOD_RP
+
+    %% Koneksi Layanan & Logika
+    MOD_PRE --> ML_PRED
+    MOD_PRE --> SRV_REP
+    MOD_PRE --> SRV_STAT
+    MOD_ADM --> SRV_REP
+    MOD_CON --> SRV_REP
+    
+    ML_PRED --> ML_REG
+    ML_PRED -.->|Fallback saat model mati/nihil| ML_FALLBACK
+
+    MOD_OCR -->|Teks Mentah UTF-8| EXT_GEMINI
+    MOD_HS --> SAFE_FILT
+    MOD_EDU --> SAFE_FILT
+    SAFE_FILT --> EXT_GEMINI
+
+    SRV_REP -->|Mode DB Aktif| DB_POSTGRES
+    CLI_EXP -->|Ekspor Pseudonim Partisipan| DB_POSTGRES
+    MOD_ADM -->|Verifikasi JWT Role Admin| EXT_AUTH

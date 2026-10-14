@@ -1,0 +1,41 @@
+flowchart TD
+    subgraph Dataset ["Dataset Transaksi Finansial (4 Bulan, N Partisipan)"]
+        D1["Data Transaksi Temporal Urut Waktu"]
+    end
+
+    subgraph SplitProtocol ["Protokol Pembagian Temporal (Tanpa Random Shuffle)"]
+        direction TB
+        SP1["Bulan 1 s.d. Bulan 3 (Data Historis / Training Set 80%)"]
+        SP2["Bulan 4 (Data Masa Depan / Testing Set 20%)"]
+    end
+
+    subgraph TrainingPipeline ["Pipeline Pelatihan Model (Tugas F7)"]
+        direction TB
+        TR1["Training Matrix (X_train, y_train)<br/>7 Fitur Finansial Kontekstual"]
+        TR2["StandardScaler.fit_transform(X_train)<br/>Penskalaan di-fit EKSKLUSIF pada Train"]
+        TR3["Pelatihan 3 Pendekatan Komparatif:<br/>1. Rule-Based Baseline (Ambang Statis)<br/>2. Logistic Regression (class_weight='balanced')<br/>3. Random Forest Classifier (100 Trees)"]
+    end
+
+    subgraph EvaluationPipeline ["Pipeline Evaluasi Metrik Nyata (Real Metrics)"]
+        direction TB
+        TE1["Test Matrix (X_test, y_test)<br/>Bulan 4 Temporal Holdout"]
+        TE2["StandardScaler.transform(X_test)<br/>Transformasi konsisten tanpa kebocoran"]
+        TE3["Komparasi Metrik Evaluasi Nyata:<br/>• F1-Score & Accuracy<br/>• Precision & Recall<br/>• PR-AUC (Precision-Recall Area)<br/>• Brier Score (Kalibrasi Probabilitas)<br/>• False-Alert Rate (Tingkat Alarm Palsu)"]
+    end
+
+    subgraph GovernanceRegistry ["Pencatatan Model Registry (Tugas F1 & F7)"]
+        REG1[("model_registry.json & DB<br/>• Baseline (F1: 0.6970, Brier: 0.4079)<br/>• LogReg (F1: 0.7714, Brier: 0.1772)<br/>• Random Forest (F1: 0.8125, Brier: 0.1583)")]
+    end
+
+    D1 --> SplitProtocol
+    SP1 --> TR1
+    SP2 --> TE1
+    TR1 --> TR2
+    TR2 --> TR3
+    TR2 -.->|Mean & Std Latih| TE2
+    TE1 --> TE2
+    TE2 --> TE3
+    TR3 -->|Bobot Model Terlatih| TE3
+    TE3 --> REG1
+
+    note1["Prinsip Integritas Metodologi:<br/>1. Pemisahan waktu tegas (temporal cutoff) mencegah look-ahead bias<br/>2. Scaler fit hanya pada data masa lalu (zero data leakage)<br/>3. Pelaporan komprehensif PR-AUC, Brier score, dan False-Alert rate<br/>4. Catatan kritis sirkularitas label sintetis didokumentasikan untuk naskah"]
