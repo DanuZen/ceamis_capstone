@@ -14,6 +14,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import httpx
 
+from app.utils.llm_config import is_llm_ocr_enabled
+from app.utils.safety_filter import scrub_pii_for_logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ocr", tags=["OCR Receipt Parsing"])
@@ -139,7 +142,7 @@ async def parse_receipt(req: ParseReceiptRequest):
 
     gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
-    if gemini_key:
+    if is_llm_ocr_enabled() and gemini_key:
         try:
             endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
             prompt = f"""

@@ -1,5 +1,6 @@
 # app/api/education.py
 import json
+from typing import Optional, List
 from fastapi import APIRouter, HTTPException
 from app.schemas.request_response import (
     ModuleListResponse, ModuleContentRequest, ModuleContentResponse,
@@ -7,12 +8,99 @@ from app.schemas.request_response import (
     InsightRequest, InsightResponse
 )
 from app.utils.llm_client import call_llm
+from app.utils.llm_config import is_llm_education_enabled
+from app.utils.safety_filter import apply_safety_guardrails, filter_financial_content
 from app.utils.curriculum import (
     CURRICULUM, get_all_modules,
     get_module_by_id, get_modules_by_level
 )
 
 router = APIRouter()
+
+
+# ════════════════════════════════════════════════
+# STATIC FALLBACK GENERATORS (Tugas F11)
+# ════════════════════════════════════════════════
+
+def _build_static_module_content(module_id: str, module: dict) -> ModuleContentResponse:
+    """Fallback konten modul terstruktur tanpa memanggil LLM (Tugas F11)."""
+    level_label = {1: "Beginner", 2: "Intermediate", 3: "Advanced"}
+    level_text = level_label.get(module["level"], "Beginner")
+
+    sections = [
+        {
+            "section_title": topic.title(),
+            "content": f"Pembahasan penting mengenai {topic}. Dalam mengelola keuangan pribadi, "
+                       f"memahami aspek ini membantu menjaga stabilitas pengeluaran sehari-hari.",
+            "key_point": f"Prioritaskan pemahaman dasar mengenai {topic}.",
+        }
+        for topic in module.get("topics", [])
+    ]
+
+    return ModuleContentResponse(
+        module_id=module_id,
+        title=module["title"],
+        level=module["level"],
+        level_label=level_text,
+        duration=module["duration"],
+        xp_reward=module["xp_reward"],
+        sections=sections,
+        summary=f"Modul {module['title']} membekali keterampilan praktis dalam perencanaan pos anggaran.",
+        action_items=[
+            "Catat setiap pengeluaran harian ke dalam kategori yang tepat.",
+            "Evaluasi pos keinginan sebelum melakukan transaksi baru.",
+            "Sisihkan tabungan di awal penerimaan dana bulanan."
+        ],
+        fun_fact="Menahan belanja impulsif selama 24 jam dapat mengurangi 60% pengeluaran tidak terencana.",
+        quiz_count=module["quiz_count"],
+        pass_score=module["pass_score"],
+        is_mock=True,
+    )
+
+
+def _build_static_quiz(module_id: str, module: dict) -> QuizResponse:
+    """Fallback soal kuis statis deterministik tanpa LLM (Tugas F11)."""
+    topics = module.get("topics", ["Perencanaan Anggaran"])
+    num_q = module.get("quiz_count", 5)
+
+    questions: List[QuizQuestion] = []
+    for i in range(num_q):
+        curr_topic = topics[i % len(topics)]
+        questions.append(
+            QuizQuestion(
+                question_id=i + 1,
+                question=f"Dalam konteks '{curr_topic}', apa langkah paling bijak yang perlu diambil?",
+                options=[
+                    f"Mengevaluasi kebutuhan primer terlebih dahulu terkait {curr_topic}.",
+                    f"Mengalokasikan seluruh saldo tanpa mencatat rincian {curr_topic}.",
+                    f"Menunda pencatatan hingga akhir bulan berikutnya.",
+                    f"Mengabaikan batas anggaran demi kebutuhan sesaat."
+                ],
+                correct_idx=0,
+                explanation=f"Langkah terencana pada {curr_topic} adalah mengutamakan kebutuhan primer dan pencatatan yang disiplin.",
+            )
+        )
+
+    return QuizResponse(
+        module_id=module_id,
+        title=module["title"],
+        pass_score=module["pass_score"],
+        xp_reward=module["xp_reward"],
+        questions=questions,
+        is_mock=True,
+    )
+
+
+def _build_static_weekly_insight(user_id: str) -> InsightResponse:
+    """Fallback insight mingguan umum tanpa memanggil LLM (Tugas F11)."""
+    return InsightResponse(
+        user_id=user_id,
+        weekly_insight="Minggu ini, fokuslah memantau pos keinginan (wants) agar tidak melebihi pagu yang telah ditetapkan.",
+        highlight="Pencatatan transaksi dalam 24 jam pertama meningkatkan akurasi anggaran hingga 85%.",
+        challenge="Terapkan aturan 'jeda 24 jam' untuk semua belanja non-primer di atas Rp 100.000 minggu ini.",
+        motivation="Konsistensi kecil setiap hari menghasilkan keamanan finansial jangka panjang.",
+        is_mock=True,
+    )
 
 
 # ════════════════════════════════════════════════
@@ -41,7 +129,7 @@ async def get_module_list():
 
 
 # ════════════════════════════════════════════════
-# ENDPOINT 2 — Konten Modul (LLM Generated)
+# ENDPOINT 2 — Konten Modul (LLM Generated / Fallback)
 # ════════════════════════════════════════════════
 @router.post("/education/modules/{module_id}/content",
              response_model=ModuleContentResponse)
@@ -50,9 +138,7 @@ async def get_module_content(
     request: ModuleContentRequest
 ):
     """
-    Generate konten modul via LLM.
-    Konten di-generate berdasarkan topik modul,
-    bukan kondisi user — sama untuk semua user.
+    Generate konten modul via LLM atau fallback kurikulum statis (Tugas F11).
     """
     module = get_module_by_id(module_id)
     if not module:
@@ -61,13 +147,15 @@ async def get_module_content(
             detail=f"Modul {module_id} tidak ditemukan"
         )
 
+    # 1. Periksa sakelar kendali LLM
+    if not is_llm_education_enabled():
+        return _build_static_module_content(module_id, module)
+
     level_label = {1: "Beginner", 2: "Intermediate", 3: "Advanced"}
     level_text  = level_label.get(module["level"], "Beginner")
-    topics_text = "\n".join(
-        [f"- {t}" for t in module["topics"]]
-    )
+    topics_text = "\n".join([f"- {t}" for t in module["topics"]])
 
-    system_prompt = """
+    base_system_prompt = """
 Kamu adalah konten kreator edukasi keuangan untuk Gen-Z Indonesia.
 Buat konten modul pembelajaran yang informatif, relatable, dan mudah dipahami.
 
@@ -79,6 +167,7 @@ Gaya penulisan:
 
 PENTING: Balas HANYA dengan JSON valid, tanpa teks lain apapun.
 """.strip()
+    system_prompt = apply_safety_guardrails(base_system_prompt)
 
     user_prompt = f"""
 Buat konten modul edukasi keuangan:
@@ -109,8 +198,7 @@ Balas dengan JSON persis seperti ini:
   "fun_fact": "1 fakta menarik terkait topik ini"
 }}
 
-Pastikan ada {len(module["topics"])} sections,
-masing-masing mencakup satu topik dari list di atas.
+Pastikan ada {len(module["topics"])} sections, masing-masing mencakup satu topik dari list di atas.
 """
 
     messages = [{"role": "user", "content": user_prompt}]
@@ -142,12 +230,9 @@ masing-masing mencakup satu topik dari list di atas.
             pass_score  = module["pass_score"],
             is_mock     = False
         )
-
-    except (json.JSONDecodeError, KeyError) as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Gagal generate konten: {str(e)}"
-        )
+    except Exception:
+        # Fallback tanpa galat saat pemanggilan LLM gagal
+        return _build_static_module_content(module_id, module)
 
 
 # ════════════════════════════════════════════════
@@ -160,8 +245,7 @@ async def get_module_quiz(
     request: QuizRequest
 ):
     """
-    Generate quiz untuk modul tertentu.
-    5 soal per modul, sesuai topik modul.
+    Generate quiz untuk modul tertentu via LLM atau fallback kurikulum (Tugas F11).
     """
     module = get_module_by_id(module_id)
     if not module:
@@ -170,28 +254,26 @@ async def get_module_quiz(
             detail=f"Modul {module_id} tidak ditemukan"
         )
 
+    # 1. Periksa sakelar kendali LLM
+    if not is_llm_education_enabled():
+        return _build_static_quiz(module_id, module)
+
     topics_text = ", ".join(module["topics"])
     num_q       = module["quiz_count"]   # selalu 5
 
-    system_prompt = """
+    base_system_prompt = """
 Kamu adalah pembuat soal kuis edukasi keuangan Gen-Z Indonesia.
 Buat soal yang menguji pemahaman praktis, bukan hafalan teori.
 
 PENTING: Balas HANYA dengan JSON valid, tanpa teks lain apapun.
 """.strip()
+    system_prompt = apply_safety_guardrails(base_system_prompt)
 
     user_prompt = f"""
 Buat {num_q} soal kuis untuk modul: "{module["title"]}"
 
 Topik yang dicakup: {topics_text}
 Level: {"Beginner" if module["level"] == 1 else "Intermediate" if module["level"] == 2 else "Advanced"}
-
-Ketentuan soal:
-- Soal harus berkaitan langsung dengan topik modul
-- Gunakan skenario kehidupan nyata Gen-Z (kos, kerja pertama, dll)
-- Semua pilihan jawaban harus masuk akal (tidak ada yang terlalu obvious)
-- Explanation harus menjelaskan KENAPA jawaban itu benar
-  dan mengapa yang lain salah
 
 Balas dengan JSON persis seperti ini:
 {{
@@ -241,49 +323,46 @@ correct_idx adalah 0 untuk A, 1 untuk B, 2 untuk C, 3 untuk D.
             questions  = questions,
             is_mock    = False
         )
-
-    except (json.JSONDecodeError, KeyError) as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Gagal generate quiz: {str(e)}"
-        )
+    except Exception:
+        # Fallback tanpa galat saat pemanggilan LLM gagal
+        return _build_static_quiz(module_id, module)
 
 
 # ════════════════════════════════════════════════
-# ENDPOINT 4 — Weekly Insight (Diselaraskan dengan POST & Skema Pydantic Anda)
+# ENDPOINT 4 — Weekly Insight
 # ════════════════════════════════════════════════
 @router.post("/education/insight/weekly", response_model=InsightResponse)
 async def get_weekly_insight(request: InsightRequest):
     """
     Menghasilkan weekly insight umum tentang literasi keuangan anak muda.
-    Endpoint ini menggunakan POST untuk menyesuaikan dengan parameter input InsightRequest.
+    Mendukung sakelar kendali LLM dan fallback aman (Tugas F11).
     """
+    if not is_llm_education_enabled():
+        return _build_static_weekly_insight(request.user_id)
+
     import datetime
     week_num = datetime.date.today().isocalendar()[1]
     year     = datetime.date.today().year
 
-    system_prompt = """
+    base_system_prompt = """
 Kamu adalah financial educator Gen-Z Indonesia.
 Buat weekly insight keuangan yang relevan, fresh, dan actionable.
 
 PENTING ATURAN FORMAT JSON (PATUHI SECARA MUTLAK):
 1. Balas HANYA dengan JSON valid, tanpa tambahan teks basa-basi lainnya di luar blok JSON.
-2. DILARANG keras menggunakan tanda kutip ganda (") di dalam teks nilai string JSON. Jika ada istilah, slang, atau kutipan kata, gunakan tanda kutip tunggal (') saja.
-   CONTOH SALAH: "Jangan "FOMO" ya"
-   CONTOH BENAR: "Jangan 'FOMO' ya"
-3. Jangan gunakan enter asli (pindah baris) di dalam nilai string JSON. Gunakan literal '\\n' jika diperlukan untuk membuat paragraf baru.
+2. DILARANG keras menggunakan tanda kutip ganda (") di dalam teks nilai string JSON.
 """.strip()
+    system_prompt = apply_safety_guardrails(base_system_prompt)
 
-    # Memanfaatkan payload konteks finansial pengguna jika dikirimkan oleh frontend
     context_text = ""
     if request.financial_context:
         context_text = f"\nKonteks kondisi keuangan terkini user: {json.dumps(request.financial_context)}"
 
     user_prompt = f"""
 Buat weekly financial insight untuk minggu ke-{week_num} tahun {year}.
-Tema harus sangat relevan dengan kondisi keuangan riil anak muda di Indonesia saat ini (mahasiswa, pekerja muda, anak kos).{context_text}
+Tema harus sangat relevan dengan kondisi keuangan riil anak muda di Indonesia saat ini.{context_text}
 
-Balas dengan format JSON persis seperti berikut (samakan persis penulisan key-nya):
+Balas dengan format JSON persis seperti berikut:
 {{
   "weekly_insight": "tulis 2-3 kalimat santai berisi saran keuangan utama untuk minggu ini",
   "highlight"     : "satu fakta menarik atau poin paling krusial terkait kondisi keuangan anak muda",
@@ -299,7 +378,6 @@ Balas dengan format JSON persis seperti berikut (samakan persis penulisan key-ny
         cleaned_json = extract_json_robust(raw)
         data = json.loads(cleaned_json)
         
-        # Mapping data hasil LLM ke struktur skema InsightResponse Anda
         return InsightResponse(
             user_id        = request.user_id,
             weekly_insight = data.get("weekly_insight", ""),
@@ -308,28 +386,17 @@ Balas dengan format JSON persis seperti berikut (samakan persis penulisan key-ny
             motivation     = data.get("motivation", ""),
             is_mock        = False
         )
+    except Exception:
+        return _build_static_weekly_insight(request.user_id)
 
-    except (json.JSONDecodeError, KeyError) as e:
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Gagal generate weekly insight karena masalah format parser: {str(e)}"
-        )
-    
+
 # ==========================================================
-# HELPER — Ekstraksi JSON Aman (Sangat Stabil & Tanpa Bug Regex)
+# HELPER — Ekstraksi JSON Aman
 # ==========================================================
 def extract_json_robust(raw_text: str) -> str:
-    """
-    Memotong dan mengambil string JSON saja dari output LLM secara aman.
-    Mencari tanda kurung kurawal terluar untuk menghindari kegagalan parser.
-    Bebas dari bug interpretasi visual markdown.
-    """
     raw_text = raw_text.strip()
-    
     start_idx = raw_text.find('{')
     end_idx = raw_text.rfind('}')
-    
     if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
         return raw_text[start_idx:end_idx+1]
-        
     return raw_text

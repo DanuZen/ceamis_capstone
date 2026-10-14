@@ -12,7 +12,7 @@ Pemilik proyek menyusun Tugas Akhir "Pengembangan Sistem Peringatan Dini Pengelu
 4. Router admin FastAPI belum memakai pengaman JWT, dan peran admin di Next.js ditentukan lewat metadata atau satu alamat surel.
 5. Dialog konfirmasi pasca-keputusan belum terpicu otomatis di aplikasi mobile.
 
-Selain itu ada pembersihan (chatbot dan arsip NestJS), tes otomatis, dan metrik pelatihan yang belum terbukti berasal dari hasil pelatihan.
+Selain itu ada pembersihan (chatbot dan arsip NestJS), tes otomatis, metrik pelatihan yang belum terbukti berasal dari hasil pelatihan, dan penggunaan LLM (Gemini) pada OCR, wawasan dasbor, dan edukasi yang perlu diaudit serta dapat dimatikan per fitur.
 
 ## 1. Cara file ini dipakai
 
@@ -55,9 +55,11 @@ File ini boleh diletakkan di `docs/` (baca saja). Semua laporan ditulis ke `thes
 | 6 | F5 | Pemicu konfirmasi pasca-keputusan | `mobile/` | Wajib |
 | 7 | F7 | Metrik pelatihan nyata dan catatan data sintetis | `backend/training/` | Penting |
 | 8 | F8 | Pembersihan chatbot dan arsip NestJS | `backend/`, `mobile/`, repositori | Penting |
-| 9 | F9 | Skrip ekspor data pseudonim | `backend/scripts/` | Penting |
-| 10 | F6 | Konsolidasi tes dan laporan akhir | seluruh repositori | Penting |
-| 11 | F10 | Telemetri keterlibatan tambahan | `backend/`, `mobile/` | Opsional |
+| 9 | F11 | Audit dan kendali penggunaan LLM (Gemini) | `backend/`, `mobile/` | Penting |
+| 10 | F12 | Audit model tambahan (profil risiko, persona) dan penanganan foto struk | `backend/`, `mobile/` | Penting |
+| 11 | F9 | Skrip ekspor data pseudonim | `backend/scripts/` | Penting |
+| 12 | F6 | Konsolidasi tes, pembaruan diagram, dan laporan akhir | seluruh repositori | Penting |
+| 13 | F10 | Telemetri keterlibatan tambahan | `backend/`, `mobile/` | Opsional |
 
 ## 5. Format `thesis_assets/PROGRESS_PERBAIKAN.md`
 
@@ -76,6 +78,8 @@ Cabang kerja: thesis/perbaikan-pilot
 | F5 | Pemicu konfirmasi pasca-keputusan | BELUM | - | - | - | - |
 | F7 | Metrik pelatihan nyata | BELUM | - | - | - | - |
 | F8 | Pembersihan chatbot dan NestJS | BELUM | - | - | - | - |
+| F11 | Audit dan kendali LLM | BELUM | - | - | - | - |
+| F12 | Audit model tambahan dan foto struk | BELUM | - | - | - | - |
 | F9 | Ekspor data pseudonim | BELUM | - | - | - | - |
 | F6 | Konsolidasi tes | BELUM | - | - | - | - |
 | F10 | Telemetri tambahan | BELUM | - | - | - | - |
@@ -162,7 +166,7 @@ Cabang kerja: thesis/perbaikan-pilot
 
 1. Buat migrasi SQL untuk `consent_records` (usulan kolom: `id`, `user_id`, `consent_version`, `purpose`, `given` boolean, `given_at`, `withdrawn_at`, `created_at`) dengan RLS pemilik data. Jangan dieksekusi.
 2. Tambahkan endpoint backend untuk mencatat persetujuan, mencabutnya, dan membaca status terbaru, dengan autentikasi pengguna.
-3. Pada aplikasi mobile: tampilkan layar persetujuan pada akhir orientasi (*onboarding*) dengan teks yang jelas (tujuan penelitian, jenis data, hak menarik diri, kontak peneliti sebagai teks pengganti yang mudah diedit di satu file). Sediakan juga sakelar pencabutan di `profile_screen.dart`. Jangan mengarang isi hukum: gunakan teks pengganti bertanda `[ISI SESUAI LEMBAR INFORMASI PENELITIAN]`.
+3. Pada aplikasi mobile: tampilkan layar persetujuan pada akhir orientasi (*onboarding*) dengan teks yang jelas (tujuan penelitian, jenis data, hak menarik diri, kontak peneliti sebagai teks pengganti yang mudah diedit di satu file). Sediakan juga sakelar pencabutan di `profile_screen.dart`. Jangan mengarang isi hukum: gunakan teks pengganti bertanda `[ISI SESUAI LEMBAR INFORMASI PENELITIAN]`. Kerangka teks pengganti WAJIB memuat butir bertanda `[PEMROSESAN PIHAK KETIGA]` yang menyatakan bahwa teks hasil pemindaian struk (dan data ringkas untuk wawasan atau edukasi, bila fitur LLM aktif) diproses oleh layanan AI pihak ketiga (Google Gemini), supaya pengguna dapat memahaminya sebelum menyetujui.
 4. Data transaksi dan evaluasi pengguna yang belum memberi persetujuan tidak boleh ikut dalam ekspor penelitian (diterapkan pada F9). Catat kebutuhan ini sebagai tugas lanjutan jika F9 belum dikerjakan.
 5. Tes: catat, cabut, dan baca status persetujuan; pastikan satu pengguna tidak bisa membaca persetujuan pengguna lain.
 6. Laporan `thesis_assets/F3_persetujuan.md`: skema, endpoint, layar yang ditambahkan, dan teks pengganti yang perlu diisi pengguna.
@@ -214,6 +218,36 @@ Cabang kerja: thesis/perbaikan-pilot
 
 ---
 
+## TUGAS F11: Audit dan kendali penggunaan LLM (Gemini)
+
+**Tujuan:** penggunaan LLM terdokumentasi, datanya minimal, dan dapat dimatikan per fitur sehingga tidak mencemari evaluasi dan privasi.
+
+1. Petakan semua pemanggilan LLM di backend dan klien (OCR `ocr.py`, `dashboard_insight.py`, `education.py`, dan chatbot bila belum dihapus pada F8): file, fungsi, model yang dipakai, templat prompt, **data persis yang dikirim** (nama field), data yang diterima dan bagaimana diproses. Tandai apakah payload memuat identitas (nama, surel, telepon, `user_id` yang dapat dipetakan) atau transaksi mentah.
+2. Jika payload memuat identitas, kurangi menjadi seminimal mungkin (misalnya hanya teks struk, atau agregat tanpa identitas). Jangan mengubah perilaku fitur selain itu.
+3. Tambahkan sakelar konfigurasi: `LLM_ENABLED` (induk) serta `LLM_OCR_ENABLED`, `LLM_INSIGHT_ENABLED`, dan `LLM_EDUCATION_ENABLED`. Bawaan: perilaku saat ini tetap aktif. Saat nonaktif: OCR memakai penguraian aturan (*regex*) yang sudah ada, wawasan dan edukasi menampilkan konten statis atau pesan "tidak tersedia", tanpa galat. Dokumentasikan di `.env.example`.
+4. Keluaran LLM pada wawasan dan edukasi: periksa `safety_filter.py` atau padanannya. Pastikan ada pembatas agar keluaran tidak memuat rekomendasi investasi, kredit, atau pajak (batasan penelitian), dan tambahkan label sederhana di antarmuka bahwa konten dihasilkan AI. Laporkan jika pembatas belum ada, dan tambahkan pembatas minimal berbasis kata kunci atau instruksi sistem.
+5. Pastikan prompt dan respons yang memuat data pribadi tidak ditulis ke log aplikasi.
+6. Tes: (a) dengan sakelar mati, setiap fitur memakai *fallback* tanpa galat; (b) payload yang dikirim ke LLM tidak memuat field identitas (uji dengan LLM tiruan).
+7. Laporan `thesis_assets/F11_llm.md`: tabel pemanggilan (fitur, model, data dikirim, ada identitas atau tidak, sakelar, *fallback*), keterbatasan, dan rekomendasi teks untuk lembar informasi dan persetujuan penelitian.
+
+**Larangan:** jangan menghapus fitur wawasan, edukasi, atau OCR, hanya menambah kendali. Jangan mengirim data uji nyata ke layanan LLM selama pengujian; gunakan tiruan.
+
+---
+
+## TUGAS F12: Audit model tambahan (profil risiko, persona) dan penanganan foto struk
+
+**Tujuan:** memastikan model di luar rancangan penelitian tidak mencemari hasil *field pilot*, dan membuktikan bagaimana foto struk ditangani.
+
+1. Petakan model di luar tiga pendekatan penelitian (baseline aturan, Logistic Regression, Random Forest atau GBM): model profil risiko saat *onboarding* (`risk_profile_v1.keras`, `services/risk_predictor.py`), klaster persona belanja (`services/persona_predictor.py`, `cluster_model.pkl`), dan semua pemakainya (endpoint, layar mobile atau web, tabel).
+2. Tentukan, dengan bukti path:baris, apakah keluaran model-model itu memengaruhi: (a) anggaran atau alokasi yang ditetapkan atau ditampilkan, (b) skor risiko, ambang, atau peringatan pra-pembelian, (c) rekomendasi lain kepada pengguna. Jika ya, tandai sebagai potensi perancu hasil *pilot*.
+3. Tambahkan sakelar `ONBOARDING_MODELS_ENABLED` (bawaan: aktif). Saat nonaktif, alur *onboarding* memakai nilai bawaan atau aturan sederhana tanpa galat. Tambahkan tes untuk kedua mode. Jangan menghapus atau melatih ulang model.
+4. Verifikasi penanganan foto struk dengan bukti: apakah foto pernah diunggah ke backend, Supabase Storage, atau layanan lain; di mana berkas sementara dibuat dan kapan dihapus; apa yang tersimpan pada `receipt_scans` (jika ada). Jika ditemukan unggahan atau penyimpanan foto yang tidak terduga, laporkan dulu dan jangan mengubah perilaku.
+5. Laporan `thesis_assets/F12_model_tambahan_dan_struk.md`: tabel model (nama, fungsi, pemakai, memengaruhi anggaran atau peringatan atau tidak), sakelar, dan temuan penanganan foto struk.
+
+**Larangan:** jangan melatih ulang, mengubah, atau menghapus model apa pun.
+
+---
+
 ## TUGAS F9: Skrip ekspor data pseudonim
 
 **Tujuan:** data penelitian dapat diekspor tanpa identitas.
@@ -230,7 +264,8 @@ Cabang kerja: thesis/perbaikan-pilot
 1. Inventarisasi seluruh tes (backend, mobile, frontend) dengan kerangka dan cara menjalankannya. Jalankan semuanya dan laporkan lulus atau gagal.
 2. Jika tes backend belum terkumpul di satu folder, kumpulkan di `backend/tests/` dengan struktur jelas (unit: fitur, fallback, skor kesehatan; integrasi: alur check, decide, feedback; keamanan: guard admin).
 3. Ukur ulang waktu respons endpoint `POST /api/v1/pre-purchase/check` (minimal 30 panggilan) pada kondisi **setelah F1 dan F2** (data nyata dan penyimpanan basis data bila tersedia), dan catat kondisi pengukuran.
-4. Tulis `thesis_assets/F6_laporan_akhir.md`: ringkasan semua tugas, daftar commit, hasil tes, hasil pengukuran, dan daftar hal yang masih berbeda dari naskah.
+4. Perbarui sumber diagram agar mencerminkan kondisi akhir cabang `thesis/perbaikan-pilot`: `erd_lengkap.mmd`, `erd_ringkas.mmd`, `modul_dependency.mmd`, `arsitektur.mmd`, `sequence_pra_pembelian.mmd`, `status_transaksi.mmd`, dan `split_data.mmd` bila berubah. Simpan sebagai berkas baru berakhiran `_final` (misalnya `erd_ringkas_final.mmd`) tanpa menimpa yang lama.
+5. Tulis `thesis_assets/F6_laporan_akhir.md`: ringkasan semua tugas, daftar commit (`git log --oneline` cabang), ringkasan perubahan (`git diff --stat` terhadap cabang asal), hasil tes, hasil pengukuran, dan daftar hal yang masih berbeda dari naskah.
 
 ---
 

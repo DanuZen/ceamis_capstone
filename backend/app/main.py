@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from app.api import (
     recommendation, dashboard_insight
 )
-from app.api import pre_purchase, admin, ocr, consent
+from app.api import pre_purchase, admin, ocr, consent, education
 
 # Lazy import health_score (butuh TF — skip jika tidak tersedia)
 health_score = None
@@ -105,6 +105,7 @@ if health_score:
 app.include_router(dashboard_insight.router, prefix="/api/v1", tags=["LLM-Powered XAI Insights 🌟"])
 app.include_router(recommendation.router,  prefix="/api/v1", tags=["Recommendation"])
 app.include_router(ocr.router, prefix="/api/v1", tags=["OCR Receipt Parsing"])
+app.include_router(education.router, prefix="/api/v1", tags=["Adaptive Education"])
 
 
 # ── Health Score Fallback (jika TF tidak tersedia) ──────────────────────────
