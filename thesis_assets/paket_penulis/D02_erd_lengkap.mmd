@@ -1,0 +1,191 @@
+%% sumber: backend/db/migrations/000_initial_schema.sql, 000_model3_onboarding.sql, 001_pre_purchase_and_governance.sql, 002_consent_records.sql, 003_telemetry_decision_latency.sql, frontend/prisma/schema.prisma
+erDiagram
+    auth_users ||--o| user_profiles : "id"
+    auth_users ||--o{ transactions : "user_id"
+    auth_users ||--o{ warnings : "user_id"
+    auth_users ||--o{ debt_records : "user_id"
+    auth_users ||--o{ pre_purchase_checks : "user_id"
+    auth_users ||--o{ consent_records : "user_id"
+    auth_users ||--o{ audit_logs : "actor_id"
+    auth_users ||--o{ model_versions : "deployed_by"
+    
+    user_profiles ||--o{ planning : "user_id"
+    user_profiles ||--o| onboarding_data : "user_id"
+    
+    pre_purchase_checks ||--|| risk_predictions : "check_id"
+    pre_purchase_checks ||--o| post_decision_feedbacks : "check_id"
+    
+    model_versions ||--o{ risk_predictions : "model_version_id"
+
+    auth_users {
+        uuid id PK
+        string email UK
+        jsonb raw_app_meta_data
+        jsonb raw_user_meta_data
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    user_profiles {
+        uuid id PK,FK
+        string name
+        string email
+        string phone
+        string avatar_url
+        int level
+        int xp
+        int streak
+        timestamptz last_active
+        string label
+        text_array unlocked_badges
+        numeric health_score
+        boolean warning_triggered
+        string risk_profile
+        boolean onboarding_completed
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    transactions {
+        uuid id PK
+        uuid user_id FK
+        string description
+        numeric amount
+        string type
+        string category
+        string tag
+        timestamptz created_at
+    }
+
+    onboarding_data {
+        uuid id PK
+        uuid user_id FK,UK
+        string name
+        int age
+        numeric income
+        string income_source
+        text_array top_expenses
+        numeric monthly_expense
+        text_array goals
+        string risk_profile
+        int savings_ratio
+        int tanggungan_keluarga
+        int city_tier_enc
+        int toleransi_rugi_enc
+        int save_habit
+        boolean punya_tabungan
+        numeric jumlah_tabungan_bulan
+        timestamptz completed_at
+    }
+
+    planning {
+        uuid id PK
+        uuid user_id FK
+        string title
+        string category
+        numeric target_amount
+        numeric current_amount
+        date deadline
+        string status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    warnings {
+        uuid id PK
+        uuid user_id FK
+        string type
+        string message
+        string tip
+        string severity
+        boolean is_resolved
+        timestamptz resolved_at
+        timestamptz created_at
+    }
+
+    debt_records {
+        uuid id PK
+        uuid user_id FK
+        string type
+        string person_name
+        numeric amount
+        string description
+        date due_date
+        boolean is_paid
+        timestamptz paid_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    pre_purchase_checks {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id
+        numeric planned_amount
+        string merchant_name
+        string notes
+        string user_decision
+        int decision_latency_ms
+        timestamptz decided_at
+        timestamptz created_at
+    }
+
+    risk_predictions {
+        uuid id PK
+        uuid check_id FK,UK
+        uuid model_version_id FK
+        numeric risk_score
+        string risk_level
+        jsonb features_snapshot
+        jsonb trigger_factors
+        numeric budget_remaining_before
+        numeric budget_remaining_after
+        int savings_delayed_days
+        timestamptz created_at
+    }
+
+    post_decision_feedbacks {
+        uuid id PK
+        uuid check_id FK,UK
+        boolean was_impulsive
+        int satisfaction_rating
+        string feedback_notes
+        timestamptz submitted_at
+    }
+
+    consent_records {
+        uuid id PK
+        uuid user_id FK
+        string consent_version
+        string purpose
+        boolean given
+        timestamptz given_at
+        timestamptz withdrawn_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    model_versions {
+        uuid id PK
+        string version_tag UK
+        string algorithm
+        numeric precision_score
+        numeric recall_score
+        numeric f1_score
+        numeric roc_auc_score
+        string artifact_path
+        boolean is_active
+        timestamptz deployed_at
+        uuid deployed_by FK
+    }
+
+    audit_logs {
+        uuid id PK
+        uuid actor_id FK
+        string action
+        string entity_type
+        string entity_id
+        jsonb details
+        string ip_address
+        timestamptz created_at
+    }

@@ -1,0 +1,111 @@
+%% sumber: backend/db/migrations/000_initial_schema.sql, 001_pre_purchase_and_governance.sql, 002_consent_records.sql, 003_telemetry_decision_latency.sql
+erDiagram
+    auth_users ||--o| user_profiles : "id"
+    auth_users ||--o{ transactions : "user_id"
+    auth_users ||--o{ pre_purchase_checks : "user_id"
+    auth_users ||--o{ consent_records : "user_id"
+    auth_users ||--o{ audit_logs : "actor_id"
+    
+    user_profiles ||--o{ planning : "user_id"
+    user_profiles ||--o| onboarding_data : "user_id"
+    
+    pre_purchase_checks ||--|| risk_predictions : "check_id"
+    pre_purchase_checks ||--o| post_decision_feedbacks : "check_id"
+    
+    model_versions ||--o{ risk_predictions : "model_version_id"
+
+    auth_users {
+        uuid id PK
+        string email UK
+        jsonb raw_app_meta_data
+        jsonb raw_user_meta_data
+        timestamptz created_at
+    }
+
+    user_profiles {
+        uuid id PK,FK
+        string name
+        int level
+        int streak
+        numeric health_score
+        string risk_profile
+    }
+
+    transactions {
+        uuid id PK
+        uuid user_id FK
+        numeric amount
+        string type
+        string category
+        timestamptz created_at
+    }
+
+    planning {
+        uuid id PK
+        uuid user_id FK
+        string title
+        numeric target_amount
+        numeric current_amount
+        string status
+    }
+
+    onboarding_data {
+        uuid id PK
+        uuid user_id FK,UK
+        numeric income
+        numeric monthly_expense
+        string risk_profile
+        int savings_ratio
+    }
+
+    pre_purchase_checks {
+        uuid id PK
+        uuid user_id FK
+        numeric planned_amount
+        string user_decision
+        int decision_latency_ms
+        timestamptz created_at
+    }
+
+    risk_predictions {
+        uuid id PK
+        uuid check_id FK,UK
+        uuid model_version_id FK
+        numeric risk_score
+        string risk_level
+        int savings_delayed_days
+    }
+
+    post_decision_feedbacks {
+        uuid id PK
+        uuid check_id FK,UK
+        boolean was_impulsive
+        int satisfaction_rating
+        timestamptz submitted_at
+    }
+
+    consent_records {
+        uuid id PK
+        uuid user_id FK
+        string consent_version
+        boolean given
+        timestamptz given_at
+        timestamptz withdrawn_at
+    }
+
+    model_versions {
+        uuid id PK
+        string version_tag UK
+        string algorithm
+        numeric f1_score
+        numeric pr_auc_score
+        boolean is_active
+    }
+
+    audit_logs {
+        uuid id PK
+        uuid actor_id FK
+        string action
+        string entity_type
+        timestamptz created_at
+    }

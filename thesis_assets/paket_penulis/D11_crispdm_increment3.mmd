@@ -1,0 +1,37 @@
+%% sumber: backend/training/train_risk_model.py, docs/
+flowchart TD
+    subgraph Phase1 ["1. Business Understanding (Pemahaman Bisnis)"]
+        F1_Goal["<b>Tujuan Riset:</b><br>Mengendalikan pengeluaran tidak terencana Gen Z melalui intervensi pra-pembelian terstruktur."]
+        F1_Artifact["<b>Artefak:</b><br>• Rumusan Masalah Tesis<br>• 13 Kebutuhan Fungsional Final (FR)<br>• Protokol Informed Consent Etik"]
+    end
+
+    subgraph Phase2 ["2. Data Understanding (Pemahaman Data)"]
+        F2_Goal["<b>Analisis Karakteristik Data:</b><br>Simulasi profil transaksi Gen Z (30 pengguna, 4 bulan rentang waktu)."]
+        F2_Artifact["<b>Artefak:</b><br>• generate_synthetic_data() di train_risk_model.py<br>• training_data.csv (1.537 baris transaksi)<br>• Analisis Sebaran Kelas: 58.2% Safe, 41.8% Risky"]
+    end
+
+    subgraph Phase3 ["3. Data Preparation (Persiapan Data)"]
+        F3_Goal["<b>Rekayasa Fitur & Pembagian Temporal:</b><br>Menghitung 7 rasio kontekstual tanpa kebocoran masa depan."]
+        F3_Artifact["<b>Artefak:</b><br>• temporal_split() (Bulan 1-3 Latih, Bulan 4 Uji)<br>• StandardScaler() di-fit hanya pada train set<br>• Matriks Fitur (1.170 train vs 367 test)"]
+    end
+
+    subgraph Phase4 ["4. Modeling (Pemodelan)"]
+        F4_Goal["<b>Pelatihan Model Klasifikasi Risiko:</b><br>Pembobotan kelas seimbang dan penentuan baseline."]
+        F4_Artifact["<b>Artefak:</b><br>• RuleBasedBaseline (Weighted Additive Scoring)<br>• LogisticRegression (v1.0.0-logreg, C=1.0)<br>• RandomForestClassifier (v1.1.0-rf, 100 trees, depth 10)"]
+    end
+
+    subgraph Phase5 ["5. Evaluation (Evaluasi)"]
+        F5_Goal["<b>Uji Komparasi Temporal Holdout:</b><br>Evaluasi 8 metrik komprehensif pada data uji Bulan 4."]
+        F5_Artifact["<b>Artefak:</b><br>• Hasil Evaluasi: RF F1 0.9290 s.d. 0.9355, PR-AUC 0.9752 s.d. 0.9759<br>• Brier Score Kalibrasi: 0.0515<br>• F7_keluaran_pelatihan.txt & 07b_keluaran_pelatihan_ulang.txt"]
+    end
+
+    subgraph Phase6 ["6. Deployment (Penerapan)"]
+        F6_Goal["<b>Integrasi Operasional & Tata Kelola:</b><br>Ekspor model aktif dan penyediaan API intervensi."]
+        F6_Artifact["<b>Artefak:</b><br>• risk_model.joblib & risk_scaler.joblib<br>• model_metadata.json & model_registry.json<br>• Router FastAPI /pre-purchase/check & Panel Admin Web"]
+    end
+
+    Phase1 --> Phase2
+    Phase2 --> Phase3
+    Phase3 --> Phase4
+    Phase4 --> Phase5
+    Phase5 --> Phase6

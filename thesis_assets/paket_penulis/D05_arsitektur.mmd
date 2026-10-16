@@ -1,0 +1,30 @@
+%% sumber: backend/app/main.py, frontend/src/app/, mobile/lib/
+flowchart TB
+    subgraph Clients ["Lapisan Klien Antarmuka"]
+        MobileApp["Aplikasi Bergerak Flutter<br><i>(mobile/lib/)</i><br>• Dialog Informed Consent<br>• Google ML Kit OCR Lokal<br>• Form Pra-Pembelian & Hasil XAI<br>• Banner Pengingat In-App 24-72 Jam"]
+        WebAdmin["Web Frontend Next.js 14<br><i>(frontend/src/)</i><br>• Dasbor Admin & Ringkasan<br>• Panel Evaluasi Model & Rollback<br>• Tinjauan Log Audit Intervensi<br>• Dasbor Pengguna Demo"]
+    end
+
+    subgraph BackendGateway ["Lapisan Layanan Backend Terpadu"]
+        FastAPIServer["FastAPI Monolit Modular<br><i>(backend/app/)</i><br>• Auth Dependency (HS256 JWT Verify)<br>• Router Pra-Pembelian (/check, /decide, /feedback)<br>• Router Tata Kelola Admin (/models, /rollback, /audit-logs)<br>• Router Smart OCR (/ocr/parse-receipt)<br>• Router Informed Consent (/consent)<br>• PrePurchaseRisk Engine (Random Forest / Baseline)"]
+    end
+
+    subgraph StorageCloud ["Basis Data & Layanan Terkelola (Supabase Cloud)"]
+        SupabaseAuth["Supabase GoTrue Auth<br>• Pengelolaan Pengguna (auth.users)<br>• Penerbitan Token JWT (role/metadata)"]
+        PostgresDB["PostgreSQL Database dengan RLS<br>• user_profiles, transactions, planning<br>• pre_purchase_checks, risk_predictions<br>• post_decision_feedbacks, consent_records<br>• model_versions, audit_logs"]
+    end
+
+    subgraph ExternalAI ["Layanan Kecerdasan Buatan Pihak Ketiga"]
+        GeminiAPI["Google Gemini 2.0 Flash API<br>• Parsing Teks Mentah Struk Belanja<br>• Sintesis Wawasan Edukasi Finansial<br><i>(Zero Image Egress — Hanya Menerima Teks)</i>"]
+    end
+
+    MobileApp -- "REST API (HTTP/JSON via Dio)<br>Bearer Token" --> FastAPIServer
+    MobileApp -- "Autentikasi Pengguna & Sesi" --> SupabaseAuth
+    
+    WebAdmin -- "REST API (/api/v1/admin/*)<br>Admin JWT Token" --> FastAPIServer
+    WebAdmin -- "Autentikasi Pengguna & Sesi" --> SupabaseAuth
+    WebAdmin -. "Kueri Langsung Server-Side<br>(Prisma ORM — Dashboard Demo)" .-> PostgresDB
+
+    FastAPIServer -- "Verifikasi Signature Token JWT<br>(SUPABASE_JWT_SECRET)" --> SupabaseAuth
+    FastAPIServer -- "Persistensi Data Transaksi, Evaluasi,<br>Log Audit & RLS (Mode 'db')" --> PostgresDB
+    FastAPIServer -- "Ekstraksi Teks Struk & Edukasi<br>(Hanya Teks Mentah)" --> GeminiAPI

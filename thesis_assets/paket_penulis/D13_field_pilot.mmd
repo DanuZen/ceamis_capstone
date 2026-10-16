@@ -1,0 +1,45 @@
+%% sumber: mobile/lib/features/onboarding/, backend/scripts/export_pilot_data.py, docs/AGENT_PAKET_PENULIS.md
+flowchart TD
+    subgraph PrePilotOffSystem ["1. Tahap Pra-Pilot (Di Luar Sistem)"]
+        A1["Persetujuan Komite Etik Penelitian"]
+        A2["Sosialisasi & Rekrutmen Partisipan Target Gen Z"]
+        A3["Pembagian Petunjuk Teknis & Instalasi Aplikasi (APK)"]
+    end
+
+    subgraph OnboardingInSystem ["2. Inisialisasi Partisipan (Didukung Sistem CEAMIS)"]
+        B1["Registrasi Akun Baru via Supabase Auth"]
+        B2["<b>Lembar Informasi Penelitian & Informed Consent:</b><br>• Teks Persetujuan Resmi (consent_text.dart)<br>• Rekam Persetujuan ke consent_records (given=TRUE)"]
+        B3["Orientasi Onboarding 5-Langkah:<br>Profil Risiko, Pendapatan, Pengeluaran & Target Tabungan"]
+    end
+
+    subgraph OperationalInSystem ["3. Pelaksanaan Intervensi Lapangan (Didukung Sistem CEAMIS)"]
+        C1["Penggunaan Aplikasi Sehari-hari:<br>Input Transaksi Manual / Smart OCR Pemindaian Struk"]
+        C2["<b>Pemeriksaan Risiko Pra-Pembelian:</b><br>Evaluasi 7 Fitur Kontekstual & Rekomendasi Tindakan"]
+        C3["Pemilihan Respons (Lanjut/Sesuaikan/Tunda) &<br>Perekaman Telemetri Jeda Waktu (decision_latency_ms)"]
+        C4["<b>Evaluasi Pasca-Keputusan:</b><br>Banner Pengingat In-App Beranda Aktif dalam Jendela 24-72 Jam"]
+        C5["Perekaman Label Ground Truth (was_impulsive) & Jejak Log Audit"]
+        C6{"Hak Partisipan"}
+        C7["Penarikan Persetujuan (Consent Withdrawal)<br>via Menu Profil (withdrawn_at Terisi)"]
+    end
+
+    subgraph DataExportInSystem ["4. Ekstraksi Data Penelitian (Didukung Sistem CEAMIS)"]
+        D1["Eksekusi Skrip: <code>python -m scripts.export_pilot_data</code>"]
+        D2["<b>Penyaringan Otomatis Partisipan Berizin Aktif:</b><br>Partisipan yang Menarik Persetujuan Dikecualikan"]
+        D3["<b>Pseudonimisasi Kuat HMAC-SHA256:</b><br>UUID Di-hash dengan RESEARCH_PSEUDONYMIZATION_SALT"]
+        D4["Penerbitan 4 Berkas CSV Ekspor Riset Terisolasi & Manifes"]
+    end
+
+    subgraph PostPilotOffSystem ["5. Evaluasi Akhir Riset (Di Luar Sistem)"]
+        E1["Pengisian Kuesioner System Usability Scale (SUS)"]
+        E2["Wawancara Kualitatif Evaluasi Efektivitas Intervensi"]
+        E3["Analisis Statistik Data CSV & Penulisan Naskah Tesis"]
+    end
+
+    PrePilotOffSystem --> OnboardingInSystem
+    OnboardingInSystem --> OperationalInSystem
+    C3 --> C4
+    C4 --> C5
+    C6 -- "Sukarela" --> C7
+    C7 -. "Status Tidak Aktif" .-> D2
+    OperationalInSystem --> DataExportInSystem
+    DataExportInSystem --> PostPilotOffSystem

@@ -1,0 +1,38 @@
+%% sumber: backend/training/train_risk_model.py
+flowchart TD
+    RawData["<b>Dataset Transaksi Sintetis</b><br>1.537 Transaksi | 30 Profil Pengguna<br>Rentang Waktu: 4 Bulan (Bulan 1 s.d. 4)<br>Sebaran Kelas: 894 Safe (58.2%), 643 Risky (41.8%)"]
+
+    RawData --> SplitFunc["<b>temporal_split(df, train_months=3)</b><br>Pembagian Berbasis Waktu Tanpa Pengacakan (shuffle=False)"]
+
+    SplitFunc --> TrainPartition["<b>Data Latih (Train Set) — Bulan 1 s.d. 3</b><br>• Total Sampel: 1.170 Transaksi (76.1%)<br>• Tingkat Risiko: 41.8%<br>• Cakupan: Seluruh 30 Pengguna Tiruan"]
+    SplitFunc --> TestPartition["<b>Data Uji (Holdout Test Set) — Bulan ke-4</b><br>• Total Sampel: 367 Transaksi (23.9%)<br>• Tingkat Risiko: 42.0% (213 Safe, 154 Risky)<br>• Cakupan: Seluruh 30 Pengguna Tiruan"]
+
+    subgraph PreprocessingPipeline ["Pipeline Praproses & Normalisasi (StandardScaler)"]
+        ScalerFit["<b>scaler = StandardScaler()</b><br>Hanya di-fit pada Data Latih: <code>scaler.fit_transform(X_train)</code><br><i>(Mencegah Kebocoran Informasi Distribusi / Data Leakage)</i>"]
+        ScalerTransform["Transformasi Data Uji:<br><code>scaler.transform(X_test)</code><br><i>(Menggunakan Mean & Std dari Train Set)</i>"]
+    end
+
+    TrainPartition --> ScalerFit
+    TestPartition --> ScalerTransform
+
+    subgraph ModelTraining ["Pelatihan Model dengan Bobot Seimbang"]
+        ClassWeightNote["<b>Penanganan Ketidakseimbangan Kelas:</b><br><code>class_weight='balanced'</code><br><i>(Tanpa SMOTE / Resampling Sintetis)</i>"]
+        
+        TrainLR["<b>LogisticRegression</b><br>max_iter=1000, C=1.0, random_state=42"]
+        TrainRF["<b>RandomForestClassifier</b><br>n_estimators=100, max_depth=10, random_state=42"]
+        TrainBaseline["<b>RuleBasedBaseline</b><br>Weighted Additive Scoring pada Fitur Asli (Unscaled)"]
+    end
+
+    ScalerFit --> ClassWeightNote
+    ClassWeightNote --> TrainLR
+    ClassWeightNote --> TrainRF
+    TrainPartition -.-> TrainBaseline
+
+    subgraph TemporalEvaluation ["Evaluasi Performa pada Test Set Temporal yang Sama"]
+        EvalOut["<b>Evaluasi 8 Metrik Independen:</b><br>Precision, Recall, F1, ROC-AUC, PR-AUC, Bal-Acc, False-Alert, Brier Score"]
+    end
+
+    ScalerTransform --> EvalOut
+    TrainLR --> EvalOut
+    TrainRF --> EvalOut
+    TrainBaseline --> EvalOut

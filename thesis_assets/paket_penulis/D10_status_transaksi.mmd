@@ -1,0 +1,49 @@
+%% sumber: backend/app/schemas/pre_purchase_schema.py, mobile/lib/features/pre_purchase/
+stateDiagram-v2
+    [*] --> DRAFT_RENCANA : Pengguna Membuka Form Pemeriksaan
+    
+    DRAFT_RENCANA --> DIPERIKSA : POST /api/v1/pre-purchase/check
+    
+    state DIPERIKSA {
+        [*] --> EKSTRAKSI_FITUR
+        EKSTRAKSI_FITUR --> EVALUASI_MODEL : 7 Fitur Kontekstual
+        EVALUASI_MODEL --> PERHITUNGAN_DAMPAK : Skor Risiko Dihitung
+        PERHITUNGAN_DAMPAK --> [*] : Hasil Siap Disajikan
+    }
+
+    DIPERIKSA --> PENDING_KEPUTUSAN : Lembar Intervensi Ditampilkan ke Layar
+    
+    PENDING_KEPUTUSAN --> DIPUTUSKAN_PROCEED : Respon: PROCEED (Lanjut)
+    PENDING_KEPUTUSAN --> DIPUTUSKAN_ADJUST : Respon: ADJUST (Sesuaikan Nominal)
+    PENDING_KEPUTUSAN --> DIPUTUSKAN_POSTPONE : Respon: POSTPONE (Tunda Belanja)
+
+    DIPUTUSKAN_POSTPONE --> [*] : Siklus Ditutup (Belanja Dibatalkan)
+
+    state "PROSES TRANSAKSI & JELANG JENDELA REFLEKSI" as FaseJeda {
+        DIPUTUSKAN_PROCEED --> MENUNGGU_JENDELA_REFLEKSI : Catat decision_latency_ms
+        DIPUTUSKAN_ADJUST --> MENUNGGU_JENDELA_REFLEKSI : Catat nominal penyesuaian
+        
+        MENUNGGU_JENDELA_REFLEKSI --> SIAP_DIKONFIRMASI : Waktu Pasca-Keputusan >= 24 Jam
+        MENUNGGU_JENDELA_REFLEKSI --> MENUNGGU_JENDELA_REFLEKSI : Waktu Pasca-Keputusan < 24 Jam
+    }
+
+    state SIAP_DIKONFIRMASI {
+        [*] --> BANNER_AKTIF : Banner In-App Muncul di Beranda
+        BANNER_AKTIF --> FORM_REFLEKSI_DIBUKA : Pengguna Memilih Banner
+        BANNER_AKTIF --> BANNER_DIABAIKAN : Pengguna Dismiss Banner
+        BANNER_DIABAIKAN --> BANNER_AKTIF : Ditampilkan Kembali pada Sesi Baru
+    }
+
+    SIAP_DIKONFIRMASI --> DIKONFIRMASI : POST /api/v1/pre-purchase/feedback
+    SIAP_DIKONFIRMASI --> KEDALUWARSA : Waktu Pasca-Keputusan > 72 Jam
+
+    state DIKONFIRMASI {
+        [*] --> GROUND_TRUTH_TEREKAM : Label was_impulsive & Rating Tersimpan
+    }
+
+    state KEDALUWARSA {
+        [*] --> DITUTUP_TANPA_LABEL : Melewati Batas Waktu 72 Jam
+    }
+
+    DIKONFIRMASI --> [*]
+    KEDALUWARSA --> [*]

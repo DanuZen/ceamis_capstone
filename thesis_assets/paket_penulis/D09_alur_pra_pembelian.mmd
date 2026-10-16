@@ -1,0 +1,50 @@
+%% sumber: backend/app/api/pre_purchase.py, mobile/lib/features/pre_purchase/
+flowchart TD
+    Start(["Mulai: Pengguna Membuka Aplikasi"]) --> InputForm["Input Rencana Belanja<br>(Nominal, Kategori, Catatan)"]
+    InputForm --> CheckAPI["Panggil POST /api/v1/pre-purchase/check"]
+    CheckAPI --> FeatureExtraction["Ekstraksi 7 Fitur Kontekstual & Evaluasi ML"]
+    FeatureExtraction --> RiskBranch{"Evaluasi Tingkat Risiko"}
+
+    RiskBranch -- "Skor < 0.35" --> LowRisk["Risiko RENDAH (Hijau)<br>Dampak Anggaran Aman"]
+    RiskBranch -- "0.35 <= Skor < 0.65" --> MedRisk["Risiko SEDANG (Kuning)<br>Peringatan Pagu Menipis"]
+    RiskBranch -- "Skor >= 0.65" --> HighRisk["Risiko TINGGI (Merah)<br>Peringatan Deviasi / Tabungan Tertunda"]
+
+    LowRisk --> PresentModal["Tampilkan Lembar Modal Intervensi & XAI"]
+    MedRisk --> PresentModal
+    HighRisk --> PresentModal
+
+    PresentModal --> DecisionBranch{"Pilihan Tindakan Pengguna"}
+
+    DecisionBranch -- "Lanjut Belanja" --> ActionProceed["Keputusan: PROCEED<br>Catat Nominal Penuh"]
+    DecisionBranch -- "Sesuaikan Nominal" --> ActionAdjust["Keputusan: ADJUST<br>Input Nominal Baru Lebih Rendah"]
+    DecisionBranch -- "Tunda Belanja" --> ActionPostpone["Keputusan: POSTPONE<br>Belanja Dibatalkan Sementara"]
+
+    ActionProceed --> RecordDecision["Panggil POST /api/v1/pre-purchase/decide<br>Catat user_decision & decision_latency_ms"]
+    ActionAdjust --> RecordDecision
+    ActionPostpone --> RecordDecision
+
+    RecordDecision --> DecisionStateCheck{"Apakah Transaksi Dilanjutkan?"}
+    
+    DecisionStateCheck -- "Tunda (POSTPONE)" --> EndPostpone(["Selesai: Tidak Memerlukan Konfirmasi"])
+    DecisionStateCheck -- "Lanjut / Sesuaikan" --> WaitWindow["Transaksi Dilakukan di Merchant<br>Layanan Lokal Memantau Waktu Transaksi"]
+
+    WaitWindow --> TimeElapsed{"Rentang Waktu Pasca-Keputusan"}
+
+    TimeElapsed -- "< 24 Jam" --> KeepSilent["Jeda Refleksi Awal:<br>Banner Pengingat Belum Aktif"]
+    KeepSilent --> WaitWindow
+
+    TimeElapsed -- "24 s.d. 72 Jam" --> TriggerBanner["<b>Jendela Evaluasi Aktif</b><br>Tampilkan Banner Pengingat di Beranda"]
+    
+    TimeElapsed -- "> 72 Jam" --> ExpiredStatus["Jendela Waktu Kedaluwarsa:<br>Banner Disembunyikan Otomatis"]
+    ExpiredStatus --> EndNoFeedback(["Selesai: Berakhir Tanpa Label Evaluasi"])
+
+    TriggerBanner --> UserActionBanner{"Respon Pengguna terhadap Banner"}
+
+    UserActionBanner -- "Abaikan (Dismiss)" --> HideTemporary["Sembunyikan Banner Sementara<br>Hingga Sesi Aplikasi Berikutnya"]
+    HideTemporary --> WaitWindow
+
+    UserActionBanner -- "Klik Banner" --> OpenFeedbackForm["Buka Layar Refleksi Pasca-Keputusan"]
+    OpenFeedbackForm --> SubmitFeedback["Pengguna Mengisi:<br>• Apakah Pembelian Impulsif?<br>• Tingkat Kepuasan (1-5)<br>• Catatan Refleksi"]
+    SubmitFeedback --> SendFeedbackAPI["Panggil POST /api/v1/pre-purchase/feedback"]
+    SendFeedbackAPI --> SaveDB["Simpan Ground Truth ke post_decision_feedbacks"]
+    SaveDB --> EndFeedback(["Selesai: Label Tersimpan untuk Evaluasi Model"])

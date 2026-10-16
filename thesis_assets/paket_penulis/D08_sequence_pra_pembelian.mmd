@@ -1,0 +1,54 @@
+%% sumber: backend/app/api/pre_purchase.py, mobile/lib/features/pre_purchase/
+sequenceDiagram
+    autonumber
+    actor User as Pengguna (Partisipan)
+    participant Mobile as Klien Mobile (Flutter)
+    participant API as FastAPI Router (pre_purchase.py)
+    participant Stats as UserStatsService
+    participant Risk as PrePurchaseRisk (RF Engine)
+    participant Repo as PrePurchaseRepository
+    participant DB as PostgreSQL (Supabase)
+
+    %% ── FASE 1: EVALUASI RISIKO (CHECK) ──
+    rect rgb(240, 248, 255)
+        note right of User: Fase 1: Pemeriksaan Risiko Pra-Pembelian
+        User->>Mobile: Input rencana belanja (nominal, kategori, catatan)
+        Mobile->>API: POST /api/v1/pre-purchase/check (PrePurchaseCheckRequest)
+        API->>Stats: get_user_context(user_id, category_id)
+        Stats-->>API: Konteks historis (median belanja, sisa anggaran)
+        API->>Risk: extract_features() -> 7 fitur rasio kontekstual
+        API->>Risk: predict(features)
+        Risk-->>API: risk_score, risk_level (LOW/MED/HIGH), faktor pemicu XAI
+        API->>Repo: save_check(check_id, user_id, prediction_data)
+        Repo->>DB: INSERT into pre_purchase_checks & risk_predictions
+        API-->>Mobile: Response (check_id, risk_score, recommended_actions, dampak)
+        Mobile-->>User: Tampilkan lembar modal intervensi risiko & tombol tindakan
+    end
+
+    %% ── FASE 2: PEREKAMAN KEPUTUSAN (DECIDE) ──
+    rect rgb(255, 250, 240)
+        note right of User: Fase 2: Perekaman Respons Keputusan Pengguna
+        User->>Mobile: Pilih tindakan (PROCEED / ADJUST / POSTPONE)
+        Mobile->>Mobile: Hitung jeda waktu refleksi (decision_latency_ms)
+        Mobile->>API: POST /api/v1/pre-purchase/decide (check_id, decision, latency)
+        API->>Repo: get_consent_status(user_id)
+        Repo->>DB: SELECT given, withdrawn_at FROM consent_records
+        DB-->>Repo: Status izin etik aktif
+        API->>Repo: record_decision(check_id, decision, latency)
+        Repo->>DB: UPDATE pre_purchase_checks (user_decision, decided_at, latency)
+        API-->>Mobile: Response (status: RECORDED, decided_at)
+        Mobile-->>User: Konfirmasi keputusan & jadwalkan pengingat lokal (24-72 jam)
+    end
+
+    %% ── FASE 3: REFLEKSI PASCA-KEPUTUSAN (FEEDBACK) ──
+    rect rgb(245, 255, 250)
+        note right of User: Fase 3: Evaluasi Ground Truth Pasca-Keputusan (1-3 Hari)
+        Mobile->>Mobile: Waktu mencapai jendela 24-72 jam pasca-transaksi
+        Mobile-->>User: Tampilkan banner pengingat refleksi di Beranda
+        User->>Mobile: Buka formulir refleksi (rating, was_impulsive, catatan)
+        Mobile->>API: POST /api/v1/pre-purchase/feedback (check_id, was_impulsive, rating)
+        API->>Repo: save_feedback(check_id, was_impulsive, satisfaction_rating)
+        Repo->>DB: INSERT into post_decision_feedbacks
+        API-->>Mobile: Response (status: RECORDED, feedback_id)
+        Mobile-->>User: Notifikasi terima kasih & sembunyikan banner pengingat
+    end

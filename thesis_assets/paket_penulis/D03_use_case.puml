@@ -1,0 +1,46 @@
+' sumber: thesis_assets/paket_penulis/05_status_fr_final.md
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Pengguna (Partisipan)" as User
+actor "Administrator (Peneliti)" as Admin
+
+rectangle "Sistem CEAMIS 2.0" {
+    package "Fitur Pengguna (User Features)" {
+        usecase "FR-U01: Registrasi, Profil & Persetujuan Penelitian (Consent)" as UC_U01
+        usecase "FR-U02: Pengaturan Anggaran (50/30/20) & Target Tabungan" as UC_U02
+        usecase "FR-U03: Pencatatan Transaksi (Manual & Smart OCR Struk)" as UC_U03
+        usecase "FR-U04: Pemeriksaan Risiko Pra-Pembelian & XAI" as UC_U04
+        usecase "FR-U05: Pemilihan Respons (Lanjut/Sesuaikan/Tunda) & Evaluasi Pasca-Keputusan" as UC_U05
+        usecase "FR-U07: Peninjauan Laporan & Analitik Pengeluaran" as UC_U07
+        usecase "FR-U08: Pemantauan Skor Kesehatan, Streak, Lencana & Edukasi Finansial" as UC_U08
+    }
+
+    package "Fitur Tata Kelola Admin (Admin Governance)" {
+        usecase "FR-A01: Melihat Ringkasan Akun Pengguna" as UC_A01
+        usecase "FR-A02: Mengelola Aturan Cold-Start & Ambang Batas Risiko" as UC_A02
+        usecase "FR-A03: Manajemen Versi Model & Rollback (Wajib Alasan)" as UC_A03
+        usecase "FR-A04: Memantau Ringkasan Operasional & Status Layanan" as UC_A04
+        usecase "FR-A05: Meninjau Panel Evaluasi & Komparasi Metrik Model" as UC_A05
+        usecase "FR-A06: Meninjau Rekam Jejak Log Audit Intervensi" as UC_A06
+    }
+}
+
+User --> UC_U01
+User --> UC_U02
+User --> UC_U03
+User --> UC_U04
+User --> UC_U05
+User --> UC_U07
+User --> UC_U08
+
+Admin --> UC_A01
+Admin --> UC_A02
+Admin --> UC_A03
+Admin --> UC_A04
+Admin --> UC_A05
+Admin --> UC_A06
+
+@enduml

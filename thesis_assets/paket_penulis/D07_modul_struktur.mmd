@@ -1,0 +1,53 @@
+%% sumber: backend/app/
+flowchart TD
+    subgraph PresentationLayer ["Lapisan Presentasi & Routing (app/api)"]
+        PrePurchaseAPI["pre_purchase.py<br>• /check, /decide, /feedback"]
+        AdminAPI["admin.py<br>• /models, /rollback, /audit-logs"]
+        ConsentAPI["consent.py<br>• /consent, /status, /withdraw"]
+        OcrAPI["ocr.py<br>• /parse-receipt"]
+        EducationAPI["education.py<br>• /modules, /quiz"]
+        HealthScoreAPI["health_score.py<br>• /health-score"]
+    end
+
+    subgraph SchemaLayer ["Lapisan Validasi Data (app/schemas)"]
+        PrePurchaseSchema["pre_purchase_schema.py<br>• PrePurchaseCheckRequest<br>• DecisionRecordRequest<br>• FeedbackRecordRequest<br>• ModelRollbackRequest"]
+        ConsentSchema["consent_schema.py<br>• ConsentRecordCreate<br>• ConsentWithdrawRequest"]
+        OcrSchema["ocr_schema.py<br>• ReceiptParseRequest"]
+    end
+
+    subgraph ServiceLayer ["Lapisan Logika Bisnis & Inferensi (app/services)"]
+        RiskService["pre_purchase_risk.py<br>• RiskPredictor (Random Forest / Baseline)<br>• 7-Feature Contextual Extractor<br>• XAI Trigger Factor Generator"]
+        RepoService["pre_purchase_repository.py<br>• PrePurchaseRepository (Memory / PostgreSQL)<br>• Model Registry Manager<br>• Audit Logger"]
+        StatsService["user_stats_service.py<br>• UserStatsService<br>• Point-in-time Context Aggregator"]
+        LLMService["insight_generator.py & llm_ocr.py<br>• Gemini LLM Client Wrappers"]
+    end
+
+    subgraph UtilLayer ["Lapisan Utilitas & Keamanan (app/utils)"]
+        AuthUtil["auth.py<br>• decode_supabase_jwt()<br>• verify_admin_role()<br>• get_current_user()"]
+        LLMClient["llm_client.py<br>• Google GenAI Client Factory"]
+    end
+
+    subgraph ModelLayer ["Lapisan Skema Entitas Database (app/models)"]
+        DBModels["pre_purchase.py & audit_log.py<br>• SQLAlchemy / Pydantic Entity Definitions"]
+    end
+
+    PrePurchaseAPI --> PrePurchaseSchema
+    PrePurchaseAPI --> RiskService
+    PrePurchaseAPI --> RepoService
+    PrePurchaseAPI --> StatsService
+
+    AdminAPI --> PrePurchaseSchema
+    AdminAPI --> RepoService
+    AdminAPI --> AuthUtil
+
+    ConsentAPI --> ConsentSchema
+    ConsentAPI --> RepoService
+    ConsentAPI --> AuthUtil
+
+    OcrAPI --> OcrSchema
+    OcrAPI --> LLMService
+
+    RiskService --> RepoService
+    RepoService --> DBModels
+    AuthUtil --> PrePurchaseSchema
+    LLMService --> LLMClient

@@ -1,0 +1,40 @@
+%% sumber: thesis_assets/paket_penulis/05_status_fr_final.md
+flowchart LR
+    subgraph Aktor ["Aktor Sistem"]
+        User["fa:fa-user Pengguna (Partisipan)"]
+        Admin["fa:fa-user-shield Administrator (Peneliti)"]
+    end
+
+    subgraph UserGroup ["Kebutuhan Fungsional Pengguna"]
+        UC01(["FR-U01: Akun, Profil & Informed Consent"])
+        UC02(["FR-U02: Anggaran 50/30/20 & Tujuan Tabungan"])
+        UC03(["FR-U03: Catat Transaksi & Smart OCR Struk"])
+        UC04(["FR-U04: Pemeriksaan Risiko Pra-Pembelian & XAI"])
+        UC05(["FR-U05: Respons 3-Tindakan & Evaluasi Pasca-Keputusan"])
+        UC07(["FR-U07: Laporan & Wawasan Pengeluaran"])
+        UC08(["FR-U08: Skor Kesehatan, Streak, Lencana & Edukasi"])
+    end
+
+    subgraph AdminGroup ["Kebutuhan Fungsional Administrator"]
+        AC01(["FR-A01: Ringkasan Akun Pengguna"])
+        AC02(["FR-A02: Aturan Cold-Start & Ambang Risiko"])
+        AC03(["FR-A03: Versi Model & Rollback (Wajib Alasan)"])
+        AC04(["FR-A04: Status Operasional & Layanan"])
+        AC05(["FR-A05: Panel Evaluasi & Metrik Model"])
+        AC06(["FR-A06: Meninjau Rekam Jejak Log Audit"])
+    end
+
+    User --> UC01
+    User --> UC02
+    User --> UC03
+    User --> UC04
+    User --> UC05
+    User --> UC07
+    User --> UC08
+
+    Admin --> AC01
+    Admin --> AC02
+    Admin --> AC03
+    Admin --> AC04
+    Admin --> AC05
+    Admin --> AC06
