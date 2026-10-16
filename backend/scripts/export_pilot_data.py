@@ -219,7 +219,6 @@ def export_pilot_data(
     summary: Dict[str, Any] = {
         "total_active_consented_participants": len(consented_user_ids),
         "exported_tables": {},
-        "salt_used_preview": f"{salt[:4]}***{salt[-4:]}" if len(salt) >= 8 else "***",
         "output_directory": str(output_dir),
         "exported_at": datetime.now(timezone.utc).isoformat(),
     }

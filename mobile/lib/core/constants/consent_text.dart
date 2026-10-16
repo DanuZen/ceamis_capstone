@@ -12,10 +12,10 @@ class ConsentText {
       '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Pengembangan Sistem Peringatan Dini Pengeluaran Tidak Terencana melalui Intervensi Pra-Pembelian Berbasis Pola Transaksi Personal';
 
   static const String researchPurpose =
-      '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Penelitian ini bertujuan untuk menguji keefektifan sistem peringatan dini sebelum checkout dalam membantu pengguna mengendalikan perilaku belanja impulsif berdasarkan pola transaksi personal.';
+      '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Penelitian ini bertujuan untuk menguji keefektifan sistem peringatan dini sebelum checkout dalam membantu pengguna mengendalikan pengeluaran tidak terencana berdasarkan pola transaksi personal.';
 
   static const String dataCollected =
-      '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Data yang dikumpulkan meliputi nominal rencana belanja, kategori transaksi, status pagu anggaran, target tabungan, respons intervensi (lanjut/sesuaikan/tunda), dan evaluasi pasca-keputusan. Semua data dienkripsi dan diproses secara pseudonim.';
+      '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Data yang dikumpulkan meliputi nominal rencana belanja, kategori transaksi, status pagu anggaran, target tabungan, respons intervensi (lanjut/sesuaikan/tunda), dan evaluasi pasca-keputusan. Semua data [ISI SESUAI LEMBAR INFORMASI PENELITIAN] dan diproses secara pseudonim.';
 
   static const String thirdPartyProcessing =
       '[PEMROSESAN PIHAK KETIGA] [ISI SESUAI LEMBAR INFORMASI PENELITIAN] '
@@ -28,7 +28,7 @@ class ConsentText {
       '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Partisipasi bersifat sukarela. Anda berhak menarik persetujuan partisipasi penelitian kapan saja melalui menu Pengaturan Profil tanpa konsekuensi atau sanksi apa pun.';
 
   static const String researcherContact =
-      '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Peneliti Utama: Danu (Kontak: peneliti@ceamis.ac.id / WhatsApp Lab Riset Komputasi).';
+      '[ISI SESUAI LEMBAR INFORMASI PENELITIAN] Peneliti Utama: [NAMA PENELITI] (Surat Elektronik: [SURAT ELEKTRONIK PENELITI]), Dosen Pembimbing: [NAMA DOSEN PEMBIMBING].';
 
   static const String consentCheckboxLabel =
       'Saya telah membaca informasi di atas dan menyatakan SETUJU untuk berpartisipasi dalam penelitian ini.';
